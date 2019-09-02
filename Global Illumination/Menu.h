@@ -15,7 +15,7 @@ class Menu
 public:
 	Menu();
 
-	void initialize(Vulkan* vk, std::string fontPath);
+	void initialize(Vulkan* vk, std::string fontPath, std::function<void(void*, VkImageView)> callbackSetImageView, void* instance);
 	int addBooleanItem(Vulkan* vk, std::wstring label, std::function<void(void*, bool)> callback, bool defaultValue, void* instance, std::array<std::string, 2> imageOptions);
 	int addPicklistItem(Vulkan* vk, std::wstring label, std::function<void(void*, std::wstring)> callback, void* instance, int defaultValue, 
 		std::vector<std::wstring> options);
@@ -23,9 +23,10 @@ public:
 
 	void update(Vulkan* vk, int windowWidth, int windowHeight);
 
+	void cleanup(VkDevice device);
+
 	Text getText() { return m_text; }
 	Mesh2D* getQuadFull() { return &m_quadFull; }
-	//Mesh2D* getQuadItem() { return &m_quadItem; }
 	std::vector<UboBase*> getUBOs()
 	{
 		std::vector<UboBase*> r;
@@ -53,7 +54,7 @@ private:
 	const glm::vec3 ITEM_FOCUS_COLOR = glm::vec3(1.0f, 0.3f, 0.3f);
 	const glm::vec3 ITEM_DEACTIVATED_COLOR = glm::vec3(0.2f, 0.2f, 0.2f);
 	const float SPACE_BETWEEN_ITEMS = 0.05f;
-	const float ITEM_VALUE_SIZE = 0.3f;
+	const float ITEM_VALUE_SIZE = 0.38f;
 
 	const float TEXT_X_OFFSET = 0.03f;
 	const float TEXT_SIZE = 0.028f;
@@ -131,5 +132,9 @@ private:
 
 	int m_oldMouseLeftState = GLFW_RELEASE;
 	VkImageView m_currentOptionImageView = VK_NULL_HANDLE;
+
+	bool m_oldSomeoneOnFocus = false;
+	std::function<void(void*, VkImageView)> m_callbackSetImageView;
+	void* m_callerInstance;
 };
 

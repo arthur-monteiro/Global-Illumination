@@ -4,8 +4,10 @@ Menu::Menu()
 {
 }
 
-void Menu::initialize(Vulkan* vk, std::string fontPath)
+void Menu::initialize(Vulkan* vk, std::string fontPath, std::function<void(void*, VkImageView)> callbackSetImageView, void* instance)
 {
+	m_callbackSetImageView = callbackSetImageView;
+	m_callerInstance = instance;
 	m_text.initialize(vk, 48, fontPath);
 
 	m_quadFull.loadVertices(vk, VERTEX_QUAD, INDICES_QUAD);
@@ -132,6 +134,27 @@ void Menu::update(Vulkan* vk, int windowWidth, int windowHeight)
 			setFocus(vk, i, false);
 	}
 
+	bool someoneOnFocus = false;
+	for (int i(0); i < m_quadItems.size(); ++i)
+	{
+		if (m_quadItems[i].onFocus)
+		{
+			someoneOnFocus = true;
+			if (!m_oldSomeoneOnFocus && m_quadItems[i].type == MENU_ITEM_TYPE_BOOLEAN)
+			{
+				m_currentOptionImageView = m_booleanItems[m_quadItems[i].structID].imageOptions[m_booleanItems[m_quadItems[i].structID].value ? 1 : 0].getImageView();
+				m_callbackSetImageView(m_callerInstance, m_currentOptionImageView);
+			}
+		}
+	}
+
+	if (!someoneOnFocus && m_oldSomeoneOnFocus)
+	{
+		m_callbackSetImageView(m_callerInstance, VK_NULL_HANDLE);
+	}
+	
+	m_oldSomeoneOnFocus = someoneOnFocus;
+
 	if (glfwGetMouseButton(vk->getWindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS && m_oldMouseLeftState == GLFW_RELEASE)
 	{
 		for (int i(0); i < m_quadItems.size(); ++i)
@@ -156,6 +179,14 @@ void Menu::update(Vulkan* vk, int windowWidth, int windowHeight)
 	}
 
 	m_oldMouseLeftState = glfwGetMouseButton(vk->getWindow(), GLFW_MOUSE_BUTTON_1);
+}
+
+void Menu::cleanup(VkDevice device)
+{
+	m_quadFull.cleanup(device);
+	m_quadImageOption.cleanup(device);
+
+	
 }
 
 int Menu::addQuadItem(Vulkan* vk, int type, int id)

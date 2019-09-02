@@ -83,6 +83,11 @@ void System::cleanup()
 	m_vk.cleanup();
 }
 
+void System::setMenuOptionImageView(VkImageView imageView)
+{
+	m_swapChainRenderPass.updateImageViewMenuItemOption(&m_vk, imageView);
+}
+
 void System::changePCF(bool status)
 {
 	m_uboDirLightData.usePCF = status ? 1.0f : 0.0f;
@@ -130,10 +135,11 @@ void System::createRessources()
 	m_text.initialize(&m_vk, 48, "Fonts/arial.ttf");
 	m_fpsCounterTextID = m_text.addText(&m_vk, L"FPS : 0", glm::vec2(-0.99f, 0.85f), 0.065f, glm::vec3(1.0f));
 
-	m_menu.initialize(&m_vk, "Fonts/arial.ttf");
+	m_menu.initialize(&m_vk, "Fonts/arial.ttf", setMenuOptionImageViewCallback, this);
 	m_menu.addBooleanItem(&m_vk, L"FPS Counter", drawFPSCounterCallback, true, this, { "", "" });
 	int shadowsItemID = m_menu.addPicklistItem(&m_vk, L"Shadows", changeShadowsCallback, this, 1, { L"No", L"Shadow Map" });
-	int pcfItemID = m_menu.addBooleanItem(&m_vk, L"Percentage Closer Filtering (PCF)", changePCFCallback, true, this, { "Image_options/shadow_no_pcf.JPG", "Image_options/shadow_with_pcf.JPG" });
+	int pcfItemID = m_menu.addBooleanItem(&m_vk, L"Percentage Closer Filtering", changePCFCallback, true, this, { "Image_options/shadow_no_pcf.JPG", "Image_options/shadow_with_pcf.JPG" });
+	m_menu.addPicklistItem(&m_vk, L"Global Illumination", [](void*, std::wstring) {}, this, 1, { L"No", L"Ambient Lightning" });
 
 	m_menu.addDependency(MENU_ITEM_TYPE_PICKLIST, shadowsItemID, MENU_ITEM_TYPE_BOOLEAN, pcfItemID, { 1 });
 

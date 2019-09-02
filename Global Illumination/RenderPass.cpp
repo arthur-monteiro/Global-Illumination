@@ -301,34 +301,6 @@ void RenderPass::updateImageViewMenuItemOption(Vulkan* vk, VkImageView imageView
 	recordDraw(vk);
 }
 
-/*int RenderPass::addPointLight(Vulkan * vk, glm::vec3 position, glm::vec3 color)
-{
-	m_uboLights.pointLightsPositions[m_uboLights.nbPointLights] = glm::vec4(position, 1.0f);
-	m_uboLights.pointLightsColors[m_uboLights.nbPointLights] = glm::vec4(color, 1.0f);
-	m_uboLights.nbPointLights++;
-
-	void* data;
-	vkMapMemory(vk->getDevice(), m_uboLights.uniformBufferMemory, 0, sizeof(m_uboLights), 0, &data);
-		memcpy(data, &m_uboLights, sizeof(m_uboLights));
-	vkUnmapMemory(vk->getDevice(), m_uboLights.uniformBufferMemory);
-
-	return m_uboLights.nbPointLights - 1;
-}
-
-int RenderPass::addDirLight(Vulkan* vk, glm::vec3 direction, glm::vec3 color)
-{
-	m_uboLights.dirLightsDirections[m_uboLights.nbDirLights] = glm::vec4(direction, 1.0f);
-	m_uboLights.dirLightsColors[m_uboLights.nbDirLights] = glm::vec4(color, 1.0f);
-	m_uboLights.nbDirLights++;
-
-	void* data;
-	vkMapMemory(vk->getDevice(), m_uboLights.uniformBufferMemory, 0, sizeof(m_uboLights), 0, &data);
-	memcpy(data, &m_uboLights, sizeof(m_uboLights));
-	vkUnmapMemory(vk->getDevice(), m_uboLights.uniformBufferMemory);
-
-	return m_uboLights.nbDirLights - 1;
-}*/
-
 void RenderPass::recordDraw(Vulkan * vk)
 {
 	std::vector<MeshPipeline> meshesToRender;
@@ -366,49 +338,12 @@ void RenderPass::recordDraw(Vulkan * vk)
 	else fillCommandBuffer(vk);
 }
 
-/*void RenderPass::updateUniformBuffer(Vulkan * vk, int meshID)
-{
-	m_camera.update(vk->getWindow());
-
-	for (int i = 0; i < m_meshes.size(); ++i)
-	{
-		if (meshID != -1)
-			i = meshID;
-
-		UniformBufferObjectMatrices ubo = {};
-		ubo.matrix = m_meshes[i]->GetModelMatrix();
-		if (meshID != -1)
-			ubo.view = glm::mat4(glm::mat3(m_camera.getViewMatrix()));
-		else
-			ubo.view = m_camera.getViewMatrix();
-		ubo.proj = glm::perspective(glm::radians(45.0f), vk->getSwapChainExtend().width / (float)vk->getSwapChainExtend().height, 0.1f, 10.0f);
-		ubo.proj[1][1] *= -1;
-
-		void* data;
-		vkMapMemory(vk->getDevice(), m_ubosMatrices[i].uniformBufferMemory, 0, sizeof(ubo), 0, &data);
-			memcpy(data, &ubo, sizeof(ubo));
-		vkUnmapMemory(vk->getDevice(), m_ubosMatrices[i].uniformBufferMemory);
-
-		if (meshID != -1)
-			break;
-	}
-
-	m_uboLights.camPos = glm::vec4(m_camera.getPosition(), 1.0f);
-
-	void* data;
-	vkMapMemory(vk->getDevice(), m_uboLights.uniformBufferMemory, 0, sizeof(m_uboLights), 0, &data);
-		memcpy(data, &m_uboLights, sizeof(m_uboLights));
-	vkUnmapMemory(vk->getDevice(), m_uboLights.uniformBufferMemory);
-}*/
-
 void RenderPass::drawCall(Vulkan * vk)
 {
 	if (m_text && m_text->needUpdate() != -1)
 	{
 		m_meshesPipeline[m_textID[m_text->needUpdate()]].free(vk->getDevice(), m_descriptorPool);
-		//m_meshesPipeline.erase(m_meshesPipeline.begin() + m_textID[m_text->needUpdate()]);
 
-		//m_textID[m_text->needUpdate()] = m_meshesPipeline.size();
 		MeshPipeline meshPipeline;
 		meshPipeline.pipeline = m_textPipeline.getGraphicsPipeline();
 		meshPipeline.pipelineLayout = m_textPipeline.getPipelineLayout();

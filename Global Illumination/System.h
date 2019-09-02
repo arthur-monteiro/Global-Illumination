@@ -30,11 +30,13 @@ public:
 	bool mainLoop();
 	void cleanup();
 
+	void setMenuOptionImageView(VkImageView imageView);
 	void changePCF(bool status);
 	void drawFPSCounter(bool status);
 	void changeShadows(std::wstring value);
 
 	static void recreateCallback(void* instance) { reinterpret_cast<System*>(instance)->create(true); }
+	static void setMenuOptionImageViewCallback(void* instance, VkImageView imageView) { reinterpret_cast<System*>(instance)->setMenuOptionImageView(imageView); }
 	static void changePCFCallback(void* instance, bool status) { reinterpret_cast<System*>(instance)->changePCF(status); }
 	static void drawFPSCounterCallback(void* instance, bool status) { reinterpret_cast<System*>(instance)->drawFPSCounter(status); }
 	static void changeShadowsCallback(void* instance, std::wstring value) { reinterpret_cast<System*>(instance)->changeShadows(value); }

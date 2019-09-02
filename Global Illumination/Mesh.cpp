@@ -3,9 +3,6 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
 void MeshPBR::loadObj(Vulkan * vk, std::string path, glm::vec3 forceNormal)
 {
 	tinyobj::attrib_t attrib;
@@ -104,7 +101,7 @@ void MeshPBR::loadObj(Vulkan * vk, std::string path, glm::vec3 forceNormal)
 
 int MeshBase::createTexture(Vulkan* vk, uint32_t height, uint32_t width, int mipLevels, int nLayers)
 {
-	m_images.push_back(Image());
+	m_images.push_back(ImageToRemove());
 
 	m_mipLevels = mipLevels;
 	vk->createImage(width, height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
@@ -130,7 +127,7 @@ void MeshBase::loadTextureFromImages(Vulkan* vk, std::vector<VkImage> images, ui
 
 	for (int i = 0; i < images.size(); ++i)
 	{
-		m_images.push_back(Image());
+		m_images.push_back(ImageToRemove());
 
 		vk->createImage(width, height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
@@ -148,7 +145,7 @@ void MeshBase::loadTextureFromImages(Vulkan* vk, std::vector<VkImage> images, ui
 
 void MeshBase::loadCubemapFromFile(Vulkan* vk, std::vector<std::string> path)
 {
-	m_images.push_back(Image());
+	m_images.push_back(ImageToRemove());
 
 	for (int i = 0; i < path.size(); ++i)
 	{
@@ -196,7 +193,7 @@ void MeshBase::loadCubemapFromImages(Vulkan* vk, std::array<VkImage, 6> images, 
 {
 	m_mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 
-	m_images.push_back(Image());
+	m_images.push_back(ImageToRemove());
 
 	vk->createImage(width, height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
@@ -253,7 +250,7 @@ void MeshBase::loadHDRTexture(Vulkan* vk, std::vector<std::string> path)
 
 		stbi_image_free(pixels);
 
-		m_images.push_back(Image());
+		m_images.push_back(ImageToRemove());
 
 		vk->createImage(texWidth, texHeight, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0,
@@ -274,7 +271,7 @@ void MeshBase::loadHDRTexture(Vulkan* vk, std::vector<std::string> path)
 
 void MeshBase::addImageView(VkImageView imageView)
 {
-	Image image;
+	ImageToRemove image;
 	image.imageView = imageView;
 
 	m_images.push_back(image);
@@ -392,7 +389,7 @@ void MeshBase::createTextureImage(Vulkan * vk, std::string path)
 
 	stbi_image_free(pixels);
 
-	m_images.push_back(Image());
+	m_images.push_back(ImageToRemove());
 
 	vk->createImage(texWidth, texHeight, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0,
@@ -472,6 +469,57 @@ void Mesh2D::cleanup(VkDevice device)
 }
 
 void Mesh2D::createVertexBuffer(Vulkan* vk)
+{
+	VkDeviceSize bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
+
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+	vk->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+	void* data;
+	vkMapMemory(vk->getDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+	memcpy(data, m_vertices.data(), (size_t)bufferSize);
+	vkUnmapMemory(vk->getDevice(), stagingBufferMemory);
+
+	vk->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
+
+	vk->copyBuffer(stagingBuffer, m_vertexBuffer, bufferSize);
+
+	vkDestroyBuffer(vk->getDevice(), stagingBuffer, nullptr);
+	vkFreeMemory(vk->getDevice(), stagingBufferMemory, nullptr);
+}
+
+void Mesh2DTextured::loadVertices(Vulkan* vk, std::vector<VertexQuadTextured> vertices, std::vector<uint32_t> indices)
+{
+	m_vertices = vertices;
+	m_indices = indices;
+
+	createVertexBuffer(vk);
+	createIndexBuffer(vk);
+}
+
+void Mesh2DTextured::cleanup(VkDevice device)
+{
+	m_vertices.clear();
+	m_indices.clear();
+
+	vkDestroyBuffer(device, m_vertexBuffer, nullptr);
+	vkFreeMemory(device, m_vertexBufferMemory, nullptr);
+
+	vkDestroyBuffer(device, m_indexBuffer, nullptr);
+	vkFreeMemory(device, m_indexBufferMemory, nullptr);
+
+	for (int i(0); i < m_images.size(); ++i)
+	{
+		vkDestroyImageView(device, m_images[i].imageView, nullptr);
+		vkDestroyImage(device, m_images[i].image, nullptr);
+		vkFreeMemory(device, m_images[i].imageMemory, nullptr);
+	}
+
+	m_isDestroyed = true;
+}
+
+void Mesh2DTextured::createVertexBuffer(Vulkan* vk)
 {
 	VkDeviceSize bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
 

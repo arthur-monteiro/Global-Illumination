@@ -252,6 +252,53 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 		m_menuMeshesPipelineIDs.push_back(m_meshesPipeline.size());
 		m_meshesPipeline.push_back(meshPipeline);
 	}
+
+	/* Option quad */
+	{
+		MeshPipeline meshPipeline;
+		m_menuOptionImageDescriptorLayout = createDescriptorSetLayout(vk->getDevice(), { }, 1);
+
+		Pipeline pipeline;
+		pipeline.initialize(vk, &m_menuOptionImageDescriptorLayout, m_renderPass, "Shaders/menuOptionImageQuad/vert.spv", "Shaders/menuOptionImageQuad/frag.spv", false, m_msaaSamples,
+			{ VertexQuadTextured::getBindingDescription(0) }, VertexQuadTextured::getAttributeDescriptions(0), m_extent);
+		meshPipeline.pipeline = pipeline.getGraphicsPipeline();
+		meshPipeline.pipelineLayout = pipeline.getPipelineLayout();
+
+		Mesh2DTextured* quadImageOption = menu->getQuadImageOption();
+
+		meshPipeline.vertexBuffer.push_back(quadImageOption->getVertexBuffer());
+		meshPipeline.indexBuffer.push_back(quadImageOption->getIndexBuffer());
+		meshPipeline.nbIndices.push_back(quadImageOption->getNumIndices());
+
+		std::vector<VkImageView> imageViews = {};
+
+		m_menuOptionImageSampler = quadImageOption->getSampler();
+		VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), m_menuOptionImageDescriptorLayout,
+			imageViews, m_menuOptionImageSampler, { }, imageViews.size(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		meshPipeline.descriptorSet.push_back(descriptorSet);
+
+		m_menuMeshesPipelineIDs.push_back(m_meshesPipeline.size());
+		m_menuOptionImageMeshPipelineID = m_meshesPipeline.size();
+		m_meshesPipeline.push_back(meshPipeline);
+	}
+}
+
+void RenderPass::updateImageViewMenuItemOption(Vulkan* vk, VkImageView imageView)
+{
+	if (imageView == VK_NULL_HANDLE)
+	{
+		m_drawOptionImage = false;
+		recordDraw(vk);
+		return;
+	}
+
+	VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), m_menuOptionImageDescriptorLayout,
+		{ imageView }, m_menuOptionImageSampler, { }, 1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	
+	m_meshesPipeline[m_menuOptionImageMeshPipelineID].descriptorSet[0] = descriptorSet;
+	m_drawOptionImage = true;
+
+	recordDraw(vk);
 }
 
 /*int RenderPass::addPointLight(Vulkan * vk, glm::vec3 position, glm::vec3 color)
@@ -287,6 +334,8 @@ void RenderPass::recordDraw(Vulkan * vk)
 	std::vector<MeshPipeline> meshesToRender;
 	for (int i(0); i < m_meshesPipeline.size(); ++i)
 	{
+		if (!m_drawOptionImage && m_menuOptionImageMeshPipelineID == i)
+			continue;
 		if (!m_drawMenu)
 		{
 			bool draw = true;
@@ -409,6 +458,8 @@ void RenderPass::cleanup(Vulkan * vk)
 	m_meshesPipeline.clear();
 	m_textID.clear();
 	m_menuMeshesPipelineIDs.clear();
+	m_menuOptionImageMeshPipelineID = -1;
+	m_drawOptionImage = false;
 
 	vkDestroyDescriptorPool(vk->getDevice(), m_descriptorPool, nullptr);
 	vkDestroyRenderPass(vk->getDevice(), m_renderPass, nullptr);

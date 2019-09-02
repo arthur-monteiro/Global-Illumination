@@ -10,6 +10,15 @@ void Menu::initialize(Vulkan* vk, std::string fontPath)
 
 	m_quadFull.loadVertices(vk, VERTEX_QUAD, INDICES_QUAD);
 
+	std::vector<VertexQuadTextured> VERTEX_QUAD_TEXTURED = {
+		{ glm::vec2(0.1f, -0.6f), glm::vec2(0.0f, 0.0f) }, // top left
+		{ glm::vec2(0.9f, -0.6f), glm::vec2(1.0f, 0.0f) }, // top right
+		{ glm::vec2(0.1f, 0.1f), glm::vec2(0.0f, 1.0f) }, // bot left
+		{ glm::vec2(0.9f, 0.1f), glm::vec2(1.0f, 1.0f) } // bot right
+	};
+	m_quadImageOption.loadVertices(vk, VERTEX_QUAD_TEXTURED, INDICES_QUAD);
+	m_quadImageOption.createTextureSampler(vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+
 	/*for (int i(0); i < VERTEX_QUAD.size(); ++i)
 	{
 		VERTEX_QUAD[i].pos /= glm::vec2(2 / ITEM_X_SIZE, 2 / ITEM_Y_SIZE);
@@ -21,7 +30,7 @@ void Menu::initialize(Vulkan* vk, std::string fontPath)
 	m_quadItem.loadVertices(vk, VERTEX_QUAD, INDICES_QUAD);*/
 }
 
-int Menu::addBooleanItem(Vulkan* vk, std::wstring label, std::function<void(void*, bool)> callback, bool defaultValue, void* instance)
+int Menu::addBooleanItem(Vulkan* vk, std::wstring label, std::function<void(void*, bool)> callback, bool defaultValue, void* instance, std::array<std::string, 2> imageOptions)
 {
 	m_booleanItems.push_back(BooleanItem());
 	m_booleanItems[m_booleanItems.size() - 1].value = defaultValue;
@@ -44,6 +53,16 @@ int Menu::addBooleanItem(Vulkan* vk, std::wstring label, std::function<void(void
 		defaultValue ? TEXT_VALUE_COLOR_YES : TEXT_VALUE_COLOR_NO);
 
 	m_numberOfItems++;
+
+	for (int i(0); i < 2; ++i)
+	{
+		if (imageOptions[i] != "")
+		{
+			m_booleanItems[m_booleanItems.size() - 1].imageOptions[i].loadTextureFromFile(vk, imageOptions[i]);
+			m_currentOptionImageView = m_booleanItems[m_booleanItems.size() - 1].imageOptions[i].getImageView();
+		}
+	}
+
 	return m_booleanItems.size() - 1;
 }
 
@@ -79,7 +98,7 @@ int Menu::addPicklistItem(Vulkan* vk, std::wstring label, std::function<void(voi
 
 void Menu::addDependency(int itemTypeSrc, int itemIdSrc, int itemTypeDst, int itemIdDst, std::vector<int> activateValues)
 {
-	if (itemIdSrc == MENU_ITEM_TYPE_PICKLIST)
+	if (itemTypeSrc == MENU_ITEM_TYPE_PICKLIST)
 	{
 		m_picklistItems[itemIdSrc].activateItemType = itemTypeDst;
 		m_picklistItems[itemIdSrc].activateItemID = itemIdDst;
@@ -103,6 +122,9 @@ void Menu::update(Vulkan* vk, int windowWidth, int windowHeight)
 
 	for (int i(0); i < m_quadItems.size(); ++i)
 	{
+		if (m_quadItems[i].type == MENU_ITEM_TYPE_BOOLEAN && !m_booleanItems[m_quadItems[i].structID].activated)
+			continue;
+
 		if (mousePosX > ITEM_X_OFFSET && mousePosX < ITEM_X_OFFSET + ITEM_X_SIZE &&
 			mousePosY > ITEM_Y_OFFSET + i * (ITEM_Y_SIZE + SPACE_BETWEEN_ITEMS) && mousePosY < ITEM_Y_OFFSET + i * (ITEM_Y_SIZE + SPACE_BETWEEN_ITEMS) + ITEM_Y_SIZE)
 			setFocus(vk, i, true);
@@ -175,6 +197,8 @@ void Menu::onClickBooleanItem(Vulkan* vk, int id)
 	m_text.setColor(vk, m_booleanItems[id].textYesID, m_booleanItems[id].value ? TEXT_VALUE_COLOR_YES : TEXT_VALUE_COLOR_NO);
 	m_text.setColor(vk, m_booleanItems[id].textNoID, m_booleanItems[id].value ? TEXT_VALUE_COLOR_NO : TEXT_VALUE_COLOR_YES);
 
+	m_currentOptionImageView = m_booleanItems[id].imageOptions[m_booleanItems[id].value ? 1 : 0].getImageView();
+
 	m_booleanItems[id].callback(m_booleanItems[id].instance, m_booleanItems[id].value);
 }
 
@@ -183,6 +207,45 @@ void Menu::onClickPicklistItem(Vulkan* vk, int id)
 	m_text.setColor(vk, m_picklistItems[id].textOptionIDs[m_picklistItems[id].selectedOption], glm::vec3(-1.0f));
 	m_picklistItems[id].selectedOption = (m_picklistItems[id].selectedOption + 1) % m_picklistItems[id].options.size();
 	m_text.setColor(vk, m_picklistItems[id].textOptionIDs[m_picklistItems[id].selectedOption], TEXT_VALUE_COLOR_YES);
+
+	bool needActivate = false;
+	for(int i(0); i < m_picklistItems[id].valueToActivateItem.size(); ++i)
+		if (m_picklistItems[id].valueToActivateItem[i] == m_picklistItems[id].selectedOption)
+		{
+			needActivate = true;
+			break;
+		}
+
+	if (m_picklistItems[id].activateItemType == MENU_ITEM_TYPE_BOOLEAN && 
+		((needActivate && !m_booleanItems[m_picklistItems[id].activateItemID].activated) || (!needActivate && m_booleanItems[m_picklistItems[id].activateItemID].activated)))
+	{
+		if (needActivate)
+		{
+			m_quadItems[m_booleanItems[m_picklistItems[id].activateItemID].quadID].uboData.color = glm::vec4(ITEM_DEFAULT_COLOR, 1.0f);
+			m_quadItems[m_booleanItems[m_picklistItems[id].activateItemID].quadID].ubo.update(vk, m_quadItems[m_booleanItems[m_picklistItems[id].activateItemID].quadID].uboData);
+
+			m_text.setColor(vk, m_booleanItems[m_picklistItems[id].activateItemID].textID, TEXT_VALUE_COLOR_YES);
+			m_text.setColor(vk, m_booleanItems[m_picklistItems[id].activateItemID].textNoID, m_booleanItems[m_picklistItems[id].activateItemID].value ? TEXT_VALUE_COLOR_NO : TEXT_VALUE_COLOR_YES);
+			m_text.setColor(vk, m_booleanItems[m_picklistItems[id].activateItemID].textSeparatorID, TEXT_VALUE_COLOR_NO);
+			m_text.setColor(vk, m_booleanItems[m_picklistItems[id].activateItemID].textYesID, m_booleanItems[m_picklistItems[id].activateItemID].value ? TEXT_VALUE_COLOR_YES : TEXT_VALUE_COLOR_NO);
+
+			m_booleanItems[m_picklistItems[id].activateItemID].activated = true;
+		}
+		else
+		{
+			m_quadItems[m_booleanItems[m_picklistItems[id].activateItemID].quadID].uboData.color = glm::vec4(ITEM_DEACTIVATED_COLOR, 1.0f);
+			m_quadItems[m_booleanItems[m_picklistItems[id].activateItemID].quadID].ubo.update(vk, m_quadItems[m_booleanItems[m_picklistItems[id].activateItemID].quadID].uboData);
+
+			m_text.setColor(vk, m_booleanItems[m_picklistItems[id].activateItemID].textID, TEXT_COLOR_DEACTIVATED);
+			m_text.setColor(vk, m_booleanItems[m_picklistItems[id].activateItemID].textNoID, TEXT_COLOR_DEACTIVATED);
+			m_text.setColor(vk, m_booleanItems[m_picklistItems[id].activateItemID].textSeparatorID, TEXT_COLOR_DEACTIVATED);
+			m_text.setColor(vk, m_booleanItems[m_picklistItems[id].activateItemID].textYesID, TEXT_COLOR_DEACTIVATED);
+
+			m_booleanItems[m_picklistItems[id].activateItemID].activated = false;
+		}
+	}
+
+	m_currentOptionImageView = VK_NULL_HANDLE;
 
 	m_picklistItems[id].callback(m_picklistItems[id].instance, m_picklistItems[id].options[m_picklistItems[id].selectedOption]);
 }

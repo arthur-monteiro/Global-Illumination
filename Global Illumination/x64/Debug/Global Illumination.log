@@ -1,36 +1,31 @@
-﻿  Menu.cpp
-F:\Code\Global Illumination\Global Illumination\Vulkan.h(58,1): warning C4267:  'argument' : conversion de 'size_t' en 'uint32_t', perte possible de données
-F:\Code\Global Illumination\Global Illumination\Menu.cpp(33,118): warning C4267:  'argument' : conversion de 'size_t' en 'int', perte possible de données
-F:\Code\Global Illumination\Global Illumination\Menu.cpp(47,34): warning C4267:  'return' : conversion de 'size_t' en 'int', perte possible de données
-F:\Code\Global Illumination\Global Illumination\Menu.cpp(60,122): warning C4267:  'argument' : conversion de 'size_t' en 'int', perte possible de données
-F:\Code\Global Illumination\Global Illumination\Menu.cpp(77,35): warning C4267:  'return' : conversion de 'size_t' en 'int', perte possible de données
-  RenderPass.cpp
-F:\Code\Global Illumination\Global Illumination\Menu.cpp(156,31): warning C4267:  'return' : conversion de 'size_t' en 'int', perte possible de données
-F:\Code\Global Illumination\Global Illumination\Vulkan.h(58,1): warning C4267:  'argument' : conversion de 'size_t' en 'uint32_t', perte possible de données
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(153,45): warning C4267:  'argument' : conversion de 'size_t' en '_Ty', perte possible de données
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(153,45): warning C4267:         with
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(153,45): warning C4267:         [
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(153,45): warning C4267:             _Ty=int
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(153,45): warning C4267:         ]
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(181,60): warning C4267:  'argument' : conversion de 'size_t' en '_Ty', perte possible de données
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(181,60): warning C4267:         with
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(181,60): warning C4267:         [
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(181,60): warning C4267:             _Ty=int
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(181,60): warning C4267:         ]
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(227,60): warning C4267:  'argument' : conversion de 'size_t' en '_Ty', perte possible de données
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(227,60): warning C4267:         with
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(227,60): warning C4267:         [
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(227,60): warning C4267:             _Ty=int
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(227,60): warning C4267:         ]
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(252,60): warning C4267:  'argument' : conversion de 'size_t' en '_Ty', perte possible de données
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(252,60): warning C4267:         with
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(252,60): warning C4267:         [
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(252,60): warning C4267:             _Ty=int
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(252,60): warning C4267:         ]
-  System.cpp
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(744,56): warning C4267:  '=' : conversion de 'size_t' en 'uint32_t', perte possible de données
-  main.cpp
-F:\Code\Global Illumination\Global Illumination\Vulkan.h(58,1): warning C4267:  'argument' : conversion de 'size_t' en 'uint32_t', perte possible de données
-  Génération de code en cours...
-F:\Code\Global Illumination\Global Illumination\Vulkan.h(58,1): warning C4267:  'argument' : conversion de 'size_t' en 'uint32_t', perte possible de données
-  Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe
+﻿  RenderPass.cpp
+E:\nosave\VS Project\GI\Global Illumination\Vulkan.h(58,1): warning C4267:  'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(153,45): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(153,45): warning C4267:         with
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(153,45): warning C4267:         [
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(153,45): warning C4267:             _Ty=int
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(153,45): warning C4267:         ]
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(181,60): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(181,60): warning C4267:         with
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(181,60): warning C4267:         [
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(181,60): warning C4267:             _Ty=int
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(181,60): warning C4267:         ]
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(227,60): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(227,60): warning C4267:         with
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(227,60): warning C4267:         [
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(227,60): warning C4267:             _Ty=int
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(227,60): warning C4267:         ]
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(252,60): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(252,60): warning C4267:         with
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(252,60): warning C4267:         [
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(252,60): warning C4267:             _Ty=int
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(252,60): warning C4267:         ]
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(277,106): warning C4267:  'argument': conversion from 'size_t' to 'int', possible loss of data
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(280,60): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(280,60): warning C4267:         with
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(280,60): warning C4267:         [
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(280,60): warning C4267:             _Ty=int
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(280,60): warning C4267:         ]
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(281,60): warning C4267:  '=': conversion from 'size_t' to 'int', possible loss of data
+E:\nosave\VS Project\GI\Global Illumination\RenderPass.cpp(795,56): warning C4267:  '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+  Global Illumination.vcxproj -> E:\nosave\VS Project\GI\x64\Debug\Global Illumination.exe

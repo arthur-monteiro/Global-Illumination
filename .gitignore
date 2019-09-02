@@ -1,0 +1,5 @@
+#Ignore the vs folder
+.vs/
+
+# Ignore logs
+*.tlog

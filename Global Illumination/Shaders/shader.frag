@@ -43,12 +43,12 @@ float filterPCF(vec4 sc)
 {
 	//ivec2 texDim = textureSize(shadowMap, 0);
 	float scale = 1.0;
-	float dx = scale * 1.0 / float(8192);
-	float dy = scale * 1.0 / float(8192);
+	float dx = scale * 1.0 / float(2048);
+	float dy = scale * 1.0 / float(2048);
 
 	float shadowFactor = 0.0;
 	int count = 0;
-	int range = 8;
+	int range = 1;
 	
 	for (int x = -range; x <= range; x++)
 	{

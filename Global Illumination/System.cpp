@@ -87,11 +87,15 @@ void System::changePCF(bool status)
 {
 	m_uboDirLightData.usePCF = status ? 1.0f : 0.0f;
 	m_uboDirLight.update(&m_vk, m_uboDirLightData);
+
+	m_swapChainRenderPass.updateImageViewMenuItemOption(&m_vk, m_menu.getOptionImageView());
 }
 
 void System::drawFPSCounter(bool status)
 {
 	m_swapChainRenderPass.setDrawText(&m_vk, status);
+
+	m_swapChainRenderPass.updateImageViewMenuItemOption(&m_vk, m_menu.getOptionImageView());
 }
 
 void System::changeShadows(std::wstring value)
@@ -102,6 +106,8 @@ void System::changeShadows(std::wstring value)
 		m_sceneType = SCENE_TYPE_SHADOWMAP;
 
 	createPasses(m_sceneType, true);
+
+	m_swapChainRenderPass.updateImageViewMenuItemOption(&m_vk, m_menu.getOptionImageView());
 }
 
 void System::create(bool recreate)
@@ -125,9 +131,11 @@ void System::createRessources()
 	m_fpsCounterTextID = m_text.addText(&m_vk, L"FPS : 0", glm::vec2(-0.99f, 0.85f), 0.065f, glm::vec3(1.0f));
 
 	m_menu.initialize(&m_vk, "Fonts/arial.ttf");
-	m_menu.addBooleanItem(&m_vk, L"FPS Counter", drawFPSCounterCallback, true, this);
-	m_menu.addPicklistItem(&m_vk, L"Shadows", changeShadowsCallback, this, 1, { L"No", L"Shadow Map" });
-	m_menu.addBooleanItem(&m_vk, L"Percentage Closer Filtering (PCF)", changePCFCallback, true, this);
+	m_menu.addBooleanItem(&m_vk, L"FPS Counter", drawFPSCounterCallback, true, this, { "", "" });
+	int shadowsItemID = m_menu.addPicklistItem(&m_vk, L"Shadows", changeShadowsCallback, this, 1, { L"No", L"Shadow Map" });
+	int pcfItemID = m_menu.addBooleanItem(&m_vk, L"Percentage Closer Filtering (PCF)", changePCFCallback, true, this, { "Image_options/shadow_no_pcf.JPG", "Image_options/shadow_with_pcf.JPG" });
+
+	m_menu.addDependency(MENU_ITEM_TYPE_PICKLIST, shadowsItemID, MENU_ITEM_TYPE_BOOLEAN, pcfItemID, { 1 });
 
 	m_wall.loadObj(&m_vk, "Models/wall.obj");
 	m_wall.createTextureSampler(&m_vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
@@ -147,7 +155,7 @@ void System::createPasses(int type, bool recreate)
 
 	if (!recreate)
 	{
-		m_offscreenShadowMap.initialize(&m_vk, true, { 8192, 8192 }, false, VK_SAMPLE_COUNT_1_BIT, 1, false, true);
+		m_offscreenShadowMap.initialize(&m_vk, true, { 2048, 2048 }, false, VK_SAMPLE_COUNT_1_BIT, 1, false, true);
 
 		m_uboVPData.proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 96.0f);
 		//m_uboVPData.proj[1][1] *= -1;

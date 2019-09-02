@@ -32,6 +32,8 @@ public:
 	int addText(Vulkan * vk, Text * text);
 	void addMenu(Vulkan* vk, Menu * menu);
 
+	void updateImageViewMenuItemOption(Vulkan* vk, VkImageView imageView);
+
 	void recordDraw(Vulkan * vk);
 
 	void drawCall(Vulkan * vk);
@@ -76,6 +78,10 @@ private:
 	
 	std::vector<int> m_menuMeshesPipelineIDs;
 	bool m_drawMenu = false;
+	int m_menuOptionImageMeshPipelineID = -1;
+	bool m_drawOptionImage = false;
+	VkDescriptorSetLayout m_menuOptionImageDescriptorLayout;
+	VkSampler m_menuOptionImageSampler;
 	std::vector<MeshPipeline> m_meshesPipeline;
 
 	std::vector<int> m_textID;

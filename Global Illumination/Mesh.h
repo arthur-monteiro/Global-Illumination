@@ -4,8 +4,9 @@
 
 #include "Vulkan.h"
 #include "Pipeline.h"
+#include "Image.h"
 
-struct Image
+struct ImageToRemove
 {
 	VkImage image;
 	VkDeviceMemory  imageMemory;
@@ -65,7 +66,7 @@ protected:
 	VkDeviceMemory m_indexBufferMemory;
 
 	uint32_t m_mipLevels;
-	std::vector<Image> m_images;
+	std::vector<ImageToRemove> m_images;
 	VkSampler m_textureSampler = NULL;
 };
 
@@ -105,4 +106,18 @@ private:
 
 private:
 	std::vector<VertexQuad> m_vertices;
+};
+
+class Mesh2DTextured : public MeshBase
+{
+public:
+	void loadVertices(Vulkan* vk, std::vector<VertexQuadTextured> vertices, std::vector<uint32_t> indices);
+
+	void cleanup(VkDevice device);
+
+private:
+	void createVertexBuffer(Vulkan* vk);
+
+private:
+	std::vector<VertexQuadTextured> m_vertices;
 };

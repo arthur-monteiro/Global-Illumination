@@ -4,6 +4,7 @@
 #include "Text.h"
 #include "Mesh.h"
 #include "UniformBufferObject.h"
+#include "Image.h"
 
 const int MENU_ITEM_TYPE_UNDEFINED = -1;
 const int MENU_ITEM_TYPE_BOOLEAN = 0;
@@ -15,7 +16,7 @@ public:
 	Menu();
 
 	void initialize(Vulkan* vk, std::string fontPath);
-	int addBooleanItem(Vulkan* vk, std::wstring label, std::function<void(void*, bool)> callback, bool defaultValue, void* instance);
+	int addBooleanItem(Vulkan* vk, std::wstring label, std::function<void(void*, bool)> callback, bool defaultValue, void* instance, std::array<std::string, 2> imageOptions);
 	int addPicklistItem(Vulkan* vk, std::wstring label, std::function<void(void*, std::wstring)> callback, void* instance, int defaultValue, 
 		std::vector<std::wstring> options);
 	void addDependency(int itemTypeSrc, int itemIdSrc, int itemTypeDst, int itemIdDst, std::vector<int> activateValues);
@@ -33,6 +34,8 @@ public:
 
 		return r;
 	}
+	Mesh2DTextured* getQuadImageOption() { return &m_quadImageOption; }
+	VkImageView getOptionImageView() { return m_currentOptionImageView; }
 
 private:
 	int addQuadItem(Vulkan* vk, int type, int id);
@@ -48,6 +51,7 @@ private:
 	const float ITEM_Y_SIZE = 0.15f;
 	const glm::vec3 ITEM_DEFAULT_COLOR = glm::vec3(0.3f, 0.3f, 0.3f);
 	const glm::vec3 ITEM_FOCUS_COLOR = glm::vec3(1.0f, 0.3f, 0.3f);
+	const glm::vec3 ITEM_DEACTIVATED_COLOR = glm::vec3(0.2f, 0.2f, 0.2f);
 	const float SPACE_BETWEEN_ITEMS = 0.05f;
 	const float ITEM_VALUE_SIZE = 0.3f;
 
@@ -56,6 +60,7 @@ private:
 
 	const glm::vec3 TEXT_VALUE_COLOR_NO = glm::vec3(0.1f);
 	const glm::vec3 TEXT_VALUE_COLOR_YES = glm::vec3(1.0f);
+	const glm::vec3 TEXT_COLOR_DEACTIVATED = glm::vec3(0.3f);
 
 	std::vector<VertexQuad> VERTEX_QUAD = {
 		{ glm::vec2(-1.0f, -1.0f) }, // top left
@@ -79,6 +84,10 @@ private:
 		int textYesID = -1;
 		int textSeparatorID = -1;
 		int textNoID = -1;
+
+		bool activated = true;
+
+		std::array<Image, 2> imageOptions;
 	};
 
 	struct PicklistItem
@@ -95,6 +104,8 @@ private:
 		int activateItemType = MENU_ITEM_TYPE_UNDEFINED;
 		int activateItemID = -1;
 		std::vector<int> valueToActivateItem;
+
+		std::vector<Image> imageOptions;
 	};
 
 	struct QuadItem
@@ -110,7 +121,7 @@ private:
 
 	Text m_text;
 	Mesh2D m_quadFull;
-	//Mesh2D m_quadItem;
+	Mesh2DTextured m_quadImageOption;
 
 	int m_numberOfItems = 0;
 	std::vector<BooleanItem> m_booleanItems;
@@ -119,5 +130,6 @@ private:
 	std::vector<QuadItem> m_quadItems;
 
 	int m_oldMouseLeftState = GLFW_RELEASE;
+	VkImageView m_currentOptionImageView = VK_NULL_HANDLE;
 };
 

@@ -166,7 +166,7 @@ void System::createPasses(int type, bool recreate)
 	{
 		m_swapChainRenderPass.cleanup(&m_vk);
 	}
-	m_swapChainRenderPass.initialize(&m_vk, false, { 0, 0 }, true, VK_SAMPLE_COUNT_8_BIT);
+	m_swapChainRenderPass.initialize(&m_vk, false, { 0, 0 }, true, VK_SAMPLE_COUNT_1_BIT);
 	if (recreate && type == SCENE_TYPE_SHADOWMAP)
 		m_vk.setRenderFinishedLastRenderPassSemaphore(m_offscreenShadowMap.getRenderFinishedSemaphore());
 	else if(recreate && type == SCENE_TYPE_NO_SHADOW)

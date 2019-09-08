@@ -268,13 +268,21 @@ void Vulkan::createSwapchainFramebuffers(VkRenderPass renderPass, VkSampleCountF
 
 	for (size_t i = 0; i < m_swapChainImageViews.size(); i++)
 	{
-		std::array<VkImageView, 3> attachments =
+		std::vector<VkImageView> attachments =
 		{
 			colorImageView,
 			m_depthImageView,
 			m_swapChainImageViews[i],
 		};
 
+		if (msaaSamples == VK_SAMPLE_COUNT_1_BIT)
+		{
+			attachments =
+			{
+				m_swapChainImageViews[i],
+				m_depthImageView
+			};
+		}
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferInfo.renderPass = renderPass;

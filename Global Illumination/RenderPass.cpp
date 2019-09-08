@@ -25,7 +25,7 @@ void RenderPass::initialize(Vulkan* vk, bool createFrameBuffer, VkExtent2D exten
 		createRenderPass(vk->getDevice(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, colorAttachment, depthAttachment);
 	createDescriptorPool(vk->getDevice());
 	
-	if(colorAttachment)
+	if(colorAttachment && msaaSamples != VK_SAMPLE_COUNT_1_BIT)
 		createColorResources(vk, m_extent);
 	if (createFrameBuffer)
 	{
@@ -424,7 +424,7 @@ void RenderPass::createRenderPass(VkDevice device, VkImageLayout finalLayout, bo
 	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	colorAttachment.finalLayout = m_msaaSamples != VK_SAMPLE_COUNT_1_BIT ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : finalLayout;
 
 	VkAttachmentReference colorAttachmentRef = {};
 	colorAttachmentRef.attachment = 0;

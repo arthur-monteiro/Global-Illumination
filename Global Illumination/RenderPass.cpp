@@ -78,22 +78,31 @@ int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, std::string
 	
 	for (int i(0); i < meshes.size(); ++i)
 	{
-		meshesPipeline.vertexBuffer.push_back(meshes[i].mesh->getVertexBuffer());
-		meshesPipeline.indexBuffer.push_back(meshes[i].mesh->getIndexBuffer());
-		meshesPipeline.nbIndices.push_back(meshes[i].mesh->getNumIndices());
+		for (int k(0); k < meshes[i].meshes.size(); ++k)
+		{
+			meshesPipeline.vertexBuffer.push_back(meshes[i].meshes[k]->getVertexBuffer());
+			meshesPipeline.indexBuffer.push_back(meshes[i].meshes[k]->getIndexBuffer());
+			meshesPipeline.nbIndices.push_back(meshes[i].meshes[k]->getNumIndices());
 
 #ifndef NDEBUG
-		if (meshes[i].mesh->getImageView().size() + meshes[i].imageViews.size() != nbTexture)
-			std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
+			if (meshes[i].meshes[k]->getImageView().size() + meshes[i].imageViews.size() != nbTexture)
+				std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
 #endif // DEBUG
 
-		std::vector<VkImageView> imageViewToAdd = meshes[i].mesh->getImageView();
-		for (int j(0); j < meshes[i].imageViews.size(); ++j)
-			imageViewToAdd.push_back(meshes[i].imageViews[j]);
+			std::vector<VkImageView> imageViewToAdd = meshes[i].meshes[k]->getImageView();
+			for (int j(0); j < meshes[i].imageViews.size(); ++j)
+				imageViewToAdd.push_back(meshes[i].imageViews[j]);
 
-		VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), descriptorSetLayout,
-			imageViewToAdd, meshes[i].mesh->getSampler(), meshes[i].ubos, nbTexture, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL);
-		meshesPipeline.descriptorSet.push_back(descriptorSet);
+			std::vector<VkImageLayout> imageLayouts(imageViewToAdd.size());
+			for (int j(0); j < meshes[i].meshes[k]->getImageView().size(); ++j)
+				imageLayouts[j] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			for (int j(meshes[i].meshes[k]->getImageView().size()); j < imageViewToAdd.size(); ++j)
+				imageLayouts[j] = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+			VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), descriptorSetLayout,
+				imageViewToAdd, meshes[i].meshes[k]->getSampler(), meshes[i].ubos, nbTexture, imageLayouts);
+			meshesPipeline.descriptorSet.push_back(descriptorSet);
+		}
 	}
 
 	meshesPipeline.frameBufferID = frameBufferID;
@@ -123,19 +132,22 @@ int RenderPass::addMeshInstanced(Vulkan* vk, std::vector<MeshRender> meshes, std
 
 	for (int i(0); i < meshes.size(); ++i)
 	{
-		meshesPipelineInstanced.vertexBuffer.push_back(meshes[i].mesh->getVertexBuffer());
-		meshesPipelineInstanced.indexBuffer.push_back(meshes[i].mesh->getIndexBuffer());
-		meshesPipelineInstanced.nbIndices.push_back(meshes[i].mesh->getNumIndices());
-		meshesPipelineInstanced.instanceBuffer.push_back(meshes[i].instance->getInstanceBuffer());
+		for (int k(0); k < meshes[i].meshes.size(); ++k)
+		{
+			meshesPipelineInstanced.vertexBuffer.push_back(meshes[i].meshes[k]->getVertexBuffer());
+			meshesPipelineInstanced.indexBuffer.push_back(meshes[i].meshes[k]->getIndexBuffer());
+			meshesPipelineInstanced.nbIndices.push_back(meshes[i].meshes[k]->getNumIndices());
+			meshesPipelineInstanced.instanceBuffer.push_back(meshes[i].instance->getInstanceBuffer());
 
 #ifndef NDEBUG
-		if (meshes[i].mesh->getImageView().size() != nbTexture)
-			std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
+			if (meshes[i].meshes[k]->getImageView().size() != nbTexture)
+				std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
 #endif // DEBUG
 
-		VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), descriptorSetLayout,
-			meshes[i].mesh->getImageView(), meshes[i].mesh->getSampler(), meshes[i].ubos, nbTexture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		meshesPipelineInstanced.descriptorSet.push_back(descriptorSet);
+			VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), descriptorSetLayout,
+				meshes[i].meshes[k]->getImageView(), meshes[i].meshes[k]->getSampler(), meshes[i].ubos, nbTexture, { VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }); // to correct
+			meshesPipelineInstanced.descriptorSet.push_back(descriptorSet);
+		}
 	}
 
 	m_meshesPipeline.push_back(meshesPipelineInstanced);
@@ -162,7 +174,7 @@ int RenderPass::addText(Vulkan * vk, Text * text)
 			meshPipeline.nbIndices.push_back(6);
 
 			VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), m_textDescriptorSetLayout,
-				std::vector<VkImageView>(1, text->getImageView(i, j)), text->getSampler(), { text->getUbo(i) }, 1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				std::vector<VkImageView>(1, text->getImageView(i, j)), text->getSampler(), { text->getUbo(i) }, 1, { VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 			meshPipeline.descriptorSet.push_back(descriptorSet);
 		}
 
@@ -194,7 +206,7 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 		meshesPipeline.nbIndices.push_back(quad->getNumIndices());
 
 		VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), descriptorSetLayout,
-			std::vector<VkImageView>(), VK_NULL_HANDLE, std::vector<UboBase*>(), 0, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			std::vector<VkImageView>(), VK_NULL_HANDLE, std::vector<UboBase*>(), 0, {});
 		meshesPipeline.descriptorSet.push_back(descriptorSet);
 
 		m_meshesPipeline.push_back(meshesPipeline);
@@ -220,7 +232,7 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 			meshesPipeline.nbIndices.push_back(quad->getNumIndices());
 
 			VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), descriptorSetLayout,
-				std::vector<VkImageView>(), VK_NULL_HANDLE, { UBOs[i] }, 0, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				std::vector<VkImageView>(), VK_NULL_HANDLE, { UBOs[i] }, 0, {});
 			meshesPipeline.descriptorSet.push_back(descriptorSet);
 		}
 
@@ -245,7 +257,7 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 			meshPipeline.nbIndices.push_back(6);
 
 			VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), m_textDescriptorSetLayout,
-				std::vector<VkImageView>(1, text.getImageView(i, j)), text.getSampler(), { text.getUbo(i) }, 1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				std::vector<VkImageView>(1, text.getImageView(i, j)), text.getSampler(), { text.getUbo(i) }, 1, { VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 			meshPipeline.descriptorSet.push_back(descriptorSet);
 		}
 
@@ -274,7 +286,7 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 
 		m_menuOptionImageSampler = quadImageOption->getSampler();
 		VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), m_menuOptionImageDescriptorLayout,
-			imageViews, m_menuOptionImageSampler, { }, imageViews.size(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			imageViews, m_menuOptionImageSampler, { }, imageViews.size(), {});
 		meshPipeline.descriptorSet.push_back(descriptorSet);
 
 		m_menuMeshesPipelineIDs.push_back(m_meshesPipeline.size());
@@ -293,7 +305,7 @@ void RenderPass::updateImageViewMenuItemOption(Vulkan* vk, VkImageView imageView
 	}
 
 	VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), m_menuOptionImageDescriptorLayout,
-		{ imageView }, m_menuOptionImageSampler, { }, 1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		{ imageView }, m_menuOptionImageSampler, { }, 1, { VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 	
 	m_meshesPipeline[m_menuOptionImageMeshPipelineID].descriptorSet[0] = descriptorSet;
 	m_drawOptionImage = true;
@@ -356,7 +368,7 @@ void RenderPass::drawCall(Vulkan * vk)
 
 			VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), m_textDescriptorSetLayout,
 				std::vector<VkImageView>(1, m_text->getImageView(m_text->needUpdate(), j)), m_text->getSampler(),
-				{ m_text->getUbo(m_text->needUpdate()) }, 1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				{ m_text->getUbo(m_text->needUpdate()) }, 1, { VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
 			meshPipeline.descriptorSet.push_back(descriptorSet);
 		}
 
@@ -582,7 +594,7 @@ void RenderPass::createDescriptorPool(VkDevice device)
 }
 
 VkDescriptorSet RenderPass::createDescriptorSet(VkDevice device, VkDescriptorSetLayout decriptorSetLayout, std::vector<VkImageView> imageView,
-	VkSampler sampler, std::vector<UboBase*> uniformBuffer, int nbTexture, VkImageLayout imageLayout)
+	VkSampler sampler, std::vector<UboBase*> uniformBuffer, int nbTexture, std::vector<VkImageLayout> imageLayouts)
 {
 	VkDescriptorSetLayout layouts[] = { decriptorSetLayout };
 	VkDescriptorSetAllocateInfo allocInfo = {};
@@ -622,7 +634,7 @@ VkDescriptorSet RenderPass::createDescriptorSet(VkDevice device, VkDescriptorSet
 	std::vector<VkDescriptorImageInfo> imageInfo(nbTexture);
 	for(; i < uniformBuffer.size() + nbTexture; ++i)
 	{
-		imageInfo[i - uniformBuffer.size()].imageLayout = imageLayout; // VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+		imageInfo[i - uniformBuffer.size()].imageLayout = imageLayouts[i - uniformBuffer.size()]; // VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 		imageInfo[i - uniformBuffer.size()].imageView = imageView[i - uniformBuffer.size()];
 		imageInfo[i - uniformBuffer.size()].sampler = sampler;
 

@@ -234,6 +234,6 @@ protected:
 
 	VkSampleCountFlagBits m_maxMsaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	
-	int m_maxFPS = 60;
+	int m_maxFPS = 200;
 	std::chrono::high_resolution_clock::time_point m_lastFrameTimeCounter = std::chrono::high_resolution_clock::now();
 };

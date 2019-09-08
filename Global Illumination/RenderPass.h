@@ -13,7 +13,7 @@
 
 struct MeshRender
 {
-	MeshBase* mesh;
+	std::vector<MeshBase*> meshes;
 	std::vector<UboBase*> ubos;
 	Instance* instance = nullptr;
 	std::vector<VkImageView> imageViews; // added after the mesh image views
@@ -58,7 +58,7 @@ private:
 	VkDescriptorSetLayout createDescriptorSetLayout(VkDevice device, std::vector<UboBase*> uniformBuffers, int nbTexture);
 	void createDescriptorPool(VkDevice device);
 	VkDescriptorSet createDescriptorSet(VkDevice device, VkDescriptorSetLayout decriptorSetLayout, std::vector<VkImageView> imageView,
-		VkSampler sampler, std::vector<UboBase*> uniformBuffers, int nbTexture, VkImageLayout imageLayout);
+		VkSampler sampler, std::vector<UboBase*> uniformBuffers, int nbTexture, std::vector<VkImageLayout> imageLayouts);
 	void fillCommandBuffer(Vulkan * vk);
 	void drawFrame(Vulkan * vk);
 

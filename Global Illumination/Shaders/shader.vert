@@ -7,7 +7,13 @@ layout(binding = 0) uniform UniformBufferObjectVP
     mat4 proj;
 } uboVP;
 
-layout(binding = 1) uniform UniformBufferObjectLightSpace
+
+layout(binding = 1) uniform UniformBufferObjectModel
+{
+    mat4 model;
+} uboModel;
+
+layout(binding = 2) uniform UniformBufferObjectLightSpace
 {
     mat4 lightSpace;
 } uboLightSpace;
@@ -35,7 +41,7 @@ const mat4 biasMat = mat4(
 	0.5, 0.5, 0.0, 1.0 );
 
 void main() {
-    gl_Position = uboVP.proj * uboVP.view * vec4(inPosition, 1.0);
+    gl_Position = uboVP.proj * uboVP.view * uboModel.model * vec4(inPosition, 1.0);
 	
 	mat3 usedModelMatrix = transpose(inverse(mat3(1.0)));
     normal = usedModelMatrix * inNormal;

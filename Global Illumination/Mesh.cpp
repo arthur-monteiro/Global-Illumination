@@ -20,7 +20,6 @@ void MeshPBR::loadObj(Vulkan * vk, std::string path, glm::vec3 forceNormal)
 		std::cout << "[Chargement objet]  Attention : " << warn << " pour " << path << " !" << std::endl;
 #endif // !NDEBUG
 
-
 	std::unordered_map<VertexPBR, uint32_t> uniqueVertices = {};
 
 	for (const auto& shape : shapes)
@@ -94,6 +93,15 @@ void MeshPBR::loadObj(Vulkan * vk, std::string path, glm::vec3 forceNormal)
 		
 		tempTriangle[i % 3] = m_vertices[m_indices[i]];
 	}
+
+	createVertexBuffer(vk);
+	createIndexBuffer(vk);
+}
+
+void MeshPBR::loadVertices(Vulkan* vk, std::vector<VertexPBR> vertices, std::vector<uint32_t> indices)
+{
+	m_vertices = vertices;
+	m_indices = indices;
 
 	createVertexBuffer(vk);
 	createIndexBuffer(vk);
@@ -432,7 +440,7 @@ void MeshBase::createTextureSampler(Vulkan * vk, VkSamplerAddressMode addressMod
 	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samplerInfo.mipLodBias = 0.0f;
 	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = 1.0f;// static_cast<float>(m_mipLevels);
+	samplerInfo.maxLod = static_cast<float>(m_mipLevels);
 
 	if (vkCreateSampler(vk->getDevice(), &samplerInfo, nullptr, &m_textureSampler) != VK_SUCCESS)
 		throw std::runtime_error("Erreur : texture sampler");

@@ -15,6 +15,7 @@
 #include "UniformBufferObject.h"
 #include "Camera.h"
 #include "Instance.h"
+#include "Model.h"
 
 const int SCENE_TYPE_UNDEFINED = -1;
 const int SCENE_TYPE_SHADOWMAP = 0;
@@ -34,12 +35,14 @@ public:
 	void changePCF(bool status);
 	void drawFPSCounter(bool status);
 	void changeShadows(std::wstring value);
+	void changeGlobalIllumination(std::wstring value);
 
 	static void recreateCallback(void* instance) { reinterpret_cast<System*>(instance)->create(true); }
 	static void setMenuOptionImageViewCallback(void* instance, VkImageView imageView) { reinterpret_cast<System*>(instance)->setMenuOptionImageView(imageView); }
 	static void changePCFCallback(void* instance, bool status) { reinterpret_cast<System*>(instance)->changePCF(status); }
 	static void drawFPSCounterCallback(void* instance, bool status) { reinterpret_cast<System*>(instance)->drawFPSCounter(status); }
 	static void changeShadowsCallback(void* instance, std::wstring value) { reinterpret_cast<System*>(instance)->changeShadows(value); }
+	static void changeGlobalIlluminationCallback(void* instance, std::wstring value) { reinterpret_cast<System*>(instance)->changeGlobalIllumination(value); }
 private:
 	void create(bool recreate = false);
 	void createRessources();
@@ -54,6 +57,7 @@ private:
 
 	MeshPBR m_skybox;
 	MeshPBR m_wall;
+	Model m_sponza;
 	MeshPBR m_quad;
 	Text m_text;
 	Menu m_menu;
@@ -70,6 +74,8 @@ private:
 
 	UniformBufferObject<UniformBufferObjectVP> m_uboVP;
 	UniformBufferObjectVP m_uboVPData;
+	UniformBufferObject<UniformBufferObjectSingleMat> m_uboModel;
+	UniformBufferObjectSingleMat m_uboModelData;
 	UniformBufferObject<UniformBufferObjectVP> m_uboVPShadowMap;
 	UniformBufferObject<UniformBufferObjectSingleMat> m_uboLightSpace;
 
@@ -78,6 +84,8 @@ private:
 
 	UniformBufferObject<UniformBufferObjectVP> m_uboVPSkybox;
 	UniformBufferObjectVP m_uboVPSkyboxData;
+
+	glm::vec3 m_sunDirection = glm::vec3(0.0f, -1.0f, 0.0f);
 
 	Camera m_camera;
 	int m_oldEscapeState = GLFW_RELEASE;

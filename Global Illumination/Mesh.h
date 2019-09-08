@@ -74,6 +74,7 @@ class MeshPBR : public MeshBase
 {
 public:
 	void loadObj(Vulkan * vk, std::string path, glm::vec3 forceNormal = glm::vec3(-1.0f));
+	void loadVertices(Vulkan* vk, std::vector< VertexPBR> vertices, std::vector<uint32_t> indices);
 
 	void restoreTransformations() { m_modelMatrix = glm::mat4(1.0); }
 	void rotate(float angle, glm::vec3 dir);

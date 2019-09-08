@@ -53,10 +53,8 @@ struct UniformBufferObjectDirLight
 	glm::vec4 dirLight;
 	glm::vec4 colorLight;
 
-	glm::vec4 materialAlbedo;
-	float materialRoughness;
-	float materialMetallic;
 	float usePCF;
+	float ambient;
 };
 
 struct UniformBufferObjectItemQuad

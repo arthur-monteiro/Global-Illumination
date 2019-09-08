@@ -74,7 +74,8 @@ void System::cleanup()
 	std::cout << "Cleanup..." << std::endl;
 
 	//m_skybox.cleanup(m_vk.getDevice());
-	m_wall.cleanup(m_vk.getDevice());
+	//m_wall.cleanup(m_vk.getDevice());
+	m_sponza.cleanup(m_vk.getDevice());
 	m_quad.cleanup(m_vk.getDevice());
 
 	m_swapChainRenderPass.cleanup(&m_vk);
@@ -115,6 +116,16 @@ void System::changeShadows(std::wstring value)
 	m_swapChainRenderPass.updateImageViewMenuItemOption(&m_vk, m_menu.getOptionImageView());
 }
 
+void System::changeGlobalIllumination(std::wstring value)
+{
+	if (value == L"No")
+		m_uboDirLightData.ambient = 0.0f; 
+	if (value == L"Ambient Lightning")
+		m_uboDirLightData.ambient = 0.2f;
+
+	m_uboDirLight.update(&m_vk, m_uboDirLightData);
+}
+
 void System::create(bool recreate)
 {
 	m_vk.initialize(1066, 600, "Vulkan Demo", recreateCallback, (void*)this, recreate);
@@ -122,7 +133,7 @@ void System::create(bool recreate)
 	if (!recreate)
 	{
 		createRessources();
-		m_camera.initialize(glm::vec3(0.0f, 2.0f, -2.0f), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.01f, 2.0f);
+		m_camera.initialize(glm::vec3(0.0f, 2.0f, -2.0f), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.01f, 5.0f);
 
 		m_sceneType = SCENE_TYPE_SHADOWMAP;
 	}
@@ -139,12 +150,14 @@ void System::createRessources()
 	m_menu.addBooleanItem(&m_vk, L"FPS Counter", drawFPSCounterCallback, true, this, { "", "" });
 	int shadowsItemID = m_menu.addPicklistItem(&m_vk, L"Shadows", changeShadowsCallback, this, 1, { L"No", L"Shadow Map" });
 	int pcfItemID = m_menu.addBooleanItem(&m_vk, L"Percentage Closer Filtering", changePCFCallback, true, this, { "Image_options/shadow_no_pcf.JPG", "Image_options/shadow_with_pcf.JPG" });
-	m_menu.addPicklistItem(&m_vk, L"Global Illumination", [](void*, std::wstring) {}, this, 1, { L"No", L"Ambient Lightning" });
+	m_menu.addPicklistItem(&m_vk, L"Global Illumination", changeGlobalIlluminationCallback, this, 1, { L"No", L"Ambient Lightning" });
 
 	m_menu.addDependency(MENU_ITEM_TYPE_PICKLIST, shadowsItemID, MENU_ITEM_TYPE_BOOLEAN, pcfItemID, { 1 });
 
-	m_wall.loadObj(&m_vk, "Models/wall.obj");
-	m_wall.createTextureSampler(&m_vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+	m_sponza.loadObj(&m_vk, "Models/sponza/sponza.obj", "Models/sponza");
+
+	//m_wall.loadObj(&m_vk, "Models/sponza/sponza.obj");
+	//m_wall.createTextureSampler(&m_vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 }
 
 void System::createPasses(int type, bool recreate)
@@ -161,11 +174,11 @@ void System::createPasses(int type, bool recreate)
 
 	if (!recreate)
 	{
-		m_offscreenShadowMap.initialize(&m_vk, true, { 2048, 2048 }, false, VK_SAMPLE_COUNT_1_BIT, 1, false, true);
+		m_offscreenShadowMap.initialize(&m_vk, true, { 8192, 8192 }, false, VK_SAMPLE_COUNT_1_BIT, 1, false, true);
 
-		m_uboVPData.proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 96.0f);
+		m_uboVPData.proj = glm::ortho(-32.0f, 32.0f, -32.0f, 32.0f, 1.0f, 256.0f);
 		//m_uboVPData.proj[1][1] *= -1;
-		m_uboVPData.view = glm::lookAt(glm::vec3(4.0f, 4.0f, 0.0f),
+		m_uboVPData.view = glm::lookAt(glm::vec3(32.0f, 32.0f, 0.0f),
 			glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3(0.0f, 1.0f, 0.0f));
 		m_uboVPShadowMap.load(&m_vk, m_uboVPData, VK_SHADER_STAGE_VERTEX_BIT);
@@ -175,6 +188,9 @@ void System::createPasses(int type, bool recreate)
 		m_uboVPData.view = m_camera.getViewMatrix();
 		m_uboVP.load(&m_vk, m_uboVPData, VK_SHADER_STAGE_VERTEX_BIT);
 
+		m_uboModelData.matrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f));
+		m_uboModel.load(&m_vk, m_uboModelData, VK_SHADER_STAGE_VERTEX_BIT);
+
 		m_uboVPSkyboxData.proj = glm::perspective(glm::radians(45.0f), m_vk.getSwapChainExtend().width / (float)m_vk.getSwapChainExtend().height, 0.1f, 10.0f);
 		m_uboVPSkyboxData.proj[1][1] *= -1;
 		m_uboVPSkyboxData.view = glm::mat4(glm::mat3(m_camera.getViewMatrix()));
@@ -183,32 +199,32 @@ void System::createPasses(int type, bool recreate)
 		m_uboDirLightData.camPos = glm::vec4(m_camera.getPosition(), 1.0f);
 		m_uboDirLightData.colorLight = glm::vec4(10.0f);
 		m_uboDirLightData.dirLight = glm::vec4(-1.0f, -1.0f, 0.0f, 0.0f);
-		m_uboDirLightData.materialAlbedo = glm::vec4(1.0f);
-		m_uboDirLightData.materialMetallic = 0.0f;
-		m_uboDirLightData.materialRoughness = 0.8f;
 		m_uboDirLightData.usePCF = 1.0f;
+		m_uboDirLightData.ambient = 0.2f;
 		m_uboDirLight.load(&m_vk, m_uboDirLightData, VK_SHADER_STAGE_FRAGMENT_BIT);
 
 		m_quad.loadObj(&m_vk, "Models/square.obj", glm::vec3(0.0f, 0.0f, 1.0f));
 		m_quad.createTextureSampler(&m_vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 
 		UniformBufferObjectSingleMat uboLightSpaceData;
-		uboLightSpaceData.matrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 96.0f) * glm::lookAt(glm::vec3(4.0f, 4.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		uboLightSpaceData.matrix = glm::ortho(-32.0f, 32.0f, -32.0f, 32.0f, 1.0f, 256.0f) * glm::lookAt(glm::vec3(32.0f, 32.0f, 0.0f),
+			glm::vec3(0.0f, 0.0f, 0.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f)) * m_uboModelData.matrix;
 		m_uboLightSpace.load(&m_vk, uboLightSpaceData, VK_SHADER_STAGE_VERTEX_BIT);
 
-		m_offscreenShadowMap.addMesh(&m_vk, { { &m_wall, { &m_uboVPShadowMap } } }, "Shaders/offscreenShadowMap/vert.spv", "", 0);
+		m_offscreenShadowMap.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVPShadowMap, &m_uboModel } } }, "Shaders/offscreenShadowMap/vert.spv", "", 0);
 	}
 
 	if (type == SCENE_TYPE_SHADOWMAP)
 	{
-		m_swapChainRenderPass.addMesh(&m_vk, { { &m_quad, {}, nullptr, {  m_offscreenShadowMap.getFrameBuffer(0).depthImageView } } },
+		m_swapChainRenderPass.addMesh(&m_vk, { { { &m_quad }, {}, nullptr, {  m_offscreenShadowMap.getFrameBuffer(0).depthImageView } } },
 			"Shaders/renderQuad/vert.spv", "Shaders/renderQuad/frag.spv", 1);
-		m_swapChainRenderPass.addMesh(&m_vk, { { &m_wall, { &m_uboVP, &m_uboLightSpace, &m_uboDirLight }, nullptr, { m_offscreenShadowMap.getFrameBuffer(0).depthImageView } } },
-			"Shaders/vert.spv", "Shaders/frag.spv", 1);
+		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboLightSpace, &m_uboDirLight }, nullptr, { m_offscreenShadowMap.getFrameBuffer(0).depthImageView } } },
+			"Shaders/pbr_shadowmap_textured/vert.spv", "Shaders/pbr_shadowmap_textured/frag.spv", 6, true);
 	}
 	else if (type == SCENE_TYPE_NO_SHADOW)
 	{
-		m_swapChainRenderPass.addMesh(&m_vk, { { &m_wall, { &m_uboVP, &m_uboLightSpace, &m_uboDirLight }, nullptr, {  } } },
+		m_swapChainRenderPass.addMesh(&m_vk, { { { &m_wall }, { &m_uboVP, &m_uboLightSpace, &m_uboDirLight }, nullptr, {  } } },
 			"Shaders/pbr_no_shadow/vert.spv", "Shaders/pbr_no_shadow/frag.spv", 0);
 	}
 	//m_swapChainRenderPass.addMesh(&m_vk, spheres, "Shaders/vertSphere.spv", "Shaders/fragSphere.spv", 0);

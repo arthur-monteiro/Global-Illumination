@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(binding = 2) uniform UniformBufferObjectLightsParams
+layout(binding = 3) uniform UniformBufferObjectLightsParams
 {
 	vec4 camPos;
 	
@@ -14,7 +14,7 @@ layout(binding = 2) uniform UniformBufferObjectLightsParams
 	float usePCF;
 } uboLightParams;
 
-layout (binding = 3) uniform sampler2D shadowMap;
+layout (binding = 4) uniform sampler2D shadowMap;
 
 layout(location = 0) in vec3 worldPos;
 layout(location = 1) in vec3 normal;
@@ -69,6 +69,7 @@ void main()
 
 	vec4 projCoords = posLightSpace / posLightSpace.w;
 	float shadow = 1.0 - ((uboLightParams.usePCF == 1.0) ? filterPCF(projCoords) : textureProj(projCoords, vec2(0.0)));
+
 	/*if(shadow == 1.0)
 	{
 		outColor = vec4(vec3(0.0), 1.0);

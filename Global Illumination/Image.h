@@ -14,6 +14,7 @@ public:
 	VkImage getImage() { return m_image; }
 	VkDeviceMemory getImageMemory() { return m_imageMemory; }
 	VkImageView getImageView() { return m_imageView; }
+
 private:
 	VkImage m_image;
 	VkDeviceMemory  m_imageMemory;

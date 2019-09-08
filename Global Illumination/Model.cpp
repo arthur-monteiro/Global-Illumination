@@ -104,11 +104,10 @@ void Model::loadObj(Vulkan* vk, std::string path, std::string mtlFolder)
 	for (int i(0); i < vertices.size(); ++i)
 	{
 		m_meshes[i].loadVertices(vk, vertices[i], indices[i]);
-		//m_meshes[i].loadTextureFromFile(vk, { getTexName(materials[i].diffuse_texname, mtlFolder) , getTexName(materials[i].bump_texname, mtlFolder),
-		//	getTexName(materials[i].specular_highlight_texname, mtlFolder), getTexName(materials[i].ambient_texname, mtlFolder), 
-		//	getTexName(materials[i].ambient_texname, mtlFolder) });
+		m_meshes[i].loadTextureFromFile(vk, { getTexName(materials[i].diffuse_texname, mtlFolder) , getTexName(materials[i].bump_texname, mtlFolder),
+			getTexName(materials[i].specular_highlight_texname, mtlFolder), getTexName(materials[i].ambient_texname, mtlFolder), 
+			getTexName(materials[i].ambient_texname, mtlFolder) });
 		m_meshes[i].createTextureSampler(vk, VK_SAMPLER_ADDRESS_MODE_REPEAT);
-		m_meshes[i].clearVertices();
 	}
 }
 

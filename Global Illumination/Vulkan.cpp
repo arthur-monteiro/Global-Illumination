@@ -236,9 +236,9 @@ VkCommandPool Vulkan::createCommandPool()
 
 void Vulkan::cleanupSwapChain()
 {
-	vkDestroyImageView(m_device, m_depthImageView, nullptr);
+	/*vkDestroyImageView(m_device, m_depthImageView, nullptr);
 	vkDestroyImage(m_device, m_depthImage, nullptr);
-	vkFreeMemory(m_device, m_depthImageMemory, nullptr);
+	vkFreeMemory(m_device, m_depthImageMemory, nullptr);*/
 
 	for (size_t i = 0; i < m_swapChainFramebuffers.size(); i++)
 	{

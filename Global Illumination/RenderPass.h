@@ -24,8 +24,7 @@ class RenderPass
 public:
 	~RenderPass();
 
-	void initialize(Vulkan* vk, bool createFrameBuffer = false, VkExtent2D extent = { 0, 0 }, bool present = true, VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT, int nbFramebuffer = 1, 
-		bool colorAttachment = true, bool depthAttachment = true);
+	void initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool present, VkSampleCountFlagBits msaaSamples, bool colorAttachment = true, bool depthAttachment = true);
 
 	int addMesh(Vulkan * vk, std::vector<MeshRender> mesh, std::string vertPath, std::string fragPath, int nbTexture, bool alphaBlending = false, int frameBufferID = 0);
 	int addMeshInstanced(Vulkan* vk, std::vector<MeshRender> meshes, std::string vertPath, std::string fragPath, int nbTexture);
@@ -98,7 +97,7 @@ private:
 	bool m_useSwapChain = true;
 	bool m_firstDraw = true;
 	std::vector<FrameBuffer> m_frameBuffers;
-	VkExtent2D m_extent;
+	std::vector<VkExtent2D> m_extent;
 	std::vector <VkCommandBuffer> m_commandBuffer;
 	VkSemaphore m_renderCompleteSemaphore;
 	VkCommandPool m_commandPool;

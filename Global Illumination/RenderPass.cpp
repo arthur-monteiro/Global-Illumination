@@ -6,14 +6,17 @@ RenderPass::~RenderPass()
 		std::cout << "Render pass not destroyed !" << std::endl;
 }
 
-void RenderPass::initialize(Vulkan* vk, bool createFrameBuffer, VkExtent2D extent, bool present, VkSampleCountFlagBits msaaSamples, int nbFramebuffer, bool colorAttachment, bool depthAttachment)
+void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool present, VkSampleCountFlagBits msaaSamples, bool colorAttachment, bool depthAttachment)
 {
+	if (extent.size() == 0)
+		throw std::runtime_error("Can't create RenderPass without extent");
+
 	m_text = nullptr;
 	m_msaaSamples = msaaSamples;
-	m_extent = createFrameBuffer ? extent : vk->getSwapChainExtend();
+	m_extent = !present ? extent : std::vector<VkExtent2D>(1, vk->getSwapChainExtend());
 
 	m_format = vk->getSwapChainImageFormat();
-	if (createFrameBuffer)
+	if (!present)
 		m_format = VK_FORMAT_R32G32B32A32_SFLOAT;
 	m_depthFormat = vk->findDepthFormat();
 	if(!colorAttachment)
@@ -26,13 +29,18 @@ void RenderPass::initialize(Vulkan* vk, bool createFrameBuffer, VkExtent2D exten
 	createDescriptorPool(vk->getDevice());
 	
 	if(colorAttachment && msaaSamples != VK_SAMPLE_COUNT_1_BIT)
-		createColorResources(vk, m_extent);
-	if (createFrameBuffer)
+		createColorResources(vk, m_extent[0]);
+#ifndef NDEBUG
+	if (msaaSamples != VK_SAMPLE_COUNT_1_BIT && m_extent.size() > 1)
+		std::cout << "Warning : Can't create MSAA pass with multiple frambuffers" << std::endl; // !! to be fixed
+#endif // NDEBUG
+
+	if (!present)
 	{
-		m_frameBuffers.resize(nbFramebuffer);
-		m_commandBuffer.resize(nbFramebuffer);
-		for(int i(0); i < nbFramebuffer; ++i)
-			m_frameBuffers[i] = vk->createFrameBuffer(extent, m_renderPass, m_msaaSamples, m_colorImageView, depthAttachment ? m_depthFormat : VK_FORMAT_UNDEFINED,
+		m_frameBuffers.resize(m_extent.size());
+		m_commandBuffer.resize(m_extent.size());
+		for(int i(0); i < m_extent.size(); ++i)
+			m_frameBuffers[i] = vk->createFrameBuffer(extent[i], m_renderPass, m_msaaSamples, m_colorImageView, depthAttachment ? m_depthFormat : VK_FORMAT_UNDEFINED,
 				colorAttachment ? m_format : VK_FORMAT_UNDEFINED);
 	}
 	else
@@ -48,7 +56,7 @@ void RenderPass::initialize(Vulkan* vk, bool createFrameBuffer, VkExtent2D exten
 		uboTemp.cleanup(vk->getDevice());
 	}
 
-	m_useSwapChain = !createFrameBuffer;
+	m_useSwapChain = present;
 	VkSemaphoreCreateInfo semaphoreInfo = {};
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	if (vkCreateSemaphore(vk->getDevice(), &semaphoreInfo, nullptr, &m_renderCompleteSemaphore) != VK_SUCCESS)
@@ -72,7 +80,8 @@ int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, std::string
 	VkDescriptorSetLayout descriptorSetLayout = createDescriptorSetLayout(vk->getDevice(), meshes[0].ubos, nbTexture);
 
 	Pipeline pipeline;
-	pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, vertPath, fragPath, alphaBlending, m_msaaSamples, { VertexPBR::getBindingDescription(0) }, VertexPBR::getAttributeDescriptions(0), m_extent);
+	pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, vertPath, fragPath, alphaBlending, m_msaaSamples, { VertexPBR::getBindingDescription(0) }, 
+		VertexPBR::getAttributeDescriptions(0), m_extent[frameBufferID]);
 	meshesPipeline.pipeline = pipeline.getGraphicsPipeline();
 	meshesPipeline.pipelineLayout = pipeline.getPipelineLayout();
 	
@@ -125,8 +134,14 @@ int RenderPass::addMeshInstanced(Vulkan* vk, std::vector<MeshRender> meshes, std
 	{
 		attributeDescription.push_back(instanceAttributeDescription[i]);
 	}
+
+#ifndef NDEBUG
+	if (m_extent.size() > 1)
+		std::cout << "Warning : Can't instanciate with multiple frambuffers, default is first framebuffer" << std::endl; // !! to be fixed
+#endif // NDEBUG
+
 	pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, vertPath, fragPath, false, m_msaaSamples, { VertexPBR::getBindingDescription(0), ModelInstance::getBindingDescription(1) }, 
-		attributeDescription, m_extent);
+		attributeDescription, m_extent[0]);
 	meshesPipelineInstanced.pipeline = pipeline.getGraphicsPipeline();
 	meshesPipelineInstanced.pipelineLayout = pipeline.getPipelineLayout();
 
@@ -195,9 +210,14 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 		MeshPipeline meshesPipeline;
 		VkDescriptorSetLayout descriptorSetLayout = createDescriptorSetLayout(vk->getDevice(), std::vector<UboBase*>(), 0);
 
+#ifndef NDEBUG
+		if (m_extent.size() > 1)
+			std::cout << "Warning : Can't draw menu with multiple frambuffers, default is first framebuffer" << std::endl;
+#endif // NDEBUG
+
 		Pipeline pipeline;
 		pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, "Shaders/menuFullQuad/vert.spv", "Shaders/menuFullQuad/frag.spv", true, m_msaaSamples,
-			{ VertexQuad::getBindingDescription(0) }, VertexQuad::getAttributeDescriptions(0), m_extent);
+			{ VertexQuad::getBindingDescription(0) }, VertexQuad::getAttributeDescriptions(0), m_extent[0]);
 		meshesPipeline.pipeline = pipeline.getGraphicsPipeline();
 		meshesPipeline.pipelineLayout = pipeline.getPipelineLayout();
 
@@ -221,7 +241,7 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 
 		Pipeline pipeline;
 		pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, "Shaders/menuItemQuad/vert.spv", "Shaders/menuItemQuad/frag.spv", true, m_msaaSamples,
-			{ VertexQuad::getBindingDescription(0) }, VertexQuad::getAttributeDescriptions(0), m_extent);
+			{ VertexQuad::getBindingDescription(0) }, VertexQuad::getAttributeDescriptions(0), m_extent[0]);
 		meshesPipeline.pipeline = pipeline.getGraphicsPipeline();
 		meshesPipeline.pipelineLayout = pipeline.getPipelineLayout();
 
@@ -272,7 +292,7 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 
 		Pipeline pipeline;
 		pipeline.initialize(vk, &m_menuOptionImageDescriptorLayout, m_renderPass, "Shaders/menuOptionImageQuad/vert.spv", "Shaders/menuOptionImageQuad/frag.spv", false, m_msaaSamples,
-			{ VertexQuadTextured::getBindingDescription(0) }, VertexQuadTextured::getAttributeDescriptions(0), m_extent);
+			{ VertexQuadTextured::getBindingDescription(0) }, VertexQuadTextured::getAttributeDescriptions(0), m_extent[0]);
 		meshPipeline.pipeline = pipeline.getGraphicsPipeline();
 		meshPipeline.pipelineLayout = pipeline.getPipelineLayout();
 
@@ -393,6 +413,7 @@ void RenderPass::cleanup(Vulkan * vk)
 		vkDestroyImage(vk->getDevice(), m_colorImage, nullptr);
 		vkFreeMemory(vk->getDevice(), m_colorImageMemory, nullptr);
 	}
+	m_colorImageView = VK_NULL_HANDLE;
 
 	for (int i(0); i < m_meshesPipeline.size(); ++i)
 		m_meshesPipeline[i].free(vk->getDevice(), m_descriptorPool, true); // ne détruit pas les ressources
@@ -680,7 +701,7 @@ void RenderPass::fillCommandBuffer(Vulkan * vk)
 		renderPassInfo.renderPass = m_renderPass;
 		renderPassInfo.framebuffer = m_frameBuffers[i].framebuffer;
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = m_extent;
+		renderPassInfo.renderArea.extent = m_extent[i];
 
 		std::array<VkClearValue, 1> clearValues = {};
 		//clearValues[0].color = { 0.0f, 0.0f, 1.0f, 1.0f };

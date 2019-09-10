@@ -30,6 +30,11 @@ struct UniformBufferObjectSingleMat
 	glm::mat4 matrix;
 };
 
+struct UniformBufferObjectArrayMat
+{
+	glm::mat4 matrices[3];
+};
+
 const int MAX_POINTLIGHTS = 32;
 const int MAX_DIRLIGHTS = 1;
 
@@ -55,6 +60,19 @@ struct UniformBufferObjectDirLight
 
 	float usePCF;
 	float ambient;
+};
+
+struct UniformBufferObjectDirLightCSM
+{
+	glm::vec4 camPos;
+
+	glm::vec4 dirLight;
+	glm::vec4 colorLight;
+
+	float usePCF;
+	float ambient;
+
+	float cascadeSplits[3];
 };
 
 struct UniformBufferObjectItemQuad

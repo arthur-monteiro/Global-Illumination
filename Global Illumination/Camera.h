@@ -16,15 +16,21 @@
 class Camera
 {
 public:
-	void initialize(glm::vec3 position, glm::vec3 target, glm::vec3 verticalAxis, float sensibility, float speed);
+	void initialize(glm::vec3 position, glm::vec3 target, glm::vec3 verticalAxis, float sensibility, float speed, float aspect);
 
 	void update(GLFWwindow* window);
 
 	glm::mat4 getViewMatrix();
 	glm::vec3 getPosition();
+	float getNear() { return m_near; }
+	float getFar() { return m_far; }
+	glm::mat4 getProjection();
+	glm::vec3 getOrientation() { return m_orientation; }
+
 	void setPosition(glm::vec3 position);
 	void setTarget(glm::vec3 target);
 	void setFixed(bool value) { m_fixed = value; }
+	void setAspect(float aspect) { m_aspect = aspect; }
 
 private:
 	void updateOrientation(int xOffset, int yOffset);
@@ -48,5 +54,9 @@ private:
 
 	const float OFFSET_ANGLES = 0.01f;
 	bool m_fixed = false;
+
+	float m_aspect;
+	float m_near = 0.1f;
+	float m_far = 96.0f;
 };
 

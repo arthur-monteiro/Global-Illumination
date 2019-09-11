@@ -68,7 +68,7 @@ glm::vec3 Camera::getPosition()
 
 glm::mat4 Camera::getProjection()
 {
-	glm::mat4 r = glm::perspective(glm::radians(45.0f), m_aspect, m_near, m_far);
+	glm::mat4 r = glm::perspective(m_radFOV, m_aspect, m_near, m_far);
 	r[1][1] *= -1;
 
 	return r;

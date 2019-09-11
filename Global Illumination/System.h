@@ -7,6 +7,8 @@
 #include <chrono>
 #include <memory>
 #include <algorithm>
+#include <limits>
+#include <iostream>
 
 #include "Vulkan.h"
 #include "RenderPass.h"
@@ -113,6 +115,6 @@ private:
 
 	Camera m_camera;
 	int m_oldEscapeState = GLFW_RELEASE;
-	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_2_BIT;
 };
 

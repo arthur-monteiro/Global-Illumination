@@ -93,9 +93,28 @@ void main()
 		}
 	}
 
-	vec4 projCoords = posLightSpace[cascadeIndex] / posLightSpace[cascadeIndex].w;
+	vec4 projCoords = posLightSpace[cascadeIndex] / posLightSpace[cascadeIndex].w; 
+	if(projCoords.x < 0.0)
+	{
+		outColor = vec4(0.0, 0.0, 0.0, 1.0);
+		return;
+	}
+	if(projCoords.x > 1.0)
+	{
+		outColor = vec4(1.0);
+		return;
+	}
+	if(projCoords.y < 0.0)
+	{
+		outColor = vec4(1.0, 1.0, 0.0, 1.0);
+		return;
+	}
+	if(projCoords.y > 1.0)
+	{
+		outColor = vec4(0.0, 1.0, 1.0, 1.0);
+		return;
+	}
 	float shadow = 0;
-
 	if (uboLights.usePCF == 1.0) 
 	{
 		shadow = 1.0 - filterPCF(projCoords / projCoords.w, cascadeIndex);

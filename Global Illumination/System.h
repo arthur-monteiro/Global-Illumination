@@ -59,7 +59,7 @@ private:
 	Vulkan m_vk;
 
 	glm::vec3 m_lightDir = glm::vec3(-1.0f, -1.0f, 0.0f);
-	int m_cascadeCount = 3;
+	int m_cascadeCount = 4;
 	std::vector<float> m_cascadeSplits;
 
 	RenderPass m_swapChainRenderPass;
@@ -106,6 +106,8 @@ private:
 	std::vector<UniformBufferObjectVP> m_uboVPCSMData;
 	UniformBufferObject<UniformBufferObjectArrayMat> m_uboLightSpaceCSM;
 	UniformBufferObjectArrayMat m_uboLightSpaceCSMData;
+	UniformBufferObject<UniformBufferObjectCSM> m_uboCascadeSplits;
+	UniformBufferObjectCSM m_uboCascadeSplitsData;
 
 	/* Unused*/
 	UniformBufferObject<UniformBufferObjectVP> m_uboVPSkybox;
@@ -115,6 +117,6 @@ private:
 
 	Camera m_camera;
 	int m_oldEscapeState = GLFW_RELEASE;
-	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_2_BIT;
+	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 };
 

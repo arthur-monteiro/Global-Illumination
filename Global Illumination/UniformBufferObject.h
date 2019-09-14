@@ -32,7 +32,20 @@ struct UniformBufferObjectSingleMat
 
 struct UniformBufferObjectArrayMat
 {
-	glm::mat4 matrices[3];
+	std::vector<glm::mat4> matrices;
+
+	VkDeviceSize getSize()
+	{
+		return matrices.size() * sizeof(glm::mat4);
+	}
+
+	void* getData()
+	{
+		void* r = malloc(getSize());
+		memcpy(r, matrices.data(), getSize());
+
+		return r;
+	}
 };
 
 const int MAX_POINTLIGHTS = 32;
@@ -69,10 +82,25 @@ struct UniformBufferObjectDirLightCSM
 	glm::vec4 dirLight;
 	glm::vec4 colorLight;
 
-	float usePCF;
 	float ambient;
+};
 
-	float cascadeSplits[3];
+struct UniformBufferObjectCSM
+{
+	std::vector<glm::vec4> cascadeSplits;
+
+	VkDeviceSize getSize()
+	{
+		return cascadeSplits.size() * sizeof(glm::vec4);
+	}
+
+	void* getData()
+	{
+		void* r = malloc(getSize());
+		memcpy(r, cascadeSplits.data(), getSize());
+
+		return r;
+	}
 };
 
 struct UniformBufferObjectItemQuad
@@ -121,11 +149,35 @@ public:
 		vkUnmapMemory(vk->getDevice(), m_uniformBufferMemory);
 	}
 
+	void load(Vulkan* vk, void* data, VkDeviceSize size, VkShaderStageFlags accessibility)
+	{
+		vk->createBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffer, m_uniformBufferMemory);
+
+		m_size = size;
+		m_accessibility = accessibility;
+
+		void* pData;
+		vkMapMemory(vk->getDevice(), m_uniformBufferMemory, 0, m_size, 0, &pData);
+			memcpy(pData, data, m_size);
+		vkUnmapMemory(vk->getDevice(), m_uniformBufferMemory);
+
+		free(data);
+	}
+
 	void update(Vulkan* vk, T data)
 	{
 		void* pData;
 		vkMapMemory(vk->getDevice(), m_uniformBufferMemory, 0, m_size, 0, &pData);
 			memcpy(pData, &data, m_size);
+		vkUnmapMemory(vk->getDevice(), m_uniformBufferMemory);
+	}
+
+	void update(Vulkan* vk, void* data, VkDeviceSize size)
+	{
+		void* pData;
+		vkMapMemory(vk->getDevice(), m_uniformBufferMemory, 0, m_size, 0, &pData);
+			memcpy(pData, data, size);
 		vkUnmapMemory(vk->getDevice(), m_uniformBufferMemory);
 	}
 

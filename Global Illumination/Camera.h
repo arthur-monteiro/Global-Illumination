@@ -58,7 +58,7 @@ private:
 
 	float m_aspect;
 	float m_near = 0.1f;
-	float m_far = 96.0f;
-	float m_radFOV = glm::radians(45.0f);
+	float m_far = 50.0f;
+	float m_radFOV = glm::radians(70.0f);
 };
 

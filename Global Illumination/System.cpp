@@ -103,9 +103,6 @@ void System::changePCF(bool status)
 	m_uboDirLightData.usePCF = status ? 1.0f : 0.0f;
 	m_uboDirLight.update(&m_vk, m_uboDirLightData);
 
-	m_uboDirLightCSMData.usePCF = status ? 1.0f : 0.0f;
-	m_uboDirLightCSM.update(&m_vk, m_uboDirLightCSMData);
-
 	m_swapChainRenderPass.updateImageViewMenuItemOption(&m_vk, m_menu.getOptionImageView());
 }
 
@@ -122,6 +119,8 @@ void System::changeShadows(std::wstring value)
 		m_sceneType = SCENE_TYPE_NO_SHADOW;
 	else if (value == L"Shadow Map")
 		m_sceneType = SCENE_TYPE_SHADOWMAP;
+	else if (value == L"CSM")
+		m_sceneType = SCENE_TYPE_CASCADED_SHADOWMAP;
 
 	createPasses(m_sceneType, m_msaaSamples, true);
 
@@ -183,7 +182,7 @@ void System::createRessources()
 
 	m_menu.initialize(&m_vk, "Fonts/arial.ttf", setMenuOptionImageViewCallback, this);
 	m_menu.addBooleanItem(&m_vk, L"FPS Counter", drawFPSCounterCallback, true, this, { "", "" });
-	int shadowsItemID = m_menu.addPicklistItem(&m_vk, L"Shadows", changeShadowsCallback, this, 1, { L"No", L"Shadow Map", L"Cascaded Shadow Map" });
+	int shadowsItemID = m_menu.addPicklistItem(&m_vk, L"Shadows", changeShadowsCallback, this, 2, { L"No", L"Shadow Map", L"CSM" });
 	int pcfItemID = m_menu.addBooleanItem(&m_vk, L"Percentage Closer Filtering", changePCFCallback, true, this, { "Image_options/shadow_no_pcf.JPG", "Image_options/shadow_with_pcf.JPG" });
 	m_menu.addPicklistItem(&m_vk, L"MSAA", changeMSAACallback, this, 0, { L"No", L"2x", L"4x", L"8x" });
 	m_menu.addPicklistItem(&m_vk, L"Global Illumination", changeGlobalIlluminationCallback, this, 1, { L"No", L"Ambient Lightning" });
@@ -216,7 +215,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 	if (!recreate)
 	{
 		m_offscreenShadowMap.initialize(&m_vk, { { 2048, 2048 } }, false, VK_SAMPLE_COUNT_1_BIT, false, true);
-		m_offscreenCascadedShadowMap.initialize(&m_vk, { { 8192, 8192 }, { 4096, 4096 }, { 4096, 4096 } }, false, VK_SAMPLE_COUNT_1_BIT, false, true);
+		m_offscreenCascadedShadowMap.initialize(&m_vk, { { 4096, 4096 }, { 2048, 2048 }, { 1024, 1024 }, { 512, 512 } }, false, VK_SAMPLE_COUNT_1_BIT, false, true);
 
 		m_swapChainRenderPass.initialize(&m_vk, { { 0, 0 } }, true, msaaSamples);
 		if (type == SCENE_TYPE_SHADOWMAP)
@@ -241,7 +240,6 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 			m_uboDirLightCSMData.camPos = m_uboDirLightData.camPos;
 			m_uboDirLightCSMData.colorLight = m_uboDirLightData.colorLight;
 			m_uboDirLightCSMData.dirLight = m_uboDirLightData.dirLight;
-			m_uboDirLightCSMData.usePCF = m_uboDirLightData.usePCF;
 			m_uboDirLightCSMData.ambient = m_uboDirLightData.ambient;
 			//m_uboDirLightCSMData.cascadeSplits = std::vector<float>(m_cascadeCount);
 			m_uboDirLightCSM.load(&m_vk, m_uboDirLightCSMData, VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -257,24 +255,20 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 			m_uboVPCSM.resize(m_cascadeCount);
 
 			m_cascadeSplits.resize(m_cascadeCount);
-			m_cascadeSplits = { 4.0f, 16.0f, 96.0f };
-			/*for (uint32_t i = 0; i < m_cascadeCount; i++) {
-				float p = (i + 1) / static_cast<float>(m_cascadeCount);
-				float log = m_camera.getNear() * std::pow(m_camera.getFar() / m_camera.getNear(), p);
-				float uniform = m_camera.getNear() + (m_camera.getFar() - m_camera.getNear()) * p;
-				float d = 0.95f * (log - uniform) + uniform;
-				m_cascadeSplits[i] = (d - m_camera.getNear()) / (m_camera.getFar() - m_camera.getNear());
-			}*/
+			m_cascadeSplits = { 4.0f, 10.0f, 20.0f, 32.0f };
 
 			for (int i(0); i < m_uboVPCSM.size(); ++i)
 			{
 				m_uboVPCSM[i].load(&m_vk, {}, VK_SHADER_STAGE_VERTEX_BIT);
 			}
 
-			m_uboLightSpaceCSM.load(&m_vk, { }, VK_SHADER_STAGE_VERTEX_BIT);
-			m_uboDirLightCSMData.cascadeSplits[0] = m_cascadeSplits[0];
-			m_uboDirLightCSMData.cascadeSplits[1] = m_cascadeSplits[1];
-			m_uboDirLightCSMData.cascadeSplits[2] = m_cascadeSplits[2];
+			m_uboLightSpaceCSMData.matrices = std::vector<glm::mat4>(m_cascadeCount);
+			m_uboLightSpaceCSM.load(&m_vk, m_uboLightSpaceCSMData.getData(), m_uboLightSpaceCSMData.getSize(), VK_SHADER_STAGE_VERTEX_BIT);
+
+			m_uboCascadeSplitsData.cascadeSplits.resize(m_cascadeCount);
+			for (int i(0); i < m_cascadeCount; ++i)
+				m_uboCascadeSplitsData.cascadeSplits[i].x = m_cascadeSplits[i];
+			m_uboCascadeSplits.load(&m_vk, m_uboCascadeSplitsData.getData(), m_uboCascadeSplitsData.getSize(), VK_SHADER_STAGE_FRAGMENT_BIT);
 
 			updateCSM();
 
@@ -317,11 +311,11 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 	}
 	else if (type == SCENE_TYPE_CASCADED_SHADOWMAP)
 	{
-		m_swapChainRenderPass.addMesh(&m_vk, { { { &m_quad }, {}, nullptr, {  m_offscreenCascadedShadowMap.getFrameBuffer(2).depthImageView } } },
+		m_swapChainRenderPass.addMesh(&m_vk, { { { &m_quad }, {}, nullptr, {  m_offscreenCascadedShadowMap.getFrameBuffer(0).depthImageView } } },
 			"Shaders/renderQuad/vert.spv", "Shaders/renderQuad/frag.spv", 1);
-		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboLightSpaceCSM, &m_uboDirLightCSM }, nullptr,
-			{ m_offscreenCascadedShadowMap.getFrameBuffer(0).depthImageView, m_offscreenCascadedShadowMap.getFrameBuffer(1).depthImageView,  m_offscreenCascadedShadowMap.getFrameBuffer(2).depthImageView} } },
-			"Shaders/pbr_csm_textured/vert.spv", "Shaders/pbr_csm_textured/frag.spv", 8, true);
+		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboLightSpaceCSM, &m_uboDirLightCSM,  &m_uboCascadeSplits }, nullptr,
+			{ m_offscreenCascadedShadowMap.getFrameBuffer(0).depthImageView, m_offscreenCascadedShadowMap.getFrameBuffer(1).depthImageView,  m_offscreenCascadedShadowMap.getFrameBuffer(2).depthImageView, m_offscreenCascadedShadowMap.getFrameBuffer(3).depthImageView} } },
+			"Shaders/pbr_csm_textured/vert.spv", "Shaders/pbr_csm_textured/frag.spv", 9, true);
 	}
 	else if (type == SCENE_TYPE_NO_SHADOW)
 	{
@@ -348,8 +342,8 @@ void System::updateCSM()
 		float endCascade = m_cascadeSplits[cascade];
 
 		float ar = (float)m_vk.getSwapChainExtend().height / m_vk.getSwapChainExtend().width;
-		float tanHalfHFOV = glm::tan(m_camera.getFOV() / 2.0f);
-		float tanHalfVFOV = glm::tan((m_camera.getFOV() * ar) / 2.0f);
+		float tanHalfHFOV = glm::tan((m_camera.getFOV() * (1.0 / ar)) / 2.0f);
+		float tanHalfVFOV = glm::tan((m_camera.getFOV()) / 2.0f);
 
 		float xn = startCascade * tanHalfHFOV;
 		float xf = endCascade * tanHalfHFOV;
@@ -383,7 +377,7 @@ void System::updateCSM()
 		//glm::vec3 frustumCenter = cascade == 0 ?
 		//	/* Cascade == 0 */ m_camera.getPosition() + m_camera.getOrientation() * (m_cascadeSplits[cascade] / 2.0f) :
 		//	/* Others */ m_camera.getPosition() + m_cascadeSplits[cascade - 1] * m_camera.getOrientation() + m_camera.getOrientation() * (m_cascadeSplits[cascade] / 2.0f);
-		glm::mat4 lightViewMatrix = glm::lookAt(-m_lightDir * 50.0f, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 lightViewMatrix = glm::lookAt(-m_lightDir * 30.0f, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		for (unsigned int j = 0; j < 8; j++)
 		{
@@ -408,72 +402,13 @@ void System::updateCSM()
 		m_uboVPCSMData[cascade] = vpTemp;
 		m_uboVPCSM[cascade].update(&m_vk, m_uboVPCSMData[cascade]);
 
-		//glm::vec3 frustumCorners[8] = {
-		//	glm::vec3(-1.0f,  1.0f, -1.0f),
-		//	glm::vec3(1.0f,  1.0f, -1.0f),
-		//	glm::vec3(1.0f, -1.0f, -1.0f),
-		//	glm::vec3(-1.0f, -1.0f, -1.0f),
-		//	glm::vec3(-1.0f,  1.0f,  1.0f),
-		//	glm::vec3(1.0f,  1.0f,  1.0f),
-		//	glm::vec3(1.0f, -1.0f,  1.0f),
-		//	glm::vec3(-1.0f, -1.0f,  1.0f)
-		//};
-
-		//// Camera projection
-		//glm::mat4 invCam = glm::inverse(m_camera.getViewMatrix() * m_camera.getProjection());
-		//for (uint32_t i = 0; i < 8; i++) {
-		//	glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
-		//	frustumCorners[i] = glm::vec3(invCorner);
-		//}
-
-		//// Cascade offset
-		//for (uint32_t i = 0; i < 4; i++) {
-		//	glm::vec3 dist = frustumCorners[i + 4] - frustumCorners[i];
-		//	frustumCorners[i + 4] = frustumCorners[i] + (dist * m_cascadeSplits[cascade]);
-		//	frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
-		//}
-
-		//// Get frustum center
-		//glm::vec3 frustumCenter = glm::vec3(0.0f);
-		//for (uint32_t i = 0; i < 8; i++) {
-		//	frustumCenter += frustumCorners[i];
-		//}
-		//frustumCenter /= 8.0f;
-
-		//float radius = 0.0f;
-		//for (uint32_t i = 0; i < 8; i++) {
-		//	float distance = glm::length(frustumCorners[i] - frustumCenter);
-		//	radius = glm::max(radius, distance);
-		//}
-		//radius = std::ceil(radius * 16.0f) / 16.0f;
-
-
-		//float coneMaxLengthFromBotToTop = (cascade == 0 ? m_cascadeSplits[cascade] : m_cascadeSplits[cascade] - (m_cascadeSplits[cascade - 1])) / glm::cos(m_camera.getFOV() / 2.0f);
-		//float coneMaxLengthFromLeftToRight = glm::sqrt(2 * coneMaxLengthFromBotToTop * coneMaxLengthFromBotToTop - 2 * coneMaxLengthFromBotToTop * glm::cos(m_camera.getFOV()));
-		//UniformBufferObjectVP vpTemp;
-		//vpTemp.proj = glm::ortho(-coneMaxLengthFromLeftToRight, coneMaxLengthFromLeftToRight,
-		//	/* Bot */ -coneMaxLengthFromBotToTop,
-		//	/* Top */ coneMaxLengthFromBotToTop,
-		//	m_camera.getNear(), m_camera.getFar());
-		//vpTemp.view = glm::lookAt(frustumCenter - m_lightDir * 50.0f, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
-
-		//m_uboVPCSMData[cascade] = vpTemp;
-		//m_uboVPCSM[cascade].update(&m_vk, m_uboVPCSMData[cascade]);
-
 		lastSplitDist += m_cascadeSplits[cascade];
 	}
 
-	glm::mat4 lightSpaceCSM[3];
-
 	for (int i = 0; i < m_cascadeCount; ++i)
 	{
-		lightSpaceCSM[i] = m_uboVPCSMData[i].proj * m_uboVPCSMData[i].view * m_uboModelData.matrix;
+		m_uboLightSpaceCSMData.matrices[i] = m_uboVPCSMData[i].proj * m_uboVPCSMData[i].view * m_uboModelData.matrix;
 	}
 
-	UniformBufferObjectArrayMat tempMat;
-	tempMat.matrices[0] = lightSpaceCSM[0];
-	tempMat.matrices[1] = lightSpaceCSM[1];
-	tempMat.matrices[2] = lightSpaceCSM[2];
-
-	m_uboLightSpaceCSM.update(&m_vk, tempMat);
+	m_uboLightSpaceCSM.update(&m_vk, m_uboLightSpaceCSMData.getData(), m_uboLightSpaceCSMData.getSize());
 }

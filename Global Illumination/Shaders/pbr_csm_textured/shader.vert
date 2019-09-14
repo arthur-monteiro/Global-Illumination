@@ -13,13 +13,11 @@ layout(binding = 1) uniform UniformBufferObjectModel
     mat4 model;
 } uboModel;
 
-#define CASCADES_COUNT 3
+#define CASCADES_COUNT 4
 
 layout(binding = 2) uniform UniformBufferObjectLightSpace
 {
-    mat4 lightSpace1;
-	mat4 lightSpace2;
-	mat4 lightSpace3;
+    mat4 lightSpaces[CASCADES_COUNT];
 } uboLightSpace;
 
 layout(location = 0) in vec3 inPosition;
@@ -58,7 +56,6 @@ void main() {
 	viewPos = gl_Position.xyz;
 	worldPos = vec3(uboModel.model * vec4(inPosition, 1.0));
     fragTexCoord = inTexCoord;
-	mat4 lightSpaceMats[] = { uboLightSpace.lightSpace1, uboLightSpace.lightSpace2, uboLightSpace.lightSpace3 };
 	for(int i = 0; i < CASCADES_COUNT; i++)
-    	posLightSpace[i] = biasMat * lightSpaceMats[i] * vec4(inPosition, 1.0);
+    	posLightSpace[i] = biasMat * uboLightSpace.lightSpaces[i] * vec4(inPosition, 1.0);
 } 

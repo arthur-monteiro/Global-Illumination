@@ -53,7 +53,7 @@ public:
 		m_drawText = draw;
 		recordDraw(vk);
 	}
-	void setSemaphoreToWait(std::vector<Semaphore> semaphores);
+	void setSemaphoreToWait(VkDevice device, std::vector<Semaphore> semaphores);
 	bool getDrawMenu() { return m_drawMenu; }
 
 private:
@@ -76,6 +76,8 @@ private:
 
 	VkFormat m_format;
 	VkFormat m_depthFormat;
+	bool m_useColorAttachment = false;
+	bool m_useDepthAttachment = false;
 
 	VkRenderPass m_renderPass;
 	VkDescriptorPool m_descriptorPool;

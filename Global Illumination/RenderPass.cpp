@@ -15,6 +15,8 @@ void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool pre
 		throw std::runtime_error("Can't create RenderPass without extent");
 
 	m_text = nullptr;
+	m_useColorAttachment = colorAttachment;
+	m_useDepthAttachment = depthAttachment;
 	m_msaaSamples = msaaSamples;
 	m_extent = !present ? extent : std::vector<VkExtent2D>(1, vk->getSwapChainExtend());
 
@@ -423,6 +425,9 @@ void RenderPass::drawCall(Vulkan * vk)
 
 void RenderPass::cleanup(Vulkan * vk)
 {
+	if (!m_isInitialized)
+		return;
+
 	if (m_colorImageView != VK_NULL_HANDLE)
 	{
 		vkDestroyImageView(vk->getDevice(), m_colorImageView, nullptr);
@@ -432,7 +437,7 @@ void RenderPass::cleanup(Vulkan * vk)
 	m_colorImageView = VK_NULL_HANDLE;
 
 	for (int i(0); i < m_meshesPipeline.size(); ++i)
-		m_meshesPipeline[i].free(vk->getDevice(), m_descriptorPool, true); // ne d�truit pas les ressources
+		m_meshesPipeline[i].free(vk->getDevice(), m_descriptorPool, true); // ne détruit pas les ressources
 
 	for (int i(0); i < m_frameBuffers.size(); ++i)
 		m_frameBuffers[i].free(vk->getDevice());
@@ -627,7 +632,7 @@ void RenderPass::createDescriptorPool(VkDevice device)
 	poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
 	if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_descriptorPool) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : cr�ation du descriptor pool");
+		throw std::runtime_error("Erreur : création du descriptor pool");
 }
 
 VkDescriptorSet RenderPass::createDescriptorSet(VkDevice device, VkDescriptorSetLayout decriptorSetLayout, std::vector<VkImageView> imageView,
@@ -648,7 +653,7 @@ VkDescriptorSet RenderPass::createDescriptorSet(VkDevice device, VkDescriptorSet
 	std::vector<VkWriteDescriptorSet> descriptorWrites;
 
 	int i = 0;
-	std::vector<VkDescriptorBufferInfo> bufferInfo(uniformBuffer.size()); // ne doit pas �tre d�truit avant l'appel de vkUpdateDescriptorSets
+	std::vector<VkDescriptorBufferInfo> bufferInfo(uniformBuffer.size()); // ne doit pas être détruit avant l'appel de vkUpdateDescriptorSets
 	for(; i < uniformBuffer.size(); ++i)
 	{
 		bufferInfo[i].buffer = uniformBuffer[i]->getUniformBuffer();
@@ -719,9 +724,11 @@ void RenderPass::fillCommandBuffer(Vulkan * vk)
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = m_extent[i];
 
-		std::array<VkClearValue, 1> clearValues = {};
-		//clearValues[0].color = { 0.0f, 0.0f, 1.0f, 1.0f };
-		clearValues[0].depthStencil = { 1.0f };
+		std::vector<VkClearValue> clearValues = {};
+		if (m_useColorAttachment && m_useDepthAttachment)
+			clearValues = { { 0.0f, 0.0f, 1.0f, 1.0f }, { 1.0f } };
+		else if (m_useDepthAttachment)
+			clearValues = { { 1.0f } };
 
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
@@ -786,8 +793,13 @@ void RenderPass::drawFrame(Vulkan * vk)
 		throw std::runtime_error("Erreur : draw command");
 }
 
-void RenderPass::setSemaphoreToWait(std::vector<Semaphore> semaphores)
+void RenderPass::setSemaphoreToWait(VkDevice device, std::vector<Semaphore> semaphores)
 {
+	/*for (int i(0); i < m_needToWaitSemaphores.size(); ++i)
+		vkDestroySemaphore(device, m_needToWaitSemaphores[i], nullptr);*/
+	m_needToWaitSemaphores.clear();
+	m_needToWaitStages.clear();
+
     for(int i(0); i < semaphores.size(); ++i)
     {
         m_needToWaitSemaphores.push_back(semaphores[i].semaphore);

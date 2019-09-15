@@ -209,7 +209,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 		//m_swapChainRenderPass.initialize(&m_vk, { { 0, 0 } }, true, msaaSamples);
 	}
 
-	if (!recreate)
+	if (!recreate ||true) // !!
 	{
 		m_uboModelData.matrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f));
 		m_uboModel.load(&m_vk, m_uboModelData, VK_SHADER_STAGE_VERTEX_BIT);
@@ -220,6 +220,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 		}
 
 		/* Cascade Shadow Map */
+		if(m_sceneType == SCENE_TYPE_CASCADED_SHADOWMAP)
 		{
 		    // Init passes
             m_offscreenCascadedShadowMap.initialize(&m_vk,
@@ -249,6 +250,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
             m_offscreenShadowCalculation.recordDraw(&m_vk);
 		}
 		/* Shadow Map */
+		if (m_sceneType == SCENE_TYPE_SHADOWMAP)
 		{
 		    // Pass initialization
             m_offscreenShadowMap.initialize(&m_vk, { { 2048, 2048 } }, false, VK_SAMPLE_COUNT_1_BIT, false, true);
@@ -446,7 +448,7 @@ void System::setSemaphores()
         m_vk.setRenderFinishedLastRenderPassSemaphore(VK_NULL_HANDLE);
     else if (m_sceneType == SCENE_TYPE_CASCADED_SHADOWMAP)
     {
-        m_offscreenShadowCalculation.setSemaphoreToWait({
+        m_offscreenShadowCalculation.setSemaphoreToWait(m_vk.getDevice(), {
             { m_offscreenCascadedShadowMap.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_VERTEX_SHADER_BIT }
         });
         m_vk.setRenderFinishedLastRenderPassSemaphore(m_offscreenShadowCalculation.getRenderFinishedSemaphore());

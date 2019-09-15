@@ -96,6 +96,8 @@ void MeshPBR::loadObj(Vulkan * vk, std::string path, glm::vec3 forceNormal)
 
 	createVertexBuffer(vk);
 	createIndexBuffer(vk);
+
+	m_isInitialized = true;
 }
 
 void MeshPBR::loadVertices(Vulkan* vk, std::vector<VertexPBR> vertices, std::vector<uint32_t> indices)
@@ -105,6 +107,8 @@ void MeshPBR::loadVertices(Vulkan* vk, std::vector<VertexPBR> vertices, std::vec
 
 	createVertexBuffer(vk);
 	createIndexBuffer(vk);
+
+	m_isInitialized = true;
 }
 
 int MeshBase::createTexture(Vulkan* vk, uint32_t height, uint32_t width, int mipLevels, int nLayers)
@@ -314,6 +318,9 @@ void MeshBase::clearImages(VkDevice device)
 
 void MeshPBR::cleanup(VkDevice device)
 {
+	if (!m_isInitialized)
+		return;
+
 	m_vertices.clear();
 	m_indices.clear();
 
@@ -330,7 +337,7 @@ void MeshPBR::cleanup(VkDevice device)
 		vkFreeMemory(device, m_images[i].imageMemory, nullptr);
 	}
 
-	m_isDestroyed = true;
+	m_isInitialized = false;
 }
 
 void MeshPBR::createVertexBuffer(Vulkan * vk)
@@ -473,7 +480,7 @@ void Mesh2D::cleanup(VkDevice device)
 		vkFreeMemory(device, m_images[i].imageMemory, nullptr);
 	}
 
-	m_isDestroyed = true;
+	m_isInitialized = false;
 }
 
 void Mesh2D::createVertexBuffer(Vulkan* vk)
@@ -524,7 +531,7 @@ void Mesh2DTextured::cleanup(VkDevice device)
 		vkFreeMemory(device, m_images[i].imageMemory, nullptr);
 	}
 
-	m_isDestroyed = true;
+	m_isInitialized = false;
 }
 
 void Mesh2DTextured::createVertexBuffer(Vulkan* vk)

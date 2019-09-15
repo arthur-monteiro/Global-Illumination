@@ -18,7 +18,7 @@ class MeshBase
 public:
 	virtual ~MeshBase() 
 	{
-		if (!m_isDestroyed)
+		if (!m_isInitialized)
 			std::cout << "Mesh not destroyed !" << std::endl;
 	}
 
@@ -57,7 +57,7 @@ protected:
 	void createTextureImageView(Vulkan* vk, VkFormat format);
 
 protected:
-	bool m_isDestroyed = false;
+	bool m_isInitialized = false;
 
 	std::vector<uint32_t> m_indices;
 	VkBuffer m_vertexBuffer;

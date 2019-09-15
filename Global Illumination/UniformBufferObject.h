@@ -120,6 +120,8 @@ public:
 	VkShaderStageFlags getAccessibility() { return m_accessibility; }
 
 protected:
+	bool m_isInitialized = false;
+
 	VkBuffer m_uniformBuffer;
 	VkDeviceMemory m_uniformBufferMemory;
 
@@ -133,9 +135,17 @@ class UniformBufferObject : public UboBase
 {
 public:
 	UniformBufferObject() {}
+	~UniformBufferObject()
+	{
+		if (m_isInitialized)
+			std::cout << "UBO not destroyed !" << std::endl;
+	}
 
 	void load(Vulkan* vk, T data, VkShaderStageFlags accessibility)
 	{
+		if (m_isInitialized)
+			return;
+
 		VkDeviceSize bufferSize = sizeof(T);
 		vk->createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffer, m_uniformBufferMemory);
@@ -147,6 +157,8 @@ public:
 		vkMapMemory(vk->getDevice(), m_uniformBufferMemory, 0, m_size, 0, &pData);
 			memcpy(pData, &data, m_size);
 		vkUnmapMemory(vk->getDevice(), m_uniformBufferMemory);
+
+		m_isInitialized = true;
 	}
 
 	void load(Vulkan* vk, void* data, VkDeviceSize size, VkShaderStageFlags accessibility)
@@ -185,6 +197,8 @@ public:
 	{
 		vkDestroyBuffer(device, m_uniformBuffer, nullptr);
 		vkFreeMemory(device, m_uniformBufferMemory, nullptr);
+
+		m_isInitialized = false;
 	}
 
 private:

@@ -72,7 +72,7 @@ public:
 	VkSemaphore getRenderFinishedSemaphore() { return m_renderCompleteSemaphore; }
 
 private:
-	bool m_isDestroyed = false;
+	bool m_isInitialized = false;
 
 	VkFormat m_format;
 	VkFormat m_depthFormat;

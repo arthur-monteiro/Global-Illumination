@@ -69,6 +69,7 @@ bool System::mainLoop()
 		{
 			updateCSM();
 			m_offscreenCascadedShadowMap.drawCall(&m_vk);
+			m_offscreenShadowCalculation.drawCall(&m_vk);
 		}
 		m_swapChainRenderPass.drawCall(&m_vk);
 	}
@@ -205,7 +206,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 
 		m_uboVPData.proj = m_camera.getProjection(); // change aspect
 
-		m_swapChainRenderPass.initialize(&m_vk, { { 0, 0 } }, true, msaaSamples);
+		//m_swapChainRenderPass.initialize(&m_vk, { { 0, 0 } }, true, msaaSamples);
 	}
 
 	if (!recreate)
@@ -224,8 +225,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
             m_offscreenCascadedShadowMap.initialize(&m_vk,
                                                     { { 4096, 4096 }, { 2048, 2048 }, { 1024, 1024 }, { 512, 512 } },
                                                     false, VK_SAMPLE_COUNT_1_BIT, false, true);
-            m_offscreenShadowCalculation.initialize(&m_vk, { m_vk.getSwapChainExtend() },
-                    false, VK_SAMPLE_COUNT_1_BIT, true, true);
+            m_offscreenShadowCalculation.initialize(&m_vk, { m_vk.getSwapChainExtend() }, false, VK_SAMPLE_COUNT_1_BIT, true, true);
 
             // Add meshes
 			for (int cascade(0); cascade < m_cascadeCount; ++cascade)

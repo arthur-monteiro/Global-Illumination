@@ -853,8 +853,8 @@ FrameBuffer Vulkan::createFrameBuffer(VkExtent2D extent, VkRenderPass renderPass
 	};
 	else if (imageFormat != VK_FORMAT_UNDEFINED)
 		attachments = {
-			frameBuffer.depthImageView,
-			frameBuffer.imageView
+			frameBuffer.imageView,
+			frameBuffer.depthImageView
 	};
 	else if(depthFormat != VK_FORMAT_UNDEFINED)
 		attachments = { frameBuffer.depthImageView };

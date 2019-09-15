@@ -2,12 +2,15 @@
 
 RenderPass::~RenderPass()
 {
-	if (!m_isDestroyed)
+	if (m_isInitialized)
 		std::cout << "Render pass not destroyed !" << std::endl;
 }
 
 void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool present, VkSampleCountFlagBits msaaSamples, bool colorAttachment, bool depthAttachment)
 {
+	if (m_isInitialized)
+		return;
+
 	if (extent.size() == 0)
 		throw std::runtime_error("Can't create RenderPass without extent");
 
@@ -60,23 +63,25 @@ void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool pre
 	VkSemaphoreCreateInfo semaphoreInfo = {};
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	if (vkCreateSemaphore(vk->getDevice(), &semaphoreInfo, nullptr, &m_renderCompleteSemaphore) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : cr�ation de la s�maphores");
+		throw std::runtime_error("Erreur : création de la sémaphores");
 
 	vk->setRenderFinishedLastRenderPassSemaphore(m_renderCompleteSemaphore);
 
 	m_commandPool = vk->createCommandPool();
+
+	m_isInitialized = true;
 }
 
 int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, std::string vertPath, std::string fragPath, int nbTexture, bool alphaBlending, int frameBufferID)
 {
-	/* Ici tous les meshes sont rendus avec les m�mes shaders */
+	/* Ici tous les meshes sont rendus avec les mêmes shaders */
 	for (int i(0); i < meshes.size(); ++i)
 	{
 		m_meshes.push_back(meshes[i]);
 	}
 	MeshPipeline meshesPipeline;
 
-	// Tous les meshes doivent avoir la m�me d�finition d'ubo
+	// Tous les meshes doivent avoir la même définition d'ubo
 	VkDescriptorSetLayout descriptorSetLayout = createDescriptorSetLayout(vk->getDevice(), meshes[0].ubos, nbTexture);
 
 	Pipeline pipeline;
@@ -95,7 +100,7 @@ int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, std::string
 
 #ifndef NDEBUG
 			if (meshes[i].meshes[k]->getImageView().size() + meshes[i].imageViews.size() != nbTexture)
-				std::cout << "Attention : le nombre de texture utilis�s n'est pas �gale au nombre de textures du mesh" << std::endl;
+				std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
 #endif // DEBUG
 
 			std::vector<VkImageView> imageViewToAdd = meshes[i].meshes[k]->getImageView();
@@ -106,10 +111,18 @@ int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, std::string
 			    imageViewToAdd = meshes[i].imageViews;
 
 			std::vector<VkImageLayout> imageLayouts(imageViewToAdd.size());
-			for (int j(0); j < meshes[i].meshes[k]->getImageView().size(); ++j)
-				imageLayouts[j] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			for (int j(meshes[i].meshes[k]->getImageView().size()); j < imageViewToAdd.size(); ++j)
-				imageLayouts[j] = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+			if (nbTexture > meshes[i].imageViews.size())
+			{
+				for (int j(0); j < meshes[i].meshes[k]->getImageView().size(); ++j)
+					imageLayouts[j] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				for (int j(meshes[i].meshes[k]->getImageView().size()); j < imageViewToAdd.size(); ++j)
+					imageLayouts[j] = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+			}
+			else
+			{
+				for (int j(0); j < imageLayouts.size(); ++j)
+					imageLayouts[j] = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+			}
 
 			VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), descriptorSetLayout,
 				imageViewToAdd, meshes[i].meshes[k]->getSampler(), meshes[i].ubos, nbTexture, imageLayouts);
@@ -435,7 +448,7 @@ void RenderPass::cleanup(Vulkan * vk)
 	vkDestroyDescriptorPool(vk->getDevice(), m_descriptorPool, nullptr);
 	vkDestroyRenderPass(vk->getDevice(), m_renderPass, nullptr);
 
-	m_isDestroyed = true;
+	m_isInitialized = false;
 }
 
 void RenderPass::createRenderPass(VkDevice device, VkImageLayout finalLayout, bool useColorAttachment, bool useDepthAttachment)

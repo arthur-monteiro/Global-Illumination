@@ -1,4 +1,33 @@
-﻿  System.cpp
-F:\Code\Global Illumination\Global Illumination\Vulkan.h(58,1): warning C4267:  'argument' : conversion de 'size_t' en 'uint32_t', perte possible de données
-F:\Code\Global Illumination\Global Illumination\System.cpp(345,21): warning C4244:  'initialisation' : conversion de 'double' en 'float', perte possible de données
+﻿  RenderPass.cpp
+F:\Code\Global Illumination\Global Illumination\Vulkan.h(58,1): warning C4267:  'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(118,59): warning C4267:  'initializing': conversion from 'size_t' to 'int', possible loss of data
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(196,45): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(196,45): warning C4267:         with
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(196,45): warning C4267:         [
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(196,45): warning C4267:             _Ty=int
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(196,45): warning C4267:         ]
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(224,60): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(224,60): warning C4267:         with
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(224,60): warning C4267:         [
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(224,60): warning C4267:             _Ty=int
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(224,60): warning C4267:         ]
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(275,60): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(275,60): warning C4267:         with
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(275,60): warning C4267:         [
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(275,60): warning C4267:             _Ty=int
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(275,60): warning C4267:         ]
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(300,60): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(300,60): warning C4267:         with
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(300,60): warning C4267:         [
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(300,60): warning C4267:             _Ty=int
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(300,60): warning C4267:         ]
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(325,68): warning C4267:  'argument': conversion from 'size_t' to 'int', possible loss of data
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(328,60): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(328,60): warning C4267:         with
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(328,60): warning C4267:         [
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(328,60): warning C4267:             _Ty=int
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(328,60): warning C4267:         ]
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(329,60): warning C4267:  '=': conversion from 'size_t' to 'int', possible loss of data
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(779,56): warning C4267:  '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(781,63): warning C4267:  '=': conversion from 'size_t' to 'uint32_t', possible loss of data
   Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe

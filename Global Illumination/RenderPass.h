@@ -19,6 +19,12 @@ struct MeshRender
 	std::vector<VkImageView> imageViews; // added after the mesh image views
 };
 
+struct Semaphore
+{
+    VkSemaphore semaphore;
+    VkPipelineStageFlags stage;
+};
+
 class RenderPass
 {
 public:
@@ -30,9 +36,7 @@ public:
 	int addMeshInstanced(Vulkan* vk, std::vector<MeshRender> meshes, std::string vertPath, std::string fragPath, int nbTexture);
 	int addText(Vulkan * vk, Text * text);
 	void addMenu(Vulkan* vk, Menu * menu);
-
 	void updateImageViewMenuItemOption(Vulkan* vk, VkImageView imageView);
-
 	void recordDraw(Vulkan * vk);
 
 	void drawCall(Vulkan * vk);
@@ -49,6 +53,7 @@ public:
 		m_drawText = draw;
 		recordDraw(vk);
 	}
+	void setSemaphoreToWait(std::vector<Semaphore> semaphores);
 	bool getDrawMenu() { return m_drawMenu; }
 
 private:
@@ -99,6 +104,8 @@ private:
 	std::vector<FrameBuffer> m_frameBuffers;
 	std::vector<VkExtent2D> m_extent;
 	std::vector <VkCommandBuffer> m_commandBuffer;
+	std::vector<VkSemaphore> m_needToWaitSemaphores;
+	std::vector<VkPipelineStageFlags> m_needToWaitStages;
 	VkSemaphore m_renderCompleteSemaphore;
 	VkCommandPool m_commandPool;
 

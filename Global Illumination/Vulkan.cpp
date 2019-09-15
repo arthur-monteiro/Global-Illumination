@@ -28,7 +28,7 @@ void Vulkan::initialize(int width, int height, std::string appName, std::functio
 		setupDebugCallback();
 #endif
 		if (glfwCreateWindowSurface(m_instance, m_window, nullptr, &m_surface) != VK_SUCCESS)
-			throw std::runtime_error("Erreur : Création de la surface");
+			throw std::runtime_error("Erreur : Crï¿½ation de la surface");
 		pickPhysicalDevice();
 		m_deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 		createDevice();
@@ -73,7 +73,7 @@ void Vulkan::createInstance()
 		createInfo.enabledLayerCount = 0;
 
 	if (vkCreateInstance(&createInfo, nullptr, &m_instance) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : Création de l'instance !");
+		throw std::runtime_error("Erreur : Crï¿½ation de l'instance !");
 }
 
 void Vulkan::setupDebugCallback()
@@ -86,7 +86,7 @@ void Vulkan::setupDebugCallback()
 	createInfo.pfnCallback = debugCallback;
 
 	if (CreateDebugReportCallbackEXT(m_instance, &createInfo, nullptr, &m_callback) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : Création du debug callback !");
+		throw std::runtime_error("Erreur : Crï¿½ation du debug callback !");
 }
 
 void Vulkan::pickPhysicalDevice()
@@ -95,7 +95,7 @@ void Vulkan::pickPhysicalDevice()
 	vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
 
 	if (deviceCount == 0)
-		throw std::runtime_error("Erreur : Aucun GPU supportant Vulkan trouvé !");
+		throw std::runtime_error("Erreur : Aucun GPU supportant Vulkan trouvï¿½ !");
 
 	std::vector<VkPhysicalDevice> devices(deviceCount);
 	vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
@@ -111,7 +111,7 @@ void Vulkan::pickPhysicalDevice()
 	}
 
 	if (m_physicalDevice == VK_NULL_HANDLE)
-		throw std::runtime_error("Erreur : Aucun GPU convenable trouvé !");
+		throw std::runtime_error("Erreur : Aucun GPU convenable trouvï¿½ !");
 }
 
 void Vulkan::createDevice()
@@ -156,7 +156,7 @@ void Vulkan::createDevice()
 		createInfo.enabledLayerCount = 0;
 
 	if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : Création du device");
+		throw std::runtime_error("Erreur : Crï¿½ation du device");
 
 	vkGetDeviceQueue(m_device, indices.graphicsFamily, 0, &m_graphicsQueue);
 	vkGetDeviceQueue(m_device, indices.presentFamily, 0, &m_presentQueue);
@@ -203,7 +203,7 @@ void Vulkan::createSwapChain()
 	createInfo.clipped = VK_TRUE;
 
 	if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &m_swapChain) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : Création de la swap chain !");
+		throw std::runtime_error("Erreur : Crï¿½ation de la swap chain !");
 
 	vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, nullptr);
 	m_swapChainImages.resize(imageCount);
@@ -317,7 +317,7 @@ void Vulkan::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, Vk
 	imageInfo.flags = flags;
 
 	if (vkCreateImage(m_device, &imageInfo, nullptr, &image) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : création de l'image");
+		throw std::runtime_error("Erreur : crï¿½ation de l'image");
 
 	VkMemoryRequirements memRequirements;
 	vkGetImageMemoryRequirements(m_device, image, &memRequirements);
@@ -411,7 +411,7 @@ void Vulkan::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout
 		}
 		else
 		{
-			throw std::runtime_error("Erreur : transition non supportée");
+			throw std::runtime_error("Erreur : transition non supportï¿½e");
 		}
 
 		vkCmdPipelineBarrier(
@@ -438,7 +438,7 @@ uint32_t Vulkan::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags prope
 			return i;
 	}
 
-	throw std::runtime_error("Erreur : aucun type de mémoire adéquate trouvé !");
+	throw std::runtime_error("Erreur : aucun type de mï¿½moire adï¿½quate trouvï¿½ !");
 }
 
 VkCommandBuffer Vulkan::beginSingleTimeCommands()
@@ -680,7 +680,7 @@ VkImageView Vulkan::createImageView(VkImage image, VkFormat format, VkImageAspec
 
 	VkImageView imageView;
 	if (vkCreateImageView(m_device, &viewInfo, nullptr, &imageView) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : Création d'une image view");
+		throw std::runtime_error("Erreur : Crï¿½ation d'une image view");
 
 	return imageView;
 }
@@ -705,7 +705,7 @@ VkFormat Vulkan::findSupportedFormat(const std::vector<VkFormat>& candidates, Vk
 			return format;
 	}
 
-	throw std::runtime_error("Aucun format supporté !");
+	throw std::runtime_error("Aucun format supportï¿½ !");
 }
 
 bool Vulkan::hasStencilComponent(VkFormat format)
@@ -722,7 +722,7 @@ void Vulkan::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryP
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 	if (vkCreateBuffer(m_device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : création d'un buffer");
+		throw std::runtime_error("Erreur : crï¿½ation d'un buffer");
 
 	VkMemoryRequirements memRequirements;
 	vkGetBufferMemoryRequirements(m_device, buffer, &memRequirements);
@@ -733,7 +733,7 @@ void Vulkan::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryP
 	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
 	if (vkAllocateMemory(m_device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : allocation de mémoire");
+		throw std::runtime_error("Erreur : allocation de mï¿½moire");
 
 	vkBindBufferMemory(m_device, buffer, bufferMemory, 0);
 }
@@ -1059,7 +1059,7 @@ void Vulkan::createSemaphores()
 
 	if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_imageAvailableSemaphore) != VK_SUCCESS ||
 		vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphore) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : création des sémaphores");
+		throw std::runtime_error("Erreur : crï¿½ation des sï¿½maphores");
 }
 
 void Vulkan::drawFrame()
@@ -1074,18 +1074,18 @@ void Vulkan::drawFrame()
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 	{
-		throw std::runtime_error("Erreur : impossible d'acquérir l'image");
+		throw std::runtime_error("Erreur : impossible d'acquï¿½rir l'image");
 	}
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-	
-	std::vector<VkSemaphore> waitSemaphores = { m_imageAvailableSemaphore, m_renderFinishedLastRenderPassSemaphore };
-	std::vector<VkPipelineStageFlags> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT };
-	if (m_renderFinishedLastRenderPassSemaphore == VK_NULL_HANDLE)
+
+    std::vector<VkSemaphore> waitSemaphores = { m_imageAvailableSemaphore, m_renderFinishedLastRenderPassSemaphore };
+    std::vector<VkPipelineStageFlags> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT };
+    if (m_renderFinishedLastRenderPassSemaphore == VK_NULL_HANDLE)
 	{
-		waitSemaphores = { m_imageAvailableSemaphore };
+        waitSemaphores = { m_imageAvailableSemaphore };
 		waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	}
 	submitInfo.waitSemaphoreCount = waitSemaphores.size();

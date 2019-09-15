@@ -60,7 +60,7 @@ void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool pre
 	VkSemaphoreCreateInfo semaphoreInfo = {};
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	if (vkCreateSemaphore(vk->getDevice(), &semaphoreInfo, nullptr, &m_renderCompleteSemaphore) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : création de la sémaphores");
+		throw std::runtime_error("Erreur : crï¿½ation de la sï¿½maphores");
 
 	vk->setRenderFinishedLastRenderPassSemaphore(m_renderCompleteSemaphore);
 
@@ -69,14 +69,14 @@ void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool pre
 
 int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, std::string vertPath, std::string fragPath, int nbTexture, bool alphaBlending, int frameBufferID)
 {
-	/* Ici tous les meshes sont rendus avec les mêmes shaders */
+	/* Ici tous les meshes sont rendus avec les mï¿½mes shaders */
 	for (int i(0); i < meshes.size(); ++i)
 	{
 		m_meshes.push_back(meshes[i]);
 	}
 	MeshPipeline meshesPipeline;
 
-	// Tous les meshes doivent avoir la même définition d'ubo
+	// Tous les meshes doivent avoir la mï¿½me dï¿½finition d'ubo
 	VkDescriptorSetLayout descriptorSetLayout = createDescriptorSetLayout(vk->getDevice(), meshes[0].ubos, nbTexture);
 
 	Pipeline pipeline;
@@ -95,12 +95,15 @@ int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, std::string
 
 #ifndef NDEBUG
 			if (meshes[i].meshes[k]->getImageView().size() + meshes[i].imageViews.size() != nbTexture)
-				std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
+				std::cout << "Attention : le nombre de texture utilisï¿½s n'est pas ï¿½gale au nombre de textures du mesh" << std::endl;
 #endif // DEBUG
 
 			std::vector<VkImageView> imageViewToAdd = meshes[i].meshes[k]->getImageView();
 			for (int j(0); j < meshes[i].imageViews.size(); ++j)
 				imageViewToAdd.push_back(meshes[i].imageViews[j]);
+
+			if(nbTexture <= meshes[i].imageViews.size()) // additionnal image views are prioritized
+			    imageViewToAdd = meshes[i].imageViews;
 
 			std::vector<VkImageLayout> imageLayouts(imageViewToAdd.size());
 			for (int j(0); j < meshes[i].meshes[k]->getImageView().size(); ++j)
@@ -156,7 +159,7 @@ int RenderPass::addMeshInstanced(Vulkan* vk, std::vector<MeshRender> meshes, std
 
 #ifndef NDEBUG
 			if (meshes[i].meshes[k]->getImageView().size() != nbTexture)
-				std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
+				std::cout << "Attention : le nombre de texture utilisï¿½s n'est pas ï¿½gale au nombre de textures du mesh" << std::endl;
 #endif // DEBUG
 
 			VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), descriptorSetLayout,
@@ -416,7 +419,7 @@ void RenderPass::cleanup(Vulkan * vk)
 	m_colorImageView = VK_NULL_HANDLE;
 
 	for (int i(0); i < m_meshesPipeline.size(); ++i)
-		m_meshesPipeline[i].free(vk->getDevice(), m_descriptorPool, true); // ne détruit pas les ressources
+		m_meshesPipeline[i].free(vk->getDevice(), m_descriptorPool, true); // ne dï¿½truit pas les ressources
 
 	for (int i(0); i < m_frameBuffers.size(); ++i)
 		m_frameBuffers[i].free(vk->getDevice());
@@ -611,7 +614,7 @@ void RenderPass::createDescriptorPool(VkDevice device)
 	poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
 	if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_descriptorPool) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : création du descriptor pool");
+		throw std::runtime_error("Erreur : crï¿½ation du descriptor pool");
 }
 
 VkDescriptorSet RenderPass::createDescriptorSet(VkDevice device, VkDescriptorSetLayout decriptorSetLayout, std::vector<VkImageView> imageView,
@@ -632,7 +635,7 @@ VkDescriptorSet RenderPass::createDescriptorSet(VkDevice device, VkDescriptorSet
 	std::vector<VkWriteDescriptorSet> descriptorWrites;
 
 	int i = 0;
-	std::vector<VkDescriptorBufferInfo> bufferInfo(uniformBuffer.size()); // ne doit pas être détruit avant l'appel de vkUpdateDescriptorSets
+	std::vector<VkDescriptorBufferInfo> bufferInfo(uniformBuffer.size()); // ne doit pas ï¿½tre dï¿½truit avant l'appel de vkUpdateDescriptorSets
 	for(; i < uniformBuffer.size(); ++i)
 	{
 		bufferInfo[i].buffer = uniformBuffer[i]->getUniformBuffer();
@@ -762,15 +765,19 @@ void RenderPass::drawFrame(Vulkan * vk)
 	submitInfo.pSignalSemaphores = &m_renderCompleteSemaphore; // renderPass
 	submitInfo.commandBufferCount = m_commandBuffer.size();
 	submitInfo.pCommandBuffers = m_commandBuffer.data();
-	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_ALL_COMMANDS_BIT };
-	if (m_firstDraw)
-	{
-		submitInfo.waitSemaphoreCount = 0;
-		submitInfo.pWaitSemaphores = NULL;
-
-		m_firstDraw = false;
-	}
+	submitInfo.waitSemaphoreCount = m_needToWaitSemaphores.size();
+	submitInfo.pWaitSemaphores = m_needToWaitSemaphores.data();
+	submitInfo.pWaitDstStageMask = m_needToWaitStages.data();
 
 	if (vkQueueSubmit(vk->getGraphicalQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
 		throw std::runtime_error("Erreur : draw command");
+}
+
+void RenderPass::setSemaphoreToWait(std::vector<Semaphore> semaphores)
+{
+    for(int i(0); i < semaphores.size(); ++i)
+    {
+        m_needToWaitSemaphores.push_back(semaphores[i].semaphore);
+        m_needToWaitStages.push_back(semaphores[i].stage);
+    }
 }

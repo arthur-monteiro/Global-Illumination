@@ -52,6 +52,8 @@ private:
 	void create(bool recreate = false);
 	void createRessources();
 	void createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recreate = false);
+	void createUniformBufferObjects();
+	void setSemaphores();
 
 	void updateCSM();
 
@@ -59,13 +61,21 @@ private:
 	Vulkan m_vk;
 
 	glm::vec3 m_lightDir = glm::vec3(-1.0f, -1.0f, 0.0f);
-	int m_cascadeCount = 4;
-	std::vector<float> m_cascadeSplits;
 
+	/* ----- Render Pass ------ */
+    int m_sceneType = SCENE_TYPE_UNDEFINED;
+
+	/* Final Pass */
 	RenderPass m_swapChainRenderPass;
+
+	/* Shadow Mapping */
 	RenderPass m_offscreenShadowMap;
+
+	/* CSM */
 	RenderPass m_offscreenCascadedShadowMap;
-	int m_sceneType = SCENE_TYPE_UNDEFINED;
+	RenderPass m_offscreenShadowCalculation;
+    int m_cascadeCount = 4;
+    std::vector<float> m_cascadeSplits;
 
 	MeshPBR m_skybox;
 	MeshPBR m_wall;
@@ -83,6 +93,8 @@ private:
 	bool m_wasClickPressed = 0;
 
 	int m_skyboxID;
+
+	/* ----- Uniform Buffer Objects ----- */
 
 	/* Final pass*/
 	UniformBufferObject<UniformBufferObjectVP> m_uboVP;

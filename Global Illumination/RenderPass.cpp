@@ -6,7 +6,7 @@ RenderPass::~RenderPass()
 		std::cout << "Render pass not destroyed !" << std::endl;
 }
 
-void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool present, VkSampleCountFlagBits msaaSamples, bool colorAttachment, bool depthAttachment)
+void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool present, VkSampleCountFlagBits msaaSamples, bool colorAttachment, bool depthAttachment, VkImageLayout finalLayout)
 {
 	if (m_isInitialized)
 		return;
@@ -28,9 +28,9 @@ void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool pre
 		m_depthFormat = VK_FORMAT_D16_UNORM;
 
 	if(present)
-		createRenderPass(vk->getDevice(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, colorAttachment, depthAttachment);
+		createRenderPass(vk->getDevice(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, colorAttachment, depthAttachment); 
 	else
-		createRenderPass(vk->getDevice(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, colorAttachment, depthAttachment);
+		createRenderPass(vk->getDevice(), finalLayout, colorAttachment, depthAttachment);
 	createDescriptorPool(vk->getDevice());
 	
 	if(colorAttachment && msaaSamples != VK_SAMPLE_COUNT_1_BIT)
@@ -56,8 +56,7 @@ void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool pre
 		UniformBufferObject<UniformBufferObjectSingleVec> uboTemp;
 		uboTemp.load(vk, { glm::vec4(0.0f) }, VK_SHADER_STAGE_FRAGMENT_BIT);
 		m_textDescriptorSetLayout = createDescriptorSetLayout(vk->getDevice(), { &uboTemp }, 1);
-		m_textPipeline.initialize(vk, &m_textDescriptorSetLayout, m_renderPass, "Shaders/text/vert.spv",
-			"Shaders/text/frag.spv", true, m_msaaSamples, { TextVertex::getBindingDescription() }, TextVertex::getAttributeDescriptions(), vk->getSwapChainExtend());
+		m_textPipeline.initialize(vk, &m_textDescriptorSetLayout, m_renderPass, { "Shaders/text/vert.spv", "", "Shaders/text/frag.spv" }, true, m_msaaSamples, { TextVertex::getBindingDescription() }, TextVertex::getAttributeDescriptions(), vk->getSwapChainExtend());
 		uboTemp.cleanup(vk->getDevice());
 	}
 
@@ -67,14 +66,14 @@ void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool pre
 	if (vkCreateSemaphore(vk->getDevice(), &semaphoreInfo, nullptr, &m_renderCompleteSemaphore) != VK_SUCCESS)
 		throw std::runtime_error("Erreur : création de la sémaphores");
 
-	vk->setRenderFinishedLastRenderPassSemaphore(m_renderCompleteSemaphore);
+	//vk->setRenderFinishedLastRenderPassSemaphore(m_renderCompleteSemaphore);
 
 	m_commandPool = vk->createCommandPool();
 
 	m_isInitialized = true;
 }
 
-int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, std::string vertPath, std::string fragPath, int nbTexture, bool alphaBlending, int frameBufferID)
+int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, PipelineShaders pipelineShaders, int nbTexture, bool alphaBlending, int frameBufferID)
 {
 	/* Ici tous les meshes sont rendus avec les mêmes shaders */
 	for (int i(0); i < meshes.size(); ++i)
@@ -87,7 +86,7 @@ int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, std::string
 	VkDescriptorSetLayout descriptorSetLayout = createDescriptorSetLayout(vk->getDevice(), meshes[0].ubos, nbTexture);
 
 	Pipeline pipeline;
-	pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, vertPath, fragPath, alphaBlending, m_msaaSamples, { VertexPBR::getBindingDescription(0) }, 
+	pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, pipelineShaders, alphaBlending, m_msaaSamples, { VertexPBR::getBindingDescription(0) },
 		VertexPBR::getAttributeDescriptions(0), m_extent[frameBufferID]);
 	meshesPipeline.pipeline = pipeline.getGraphicsPipeline();
 	meshesPipeline.pipelineLayout = pipeline.getPipelineLayout();
@@ -101,29 +100,33 @@ int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, std::string
 			meshesPipeline.nbIndices.push_back(meshes[i].meshes[k]->getNumIndices());
 
 #ifndef NDEBUG
-			if (meshes[i].meshes[k]->getImageView().size() + meshes[i].imageViews.size() != nbTexture)
+			if (meshes[i].meshes[k]->getImageView().size() + meshes[i].images.size() != nbTexture)
 				std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
 #endif // DEBUG
 
 			std::vector<VkImageView> imageViewToAdd = meshes[i].meshes[k]->getImageView();
-			for (int j(0); j < meshes[i].imageViews.size(); ++j)
-				imageViewToAdd.push_back(meshes[i].imageViews[j]);
+			for (int j(0); j < meshes[i].images.size(); ++j)
+				imageViewToAdd.push_back(meshes[i].images[j].first);
 
-			if(nbTexture <= meshes[i].imageViews.size()) // additionnal image views are prioritized
-			    imageViewToAdd = meshes[i].imageViews;
+			if (nbTexture <= meshes[i].images.size()) // additionnal image views are prioritized
+			{
+				imageViewToAdd.clear();
+				for (int j(0); j < meshes[i].images.size(); ++j)
+					imageViewToAdd.push_back(meshes[i].images[j].first);
+			}
 
 			std::vector<VkImageLayout> imageLayouts(imageViewToAdd.size());
-			if (nbTexture > meshes[i].imageViews.size())
+			if (nbTexture > meshes[i].images.size())
 			{
 				for (int j(0); j < meshes[i].meshes[k]->getImageView().size(); ++j)
 					imageLayouts[j] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 				for (int j(meshes[i].meshes[k]->getImageView().size()); j < imageViewToAdd.size(); ++j)
-					imageLayouts[j] = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+					imageLayouts[j] = m_meshes[i].images[j - meshes[i].meshes[k]->getImageView().size()].second;
 			}
 			else
 			{
 				for (int j(0); j < imageLayouts.size(); ++j)
-					imageLayouts[j] = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+					imageLayouts[j] = m_meshes[i].images[j].second;
 			}
 
 			VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), descriptorSetLayout,
@@ -158,7 +161,7 @@ int RenderPass::addMeshInstanced(Vulkan* vk, std::vector<MeshRender> meshes, std
 		std::cout << "Warning : Can't instanciate with multiple frambuffers, default is first framebuffer" << std::endl; // !! to be fixed
 #endif // NDEBUG
 
-	pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, vertPath, fragPath, false, m_msaaSamples, { VertexPBR::getBindingDescription(0), ModelInstance::getBindingDescription(1) }, 
+	pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, { vertPath, "", fragPath }, false, m_msaaSamples, { VertexPBR::getBindingDescription(0), ModelInstance::getBindingDescription(1) },
 		attributeDescription, m_extent[0]);
 	meshesPipelineInstanced.pipeline = pipeline.getGraphicsPipeline();
 	meshesPipelineInstanced.pipelineLayout = pipeline.getPipelineLayout();
@@ -174,7 +177,7 @@ int RenderPass::addMeshInstanced(Vulkan* vk, std::vector<MeshRender> meshes, std
 
 #ifndef NDEBUG
 			if (meshes[i].meshes[k]->getImageView().size() != nbTexture)
-				std::cout << "Attention : le nombre de texture utilis�s n'est pas �gale au nombre de textures du mesh" << std::endl;
+				std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
 #endif // DEBUG
 
 			VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), descriptorSetLayout,
@@ -234,7 +237,7 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 #endif // NDEBUG
 
 		Pipeline pipeline;
-		pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, "Shaders/menuFullQuad/vert.spv", "Shaders/menuFullQuad/frag.spv", true, m_msaaSamples,
+		pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, { "Shaders/menuFullQuad/vert.spv", "", "Shaders/menuFullQuad/frag.spv" }, true, m_msaaSamples,
 			{ VertexQuad::getBindingDescription(0) }, VertexQuad::getAttributeDescriptions(0), m_extent[0]);
 		meshesPipeline.pipeline = pipeline.getGraphicsPipeline();
 		meshesPipeline.pipelineLayout = pipeline.getPipelineLayout();
@@ -258,7 +261,7 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 		VkDescriptorSetLayout descriptorSetLayout = createDescriptorSetLayout(vk->getDevice(), { UBOs[0] }, 0);
 
 		Pipeline pipeline;
-		pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, "Shaders/menuItemQuad/vert.spv", "Shaders/menuItemQuad/frag.spv", true, m_msaaSamples,
+		pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, { "Shaders/menuItemQuad/vert.spv", "", "Shaders/menuItemQuad/frag.spv" }, true, m_msaaSamples,
 			{ VertexQuad::getBindingDescription(0) }, VertexQuad::getAttributeDescriptions(0), m_extent[0]);
 		meshesPipeline.pipeline = pipeline.getGraphicsPipeline();
 		meshesPipeline.pipelineLayout = pipeline.getPipelineLayout();
@@ -309,7 +312,7 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 		m_menuOptionImageDescriptorLayout = createDescriptorSetLayout(vk->getDevice(), { }, 1);
 
 		Pipeline pipeline;
-		pipeline.initialize(vk, &m_menuOptionImageDescriptorLayout, m_renderPass, "Shaders/menuOptionImageQuad/vert.spv", "Shaders/menuOptionImageQuad/frag.spv", false, m_msaaSamples,
+		pipeline.initialize(vk, &m_menuOptionImageDescriptorLayout, m_renderPass, { "Shaders/menuOptionImageQuad/vert.spv", "", "Shaders/menuOptionImageQuad/frag.spv" }, false, m_msaaSamples,
 			{ VertexQuadTextured::getBindingDescription(0) }, VertexQuadTextured::getAttributeDescriptions(0), m_extent[0]);
 		meshPipeline.pipeline = pipeline.getGraphicsPipeline();
 		meshPipeline.pipelineLayout = pipeline.getPipelineLayout();
@@ -351,7 +354,7 @@ void RenderPass::updateImageViewMenuItemOption(Vulkan* vk, VkImageView imageView
 	recordDraw(vk);
 }
 
-void RenderPass::recordDraw(Vulkan * vk)
+void RenderPass::recordDraw(Vulkan * vk, std::vector<Operation> operations)
 {
 	std::vector<MeshPipeline> meshesToRender;
 	for (int i(0); i < m_meshesPipeline.size(); ++i)
@@ -385,7 +388,7 @@ void RenderPass::recordDraw(Vulkan * vk)
 		meshesToRender.push_back(m_meshesPipeline[i]);
 	}
 	if(m_useSwapChain) vk->fillCommandBuffer(m_renderPass, meshesToRender);
-	else fillCommandBuffer(vk);
+	else fillCommandBuffer(vk, operations);
 }
 
 void RenderPass::drawCall(Vulkan * vk)
@@ -698,7 +701,7 @@ VkDescriptorSet RenderPass::createDescriptorSet(VkDevice device, VkDescriptorSet
 	return descriptorSet;
 }
 
-void RenderPass::fillCommandBuffer(Vulkan * vk)
+void RenderPass::fillCommandBuffer(Vulkan * vk, std::vector<Operation> operations)
 {
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -771,6 +774,78 @@ void RenderPass::fillCommandBuffer(Vulkan * vk)
 		}
 
 		vkCmdEndRenderPass(m_commandBuffer[i]);
+
+		for (int j(0); j < operations.size(); ++j)
+		{
+			if (operations[j].type == OPERATION_TYPE_BLIT)
+			{
+				VkImageMemoryBarrier barrier = {};
+				barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+				barrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+				barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+				barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+				barrier.image = operations[j].dstBlitImage;
+				barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				barrier.subresourceRange.baseMipLevel = 0;
+				barrier.subresourceRange.levelCount = 1;
+				barrier.subresourceRange.baseArrayLayer = 0;
+				barrier.subresourceRange.layerCount = 1;
+
+				barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+				VkPipelineStageFlags sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				VkPipelineStageFlags destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+
+				vkCmdPipelineBarrier(
+					m_commandBuffer[i],
+					sourceStage, destinationStage,
+					0,
+					0, nullptr,
+					0, nullptr,
+					1, &barrier
+				);
+
+				VkImageBlit blit = {};
+				blit.srcOffsets[0] = { 0, 0, 0 };
+				blit.srcOffsets[1] = { (int32_t)m_extent[i].width, (int32_t)m_extent[i].height, 1 };
+				blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				blit.srcSubresource.mipLevel = 0;
+				blit.srcSubresource.baseArrayLayer = 0;
+				blit.srcSubresource.layerCount = 1;
+				blit.dstOffsets[0] = { 0, 0, 0 };
+				blit.dstOffsets[1] = { (int32_t)operations[j].dstBlitExtent.width, (int32_t)operations[j].dstBlitExtent.height, 1 };
+				blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				blit.dstSubresource.mipLevel = 0;
+				blit.dstSubresource.baseArrayLayer = 0;
+				blit.dstSubresource.layerCount = 1;
+
+				vkCmdBlitImage(m_commandBuffer[i],
+					m_frameBuffers[i].image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+					operations[j].dstBlitImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+					1, &blit,
+					VK_FILTER_LINEAR);
+
+				barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+				barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+				barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+				barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			
+				sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+				destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+				vkCmdPipelineBarrier(
+					m_commandBuffer[i],
+					sourceStage, destinationStage,
+					0,
+					0, nullptr,
+					0, nullptr,
+					1, &barrier
+				);
+			}
+		}
 
 		if (vkEndCommandBuffer(m_commandBuffer[i]) != VK_SUCCESS)
 			throw std::runtime_error("Erreur : record command buffer");

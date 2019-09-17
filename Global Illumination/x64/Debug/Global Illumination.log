@@ -1,33 +1,3 @@
-﻿  RenderPass.cpp
-F:\Code\Global Illumination\Global Illumination\Vulkan.h(58,1): warning C4267:  'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(120,59): warning C4267:  'initializing': conversion from 'size_t' to 'int', possible loss of data
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(198,45): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(198,45): warning C4267:         with
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(198,45): warning C4267:         [
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(198,45): warning C4267:             _Ty=int
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(198,45): warning C4267:         ]
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(226,60): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(226,60): warning C4267:         with
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(226,60): warning C4267:         [
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(226,60): warning C4267:             _Ty=int
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(226,60): warning C4267:         ]
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(277,60): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(277,60): warning C4267:         with
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(277,60): warning C4267:         [
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(277,60): warning C4267:             _Ty=int
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(277,60): warning C4267:         ]
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(302,60): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(302,60): warning C4267:         with
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(302,60): warning C4267:         [
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(302,60): warning C4267:             _Ty=int
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(302,60): warning C4267:         ]
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(327,68): warning C4267:  'argument': conversion from 'size_t' to 'int', possible loss of data
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(330,60): warning C4267:  'argument': conversion from 'size_t' to '_Ty', possible loss of data
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(330,60): warning C4267:         with
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(330,60): warning C4267:         [
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(330,60): warning C4267:             _Ty=int
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(330,60): warning C4267:         ]
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(331,60): warning C4267:  '=': conversion from 'size_t' to 'int', possible loss of data
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(786,56): warning C4267:  '=': conversion from 'size_t' to 'uint32_t', possible loss of data
-F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(788,63): warning C4267:  '=': conversion from 'size_t' to 'uint32_t', possible loss of data
-  Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe
+﻿  Pipeline.cpp
+E:\nosave\VS Project\Global Illumination\Global Illumination\Vulkan.h(59,1): warning C4267:  'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
+  Global Illumination.vcxproj -> E:\nosave\VS Project\Global Illumination\x64\Debug\Global Illumination.exe

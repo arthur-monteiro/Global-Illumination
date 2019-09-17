@@ -54,8 +54,8 @@ void main()
 	float shadow = 0;
 	if(projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0)
 	{
-		shadow = 1.0;
-		cascadeIndex = -1;
+		outColor = vec4(0.0, 1.0, 0.0, 1.0);
+		return;
 	}
 	else 
 	{

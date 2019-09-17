@@ -253,12 +253,20 @@ namespace std
 	};
 }
 
+struct PipelineShaders
+{
+	std::string vertexShader = "";
+	std::string geometryShader = "";
+	std::string fragmentShader = "";
+};
+
 class Pipeline
 {
 public:
-	void initialize(Vulkan* vk, VkDescriptorSetLayout* descriptorSetLayout, VkRenderPass renderPass, std::string vertPath, 
-		std::string fragPath, bool alphaBlending, VkSampleCountFlagBits msaaSamples, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
+	void initialize(Vulkan* vk, VkDescriptorSetLayout* descriptorSetLayout, VkRenderPass renderPass, PipelineShaders shaders, 
+		bool alphaBlending, VkSampleCountFlagBits msaaSamples, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
 		std::vector<VkVertexInputAttributeDescription> attributeInputDescription, VkExtent2D extent);
+	void intialize(Vulkan* vk, std::string computeShader, VkDescriptorSetLayout* descriptorSetLayout);
 
 private:
 	static std::vector<char> readFile(const std::string& filename);
@@ -266,9 +274,12 @@ private:
 
 public:
 	VkPipeline getGraphicsPipeline() { return m_graphicsPipeline; }
+	VkPipeline getComputePipeline() { return m_computePipeline; }
 	VkPipelineLayout getPipelineLayout() { return m_pipelineLayout; }
 
 private:
 	VkPipelineLayout m_pipelineLayout;
 	VkPipeline m_graphicsPipeline;
+
+	VkPipeline m_computePipeline;
 };

@@ -156,6 +156,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="ComputePass.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Instance.cpp" />
     <ClCompile Include="main.cpp" />
@@ -171,6 +172,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="ComputePass.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Instance.h" />
     <ClInclude Include="Menu.h" />

@@ -3,7 +3,7 @@
 
 #define CASCADES_COUNT 4
 
-layout(binding = 3) uniform UniformBufferObjectLights
+layout(binding = 2) uniform UniformBufferObjectLights
 {
 	vec4 camPos;
 	
@@ -13,27 +13,18 @@ layout(binding = 3) uniform UniformBufferObjectLights
 	float ambient;
 } uboLights;
 
-layout(binding = 4) uniform UniformBufferObjectCSM
-{
-	float cascadeSplits[CASCADES_COUNT];
-} uboCSM;
+layout(binding = 3) uniform sampler2D texAlbedo;
+layout(binding = 4) uniform sampler2D texNormal;
+layout(binding = 5) uniform sampler2D texRoughness;
+layout(binding = 6) uniform sampler2D texMetal;
+layout(binding = 7) uniform sampler2D texAO;
 
-layout(binding = 5) uniform sampler2D texAlbedo;
-layout(binding = 6) uniform sampler2D texNormal;
-layout(binding = 7) uniform sampler2D texRoughness;
-layout(binding = 8) uniform sampler2D texMetal;
-layout(binding = 9) uniform sampler2D texAO;
-
-layout (binding = 10) uniform sampler2D shadowMap1;
-layout (binding = 11) uniform sampler2D shadowMap2;
-layout (binding = 12) uniform sampler2D shadowMap3;
-layout (binding = 13) uniform sampler2D shadowMap4;
+layout (binding = 8) uniform sampler2D screenShadows;
 
 layout(location = 0) in vec3 worldPos;
-layout(location = 1) in vec3 viewPos;
-layout(location = 2) in vec2 fragTexCoord;
+layout(location = 1) in vec2 fragTexCoord;
+layout(location = 2) in vec4 screenPos;
 layout(location = 3) in mat3 tbn;
-layout(location = 7) in vec4 posLightSpace[CASCADES_COUNT];
 
 layout(location = 0) out vec4 outColor;
 
@@ -44,47 +35,16 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 const float PI = 3.14159265359;
 
-float textureProj(vec4 shadowCoord, uint cascadeIndex)
-{
-	float closestDepth;
-	if(cascadeIndex == 0)
-		closestDepth = texture(shadowMap1, shadowCoord.st).r; 
-	else if(cascadeIndex == 1)
-		closestDepth = texture(shadowMap2, shadowCoord.st).r; 
-	else if(cascadeIndex == 2)
-		closestDepth = texture(shadowMap3, shadowCoord.st).r; 
-	else if(cascadeIndex == 3)
-		closestDepth = texture(shadowMap4, shadowCoord.st).r; 
-    float currentDepth = shadowCoord.z;
-	float bias = 0.0005;
-    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
-
-	return shadow;
-}
-
 void main() 
 {
-	uint cascadeIndex = 0;
-	for(uint i = 0; i < CASCADES_COUNT; ++i) {
-		if(viewPos.z <= uboCSM.cascadeSplits[i]) {	
-			cascadeIndex = i;
-			break;
-		}
-	}
+	vec2 coordShadow = ((screenPos.xy / screenPos.w) + 1.0) / 2.0; 
 
-	vec4 projCoords = posLightSpace[cascadeIndex] / posLightSpace[cascadeIndex].w; 
-	float shadow = 0;
-	if(projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0)
-	{
-		shadow = 1.0;
-		cascadeIndex = -1;
-	}
-	else 
-	{
-		shadow = 1.0 - textureProj(projCoords / projCoords.w, cascadeIndex);
-	}	
+	float shadow = texture(screenShadows, coordShadow).x;
 
 	vec3 albedo = pow(texture(texAlbedo, fragTexCoord).xyz, vec3(2.2));
+	if(shadow == 0.0)
+		outColor = vec4(vec3(uboLights.ambient) * albedo, texture(texAlbedo, fragTexCoord).a);
+		
 	float roughness = texture(texRoughness, fragTexCoord).x;
 	float metallic = texture(texMetal, fragTexCoord).x;
 	float ao = texture(texAO, fragTexCoord).x;
@@ -127,16 +87,6 @@ void main()
 	
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
-
-	color /= 2.0;
-	if(cascadeIndex == 0)
-		color += vec3(0.5, 0.0, 0.0);
-	else if(cascadeIndex == 1)
-		color += vec3(0.0, 0.5, 0.0);
-	else if(cascadeIndex == 2)
-		color += vec3(0.0, 0.0, 0.5);
-	else if(cascadeIndex == 3)
-		color += vec3(0.5, 0.5, 0.0);
 
     outColor = vec4(color, texture(texAlbedo, fragTexCoord).a);
 }

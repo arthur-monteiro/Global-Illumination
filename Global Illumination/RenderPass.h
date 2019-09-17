@@ -16,7 +16,7 @@ struct MeshRender
 	std::vector<MeshBase*> meshes;
 	std::vector<UboBase*> ubos;
 	Instance* instance = nullptr;
-	std::vector<VkImageView> imageViews; // added after the mesh image views
+	std::vector<std::pair<VkImageView, VkImageLayout>> images; // added after the mesh image views
 };
 
 struct Semaphore
@@ -25,19 +25,31 @@ struct Semaphore
     VkPipelineStageFlags stage;
 };
 
+struct Operation
+{
+#define OPERATION_TYPE_UNDEFINED -1
+#define OPERATION_TYPE_BLIT 0
+
+	int type = OPERATION_TYPE_UNDEFINED;
+
+	VkImage dstBlitImage = VK_NULL_HANDLE;
+	VkExtent2D dstBlitExtent = { 0, 0 };
+};
+
 class RenderPass
 {
 public:
 	~RenderPass();
 
-	void initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool present, VkSampleCountFlagBits msaaSamples, bool colorAttachment = true, bool depthAttachment = true);
+	void initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool present, VkSampleCountFlagBits msaaSamples, bool colorAttachment = true, bool depthAttachment = true, 
+		VkImageLayout finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-	int addMesh(Vulkan * vk, std::vector<MeshRender> mesh, std::string vertPath, std::string fragPath, int nbTexture, bool alphaBlending = false, int frameBufferID = 0);
+	int addMesh(Vulkan * vk, std::vector<MeshRender> mesh, PipelineShaders pipelineShaders, int nbTexture, bool alphaBlending = false, int frameBufferID = 0);
 	int addMeshInstanced(Vulkan* vk, std::vector<MeshRender> meshes, std::string vertPath, std::string fragPath, int nbTexture);
 	int addText(Vulkan * vk, Text * text);
 	void addMenu(Vulkan* vk, Menu * menu);
 	void updateImageViewMenuItemOption(Vulkan* vk, VkImageView imageView);
-	void recordDraw(Vulkan * vk);
+	void recordDraw(Vulkan* vk, std::vector<Operation> operations = {});
 
 	void drawCall(Vulkan * vk);
 
@@ -63,7 +75,7 @@ private:
 	void createDescriptorPool(VkDevice device);
 	VkDescriptorSet createDescriptorSet(VkDevice device, VkDescriptorSetLayout decriptorSetLayout, std::vector<VkImageView> imageView,
 		VkSampler sampler, std::vector<UboBase*> uniformBuffers, int nbTexture, std::vector<VkImageLayout> imageLayouts);
-	void fillCommandBuffer(Vulkan * vk);
+	void fillCommandBuffer(Vulkan * vk, std::vector<Operation> operations);
 	void drawFrame(Vulkan * vk);
 
 public:

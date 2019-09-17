@@ -161,7 +161,7 @@ void System::changeMSAA(std::wstring value)
 
 void System::create(bool recreate)
 {
-	m_vk.initialize(1066, 600, "Vulkan Demo", recreateCallback, (void*)this, recreate);
+	m_vk.initialize(1280, 720, "Vulkan Demo", recreateCallback, (void*)this, recreate);
 
 	if (!recreate)
 	{
@@ -220,34 +220,55 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 		}
 
 		/* Cascade Shadow Map */
-		if(m_sceneType == SCENE_TYPE_CASCADED_SHADOWMAP)
+		if (m_sceneType == SCENE_TYPE_CASCADED_SHADOWMAP)
 		{
-		    // Init passes
-            m_offscreenCascadedShadowMap.initialize(&m_vk,
-                                                    { { 4096, 4096 }, { 2048, 2048 }, { 1024, 1024 }, { 512, 512 } },
-                                                    false, VK_SAMPLE_COUNT_1_BIT, false, true);
-            m_offscreenShadowCalculation.initialize(&m_vk, { m_vk.getSwapChainExtend() }, false, VK_SAMPLE_COUNT_1_BIT, true, true);
+			// Init passes
+			m_offscreenCascadedShadowMap.initialize(&m_vk,
+				{ { 2048, 2048 }, { 1024, 1024 }, { 512, 512 }, { 256, 256 } },
+				false, VK_SAMPLE_COUNT_1_BIT, false, true);
+			m_offscreenShadowCalculation.initialize(&m_vk, { m_vk.getSwapChainExtend() }, false, VK_SAMPLE_COUNT_1_BIT, true, true, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+			VkExtent2D shadowScreenDownscale = { m_vk.getSwapChainExtend().width / 4, m_vk.getSwapChainExtend().height / 4 };
+			m_offscreenShadowBlur.initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/comp.spv");
 
-            // Add meshes
+			// Init images
+			m_shadowScreenImage.create(&m_vk, shadowScreenDownscale);
+
+			// Add meshes
+			PipelineShaders offscreenShadowMap;
+			offscreenShadowMap.vertexShader = "Shaders/offscreenShadowMap/vert.spv";
 			for (int cascade(0); cascade < m_cascadeCount; ++cascade)
 			{
-				m_offscreenCascadedShadowMap.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVPCSM[cascade], &m_uboModel } } }, "Shaders/offscreenShadowMap/vert.spv", "", 0, false, cascade);
+				m_offscreenCascadedShadowMap.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVPCSM[cascade], &m_uboModel } } }, offscreenShadowMap, 0, false, cascade);
 			}
-            m_offscreenShadowCalculation.addMesh(&m_vk,
-                                                 { { m_sponza.getMeshes(),
-                                                           { &m_uboVP, &m_uboModel, &m_uboLightSpaceCSM, &m_uboCascadeSplits },
-                                                           nullptr,
-                                                           { m_offscreenCascadedShadowMap.getFrameBuffer(0).depthImageView,
-                                                                   m_offscreenCascadedShadowMap.getFrameBuffer(1).depthImageView,
-                                                                   m_offscreenCascadedShadowMap.getFrameBuffer(2).depthImageView,
-                                                                   m_offscreenCascadedShadowMap.getFrameBuffer(3).depthImageView}
-                                                   } },
-                                                 "Shaders/pbr_csm_textured/shadow_calculation/vert.spv",
-                                                 "Shaders/pbr_csm_textured/shadow_calculation/frag.spv", m_cascadeCount, false);
+
+			PipelineShaders shadowCalculation;
+			shadowCalculation.vertexShader = "Shaders/pbr_csm_textured/shadow_calculation/vert.spv";
+			shadowCalculation.fragmentShader = "Shaders/pbr_csm_textured/shadow_calculation/frag.spv";
+			m_offscreenShadowCalculation.addMesh(&m_vk,
+				{
+					{
+						m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboLightSpaceCSM, &m_uboCascadeSplits },
+						nullptr,
+						{
+							{ m_offscreenCascadedShadowMap.getFrameBuffer(0).depthImageView, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL },
+							{ m_offscreenCascadedShadowMap.getFrameBuffer(1).depthImageView, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL },
+							{ m_offscreenCascadedShadowMap.getFrameBuffer(2).depthImageView, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL },
+							{ m_offscreenCascadedShadowMap.getFrameBuffer(3).depthImageView, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL }
+						}
+
+					}
+				},
+				shadowCalculation, m_cascadeCount, false
+			);		
 
 			// Record draw
 			m_offscreenCascadedShadowMap.recordDraw(&m_vk);
-            m_offscreenShadowCalculation.recordDraw(&m_vk);
+
+			Operation blitOperation;
+			blitOperation.type = OPERATION_TYPE_BLIT;
+			blitOperation.dstBlitImage = m_shadowScreenImage.getImage();
+			blitOperation.dstBlitExtent = shadowScreenDownscale;
+			m_offscreenShadowCalculation.recordDraw(&m_vk, { blitOperation });
 		}
 		/* Shadow Map */
 		if (m_sceneType == SCENE_TYPE_SHADOWMAP)
@@ -259,7 +280,9 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 			m_quad.loadObj(&m_vk, "Models/square.obj", glm::vec3(0.0f, 0.0f, 1.0f));
 			m_quad.createTextureSampler(&m_vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 
-			m_offscreenShadowMap.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVPShadowMap, &m_uboModel } } }, "Shaders/offscreenShadowMap/vert.spv", "", 0);
+			PipelineShaders offscreenShadowMap;
+			offscreenShadowMap.vertexShader = "Shaders/offscreenShadowMap/vert.spv";
+			m_offscreenShadowMap.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVPShadowMap, &m_uboModel } } }, offscreenShadowMap, 0);
 
 			// Record draw
             m_offscreenShadowMap.recordDraw(&m_vk);
@@ -269,21 +292,35 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 	// Set on screen render pass shaders / meshes
 	if (type == SCENE_TYPE_SHADOWMAP)
 	{
-		m_swapChainRenderPass.addMesh(&m_vk, { { { &m_quad }, {}, nullptr, {  m_offscreenShadowMap.getFrameBuffer(0).depthImageView } } },
-			"Shaders/renderQuad/vert.spv", "Shaders/renderQuad/frag.spv", 1);
-		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboLightSpace, &m_uboDirLight }, nullptr, { m_offscreenShadowMap.getFrameBuffer(0).depthImageView } } },
-			"Shaders/pbr_shadowmap_textured/vert.spv", "Shaders/pbr_shadowmap_textured/frag.spv", 6, true);
+		PipelineShaders renderQuad;
+		renderQuad.vertexShader = "Shaders/renderQuad/vert.spv";
+		renderQuad.fragmentShader = "Shaders/renderQuad/frag.spv";
+		m_swapChainRenderPass.addMesh(&m_vk, { { { &m_quad }, {}, nullptr, {  { m_offscreenShadowMap.getFrameBuffer(0).depthImageView, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL } } } },
+			renderQuad, 1);
+
+		PipelineShaders pbrShadowMapTextured;
+		pbrShadowMapTextured.vertexShader = "Shaders/pbr_shadowmap_textured/vert.spv";
+		pbrShadowMapTextured.vertexShader = "Shaders/pbr_shadowmap_textured/frag.spv";
+		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboLightSpace, &m_uboDirLight }, nullptr, 
+			{ { m_offscreenShadowMap.getFrameBuffer(0).depthImageView, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL } } } },
+			pbrShadowMapTextured, 6, true);
 	}
 	else if (type == SCENE_TYPE_CASCADED_SHADOWMAP)
     {
-		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboLightSpaceCSM, &m_uboDirLightCSM,  &m_uboCascadeSplits }, nullptr,
-			{ m_offscreenCascadedShadowMap.getFrameBuffer(0).depthImageView, m_offscreenCascadedShadowMap.getFrameBuffer(1).depthImageView,  m_offscreenCascadedShadowMap.getFrameBuffer(2).depthImageView, m_offscreenCascadedShadowMap.getFrameBuffer(3).depthImageView} } },
-			"Shaders/pbr_csm_textured/vert.spv", "Shaders/pbr_csm_textured/frag.spv", 9, true);
+		PipelineShaders pbrCsmTextured;
+		pbrCsmTextured.vertexShader = "Shaders/pbr_csm_textured/vert.spv";
+		pbrCsmTextured.fragmentShader = "Shaders/pbr_csm_textured/frag.spv";
+		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboDirLightCSM }, nullptr,
+			{ { m_offscreenShadowBlur.getImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL } } } },
+			pbrCsmTextured, 6, true);
 	}
 	else if (type == SCENE_TYPE_NO_SHADOW)
 	{
-		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboDirLight }, nullptr, {  } } },
-			"Shaders/pbr_no_shadow_textured/vert.spv", "Shaders/pbr_no_shadow_textured/frag.spv", 5);
+		PipelineShaders pbrNoShadowTextured;
+		pbrNoShadowTextured.vertexShader = "Shaders/pbr_no_shadow_textured/vert.spv";
+		pbrNoShadowTextured.fragmentShader = "Shaders/pbr_no_shadow_textured/frag.spv";
+		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboDirLight }, nullptr, { {} } } },
+			pbrNoShadowTextured, 5);
 	}
 	//m_swapChainRenderPass.addMesh(&m_vk, spheres, "Shaders/vertSphere.spv", "Shaders/fragSphere.spv", 0);
 	//m_skyboxID = m_swapChainRenderPass.addMesh(&m_vk, { { &m_skybox, { &m_uboVPSkybox } } }, "Shaders/vertSkybox.spv", "Shaders/fragSkybox.spv", 1);
@@ -403,8 +440,17 @@ void System::createUniformBufferObjects()
         m_uboVPCSMData.resize(m_cascadeCount);
         m_uboVPCSM.resize(m_cascadeCount);
 
-        m_cascadeSplits.resize(m_cascadeCount);
-        m_cascadeSplits = { 4.0f, 10.0f, 20.0f, 32.0f };
+        //m_cascadeSplits.resize(m_cascadeCount);
+		float near = m_camera.getNear();
+		float far = 32.0f; // we don't render shadows on all the range
+		for (float i(1.0f / m_cascadeCount); i <= 1.0f; i += 1.0f / m_cascadeCount)
+		{
+			float d_uni = glm::mix(near, far, i);
+			float d_log = near * glm::pow((far / near), i);
+
+			m_cascadeSplits.push_back(glm::mix(d_uni, d_log, 0.5f));
+		}
+      //  m_cascadeSplits = { 4.0f, 10.0f, 20.0f, 32.0f };
 
         for (int i(0); i < m_uboVPCSM.size(); ++i)
         {
@@ -451,6 +497,9 @@ void System::setSemaphores()
         m_offscreenShadowCalculation.setSemaphoreToWait(m_vk.getDevice(), {
             { m_offscreenCascadedShadowMap.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_VERTEX_SHADER_BIT }
         });
-        m_vk.setRenderFinishedLastRenderPassSemaphore(m_offscreenShadowCalculation.getRenderFinishedSemaphore());
+		m_offscreenShadowBlur.setSemaphoreToWait(m_vk.getDevice(), {
+			{ m_offscreenShadowCalculation.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT }
+		});
+        m_vk.setRenderFinishedLastRenderPassSemaphore(m_offscreenShadowBlur.getRenderFinishedSemaphore());
     }
 }

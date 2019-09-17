@@ -86,7 +86,7 @@ void Vulkan::setupDebugCallback()
 	createInfo.pfnCallback = debugCallback;
 
 	if (CreateDebugReportCallbackEXT(m_instance, &createInfo, nullptr, &m_callback) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : Cr�ation du debug callback !");
+		throw std::runtime_error("Error : Callback debug creation !");
 }
 
 void Vulkan::pickPhysicalDevice()
@@ -95,7 +95,7 @@ void Vulkan::pickPhysicalDevice()
 	vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
 
 	if (deviceCount == 0)
-		throw std::runtime_error("Erreur : Aucun GPU supportant Vulkan trouv� !");
+		throw std::runtime_error("Error : No GPU with Vulkan support found !");
 
 	std::vector<VkPhysicalDevice> devices(deviceCount);
 	vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
@@ -111,7 +111,7 @@ void Vulkan::pickPhysicalDevice()
 	}
 
 	if (m_physicalDevice == VK_NULL_HANDLE)
-		throw std::runtime_error("Erreur : Aucun GPU convenable trouv� !");
+		throw std::runtime_error("Error : No suitable GPU found !");
 }
 
 void Vulkan::createDevice()
@@ -156,10 +156,11 @@ void Vulkan::createDevice()
 		createInfo.enabledLayerCount = 0;
 
 	if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : Cr�ation du device");
+		throw std::runtime_error("Error : Device creation");
 
 	vkGetDeviceQueue(m_device, indices.graphicsFamily, 0, &m_graphicsQueue);
 	vkGetDeviceQueue(m_device, indices.presentFamily, 0, &m_presentQueue);
+	vkGetDeviceQueue(m_device, indices.computeFamily, 0, &m_computeQueue);
 }
 
 void Vulkan::createSwapChain()
@@ -227,6 +228,22 @@ VkCommandPool Vulkan::createCommandPool()
 	VkCommandPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
+
+	if (vkCreateCommandPool(m_device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
+		throw std::runtime_error("Erreur : command pool");
+
+	return commandPool;
+}
+
+VkCommandPool Vulkan::createComputeCommandPool()
+{
+	VkCommandPool commandPool;
+
+	QueueFamilyIndices queueFamilyIndices = findQueueFamilies(m_physicalDevice);
+
+	VkCommandPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	poolInfo.queueFamilyIndex = queueFamilyIndices.computeFamily;
 
 	if (vkCreateCommandPool(m_device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
 		throw std::runtime_error("Erreur : command pool");
@@ -317,7 +334,7 @@ void Vulkan::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, Vk
 	imageInfo.flags = flags;
 
 	if (vkCreateImage(m_device, &imageInfo, nullptr, &image) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : cr�ation de l'image");
+		throw std::runtime_error("Error : image creation");
 
 	VkMemoryRequirements memRequirements;
 	vkGetImageMemoryRequirements(m_device, image, &memRequirements);
@@ -377,6 +394,22 @@ void Vulkan::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout
 			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+		{
+			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		{
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
 		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 		{
 			barrier.srcAccessMask = 0;
@@ -411,7 +444,7 @@ void Vulkan::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout
 		}
 		else
 		{
-			throw std::runtime_error("Erreur : transition non support�e");
+			throw std::runtime_error("Erreur : transition non supportée");
 		}
 
 		vkCmdPipelineBarrier(
@@ -556,6 +589,9 @@ QueueFamilyIndices Vulkan::findQueueFamilies(VkPhysicalDevice device)
 		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
 			indices.graphicsFamily = i;
 
+		if (queueFamily.queueCount > 0 && (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT) && !(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)) // check compute queue dedicated
+			indices.computeFamily = i;
+
 		VkBool32 presentSupport = false;
 		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &presentSupport);
 
@@ -566,6 +602,21 @@ QueueFamilyIndices Vulkan::findQueueFamilies(VkPhysicalDevice device)
 			break;
 
 		i++;
+	}
+
+	if (indices.computeFamily < 0) // compute family not dedicated => probably the same than graphics
+	{
+		i = 0;
+		for (const auto& queueFamily : queueFamilies)
+		{
+			if (queueFamily.queueCount > 0 && (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT))
+				indices.computeFamily = i;
+
+			if (indices.isComplete())
+				break;
+
+			i++;
+		}
 	}
 
 	return indices;
@@ -839,7 +890,7 @@ FrameBuffer Vulkan::createFrameBuffer(VkExtent2D extent, VkRenderPass renderPass
 	if (imageFormat != VK_FORMAT_UNDEFINED)
 	{
 		createImage(extent.width, extent.height, 1, VK_SAMPLE_COUNT_1_BIT, imageFormat, VK_IMAGE_TILING_OPTIMAL,
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0,
+			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0,
 			frameBuffer.image, frameBuffer.imageMemory);
 		frameBuffer.imageView = createImageView(frameBuffer.image, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_2D);
 	}
@@ -1082,7 +1133,7 @@ void Vulkan::drawFrame()
 
 
     std::vector<VkSemaphore> waitSemaphores = { m_imageAvailableSemaphore, m_renderFinishedLastRenderPassSemaphore };
-    std::vector<VkPipelineStageFlags> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT };
+    std::vector<VkPipelineStageFlags> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT };
     if (m_renderFinishedLastRenderPassSemaphore == VK_NULL_HANDLE)
 	{
         waitSemaphores = { m_imageAvailableSemaphore };

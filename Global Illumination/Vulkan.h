@@ -17,10 +17,11 @@ struct QueueFamilyIndices
 {
 	int graphicsFamily = -1;
 	int presentFamily = -1;
+	int computeFamily = -1;
 
 	bool isComplete()
 	{
-		return graphicsFamily >= 0 && presentFamily >= 0;
+		return graphicsFamily >= 0 && presentFamily >= 0 && computeFamily >= 0;
 	}
 };
 
@@ -117,6 +118,7 @@ public:
 	VkExtent2D getSwapChainExtend() { return m_swapChainExtent; }
 	GLFWwindow* getWindow() { return m_window; }
 	VkQueue getGraphicalQueue() { return m_graphicsQueue; }
+	VkQueue getComputeQueue() { return m_computeQueue; }
 	VkSemaphore* getRenderFinishedSemaphore() { return &m_renderFinishedSemaphore; }
 	VkSampleCountFlagBits getMaxMsaaSamples() { return m_maxMsaaSamples; }
 
@@ -133,6 +135,7 @@ private:
 
 public :
 	VkCommandPool createCommandPool();
+	VkCommandPool createComputeCommandPool();
 	void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
 		uint32_t arrayLayers, VkImageCreateFlags flags, VkImage& image, VkDeviceMemory& imageMemory);
 	void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels, uint32_t arrayLayers);
@@ -212,6 +215,7 @@ protected:
 
 	VkQueue m_graphicsQueue;
 	VkQueue m_presentQueue;
+	VkQueue m_computeQueue;
 
 	VkSwapchainKHR m_swapChain;
 	VkFormat m_swapChainImageFormat;

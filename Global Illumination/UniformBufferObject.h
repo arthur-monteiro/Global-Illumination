@@ -137,8 +137,8 @@ public:
 	UniformBufferObject() {}
 	~UniformBufferObject()
 	{
-		if (m_isInitialized)
-			std::cout << "UBO not destroyed !" << std::endl;
+		//if (m_isInitialized)
+		//	std::cout << "UBO not destroyed !" << std::endl;
 	}
 
 	void load(Vulkan* vk, T data, VkShaderStageFlags accessibility)

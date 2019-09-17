@@ -10,6 +10,7 @@ class Image
 {
 public:
 	void loadTextureFromFile(Vulkan* vk, std::string path);
+	void create(Vulkan* vk, VkExtent2D extent);
 
 	VkImage getImage() { return m_image; }
 	VkDeviceMemory getImageMemory() { return m_imageMemory; }

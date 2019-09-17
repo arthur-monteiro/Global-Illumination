@@ -1,42 +1,44 @@
 #include "Pipeline.h"
 
 void Pipeline::initialize(Vulkan* vk, VkDescriptorSetLayout* descriptorSetLayout, VkRenderPass renderPass, 
-	std::string vertPath, std::string fragPath, bool alphaBlending, VkSampleCountFlagBits msaaSamples, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
+	PipelineShaders shaders, bool alphaBlending, VkSampleCountFlagBits msaaSamples, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
 	std::vector<VkVertexInputAttributeDescription> attributeInputDescription, VkExtent2D extent)
 {
-	std::vector<char> vertShaderCode = vertPath != "" ? readFile(vertPath) : std::vector<char>();
-	std::vector<char> fragShaderCode = fragPath != "" ? readFile(fragPath) : std::vector<char>();
+	/* Shaders */
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
 	VkShaderModule vertShaderModule;
-	if(vertPath != "")
-		vertShaderModule = createShaderModule(vertShaderCode, vk->getDevice());
 	VkShaderModule fragShaderModule;
-	if (fragPath != "")
-		fragShaderModule = createShaderModule(fragShaderCode, vk->getDevice());
-
-	VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
-	if (vertPath != "")
 	{
-		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-		vertShaderStageInfo.module = vertShaderModule;
-		vertShaderStageInfo.pName = "main";
-	}
+		/* Vertex */
+		if(shaders.vertexShader != "")
+		{
+			std::vector<char> vertShaderCode = readFile(shaders.vertexShader);
+			vertShaderModule = createShaderModule(vertShaderCode, vk->getDevice());
 
-	VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
-	if (fragPath != "")
-	{
-		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		fragShaderStageInfo.module = fragShaderModule;
-		fragShaderStageInfo.pName = "main";
-	}
+			VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
+			vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+			vertShaderStageInfo.module = vertShaderModule;
+			vertShaderStageInfo.pName = "main";
 
-	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-	if(vertPath != "" && fragPath != "")
-		shaderStages = { vertShaderStageInfo, fragShaderStageInfo };
-	else if (vertPath != "")
-		shaderStages = { vertShaderStageInfo };
+			shaderStages.push_back(vertShaderStageInfo);
+		}
+		/* Fragment */
+		if (shaders.fragmentShader != "")
+		{
+			std::vector<char> fragShaderCode = readFile(shaders.fragmentShader);
+			fragShaderModule = createShaderModule(fragShaderCode, vk->getDevice());
+
+			VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
+			fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+			fragShaderStageInfo.module = fragShaderModule;
+			fragShaderStageInfo.pName = "main";
+
+			shaderStages.push_back(fragShaderStageInfo);
+		}
+	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -152,9 +154,39 @@ void Pipeline::initialize(Vulkan* vk, VkDescriptorSetLayout* descriptorSetLayout
 	if (vkCreateGraphicsPipelines(vk->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS)
 		throw std::runtime_error("Erreur : graphic pipeline");
 
-	if (fragPath != "")
+	if (shaders.vertexShader != "")
+		vkDestroyShaderModule(vk->getDevice(), vertShaderModule, nullptr);
+	if (shaders.fragmentShader != "")
 		vkDestroyShaderModule(vk->getDevice(), fragShaderModule, nullptr);
-	vkDestroyShaderModule(vk->getDevice(), vertShaderModule, nullptr);
+}
+
+void Pipeline::intialize(Vulkan* vk, std::string computeShader, VkDescriptorSetLayout* descriptorSetLayout)
+{
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount = 1;
+	pipelineLayoutInfo.pSetLayouts = descriptorSetLayout;
+	pipelineLayoutInfo.pushConstantRangeCount = 0;
+
+	std::vector<char> computeShaderCode = readFile(computeShader);
+	VkShaderModule computeShaderModule = createShaderModule(computeShaderCode, vk->getDevice());
+
+	VkPipelineShaderStageCreateInfo compShaderStageInfo = {};
+	compShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	compShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+	compShaderStageInfo.module = computeShaderModule;
+	compShaderStageInfo.pName = "main";
+
+	if (vkCreatePipelineLayout(vk->getDevice(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
+		throw std::runtime_error("Error : pipeline layout creation");
+
+	VkComputePipelineCreateInfo pipelineInfo;
+	pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+	pipelineInfo.stage = compShaderStageInfo;
+	pipelineInfo.layout = m_pipelineLayout;
+
+	if (vkCreateComputePipelines(vk->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_computePipeline) != VK_SUCCESS)
+		throw std::runtime_error("Error : compute pipeline creation");
 }
 
 std::vector<char> Pipeline::readFile(const std::string & filename)

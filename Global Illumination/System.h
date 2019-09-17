@@ -12,6 +12,7 @@
 
 #include "Vulkan.h"
 #include "RenderPass.h"
+#include "ComputePass.h"
 #include "Mesh.h"
 #include "Text.h"
 #include "UniformBufferObject.h"
@@ -74,15 +75,28 @@ private:
 	/* CSM */
 	RenderPass m_offscreenCascadedShadowMap;
 	RenderPass m_offscreenShadowCalculation;
+	ComputePass m_offscreenShadowBlur;
+	Image m_shadowScreenImage;
     int m_cascadeCount = 4;
     std::vector<float> m_cascadeSplits;
 
-	MeshPBR m_skybox;
+	/* ----- Meshes / Models ----- */
+
+	/* Final Pass */
 	MeshPBR m_wall;
 	Model m_sponza;
-	MeshPBR m_quad;
 	Text m_text;
 	Menu m_menu;
+
+	/* Shadow Mapping */
+	MeshPBR m_quad;
+
+	/* CSM */
+	Mesh2DTextured m_csmBlurSquare;
+
+	/* Unused */
+	MeshPBR m_skybox;
+
 
 	int m_fpsCounterTextID = -1;
 	int m_fpsCount = 0;
@@ -93,6 +107,7 @@ private:
 	bool m_wasClickPressed = 0;
 
 	int m_skyboxID;
+
 
 	/* ----- Uniform Buffer Objects ----- */
 
@@ -124,8 +139,6 @@ private:
 	/* Unused*/
 	UniformBufferObject<UniformBufferObjectVP> m_uboVPSkybox;
 	UniformBufferObjectVP m_uboVPSkyboxData;
-
-	glm::vec3 m_sunDirection = glm::vec3(0.0f, -1.0f, 0.0f);
 
 	Camera m_camera;
 	int m_oldEscapeState = GLFW_RELEASE;

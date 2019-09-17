@@ -281,5 +281,5 @@ private:
 	VkPipelineLayout m_pipelineLayout;
 	VkPipeline m_graphicsPipeline;
 
-	VkPipeline m_computePipeline;
+	VkPipeline m_computePipeline = VK_NULL_HANDLE;
 };

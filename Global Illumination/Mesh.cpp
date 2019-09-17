@@ -118,7 +118,7 @@ int MeshBase::createTexture(Vulkan* vk, uint32_t height, uint32_t width, int mip
 	m_mipLevels = mipLevels;
 	vk->createImage(width, height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
-		m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
+		VK_IMAGE_LAYOUT_PREINITIALIZED,	m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
 	vk->transitionImageLayout(m_images[m_images.size() - 1].image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, nLayers);
 
 	return m_images.size() - 1;
@@ -143,7 +143,7 @@ void MeshBase::loadTextureFromImages(Vulkan* vk, std::vector<VkImage> images, ui
 
 		vk->createImage(width, height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
-			m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
+			VK_IMAGE_LAYOUT_PREINITIALIZED,	m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
 		vk->transitionImageLayout(m_images[m_images.size() - 1].image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 1);
 
 		vk->transitionImageLayout(images[i], VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 1, 1);
@@ -185,7 +185,7 @@ void MeshBase::loadCubemapFromFile(Vulkan* vk, std::vector<std::string> path)
 		{
 			vk->createImage(texWidth, texHeight, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
 				VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, path.size(), VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
-				m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
+				VK_IMAGE_LAYOUT_PREINITIALIZED,	m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
 			vk->transitionImageLayout(m_images[m_images.size() - 1].image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, path.size());
 		}
 
@@ -209,7 +209,7 @@ void MeshBase::loadCubemapFromImages(Vulkan* vk, std::array<VkImage, 6> images, 
 
 	vk->createImage(width, height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
-		m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
+		VK_IMAGE_LAYOUT_PREINITIALIZED,	m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
 	vk->transitionImageLayout(m_images[m_images.size() - 1].image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 6);
 
 	for (int i = 0; i < images.size(); ++i)
@@ -266,7 +266,7 @@ void MeshBase::loadHDRTexture(Vulkan* vk, std::vector<std::string> path)
 
 		vk->createImage(texWidth, texHeight, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0,
-			m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
+			VK_IMAGE_LAYOUT_PREINITIALIZED,	m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
 
 		vk->transitionImageLayout(m_images[m_images.size() - 1].image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 1);
 		vk->copyBufferToImage(stagingBuffer, m_images[m_images.size() - 1].image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 0);
@@ -408,7 +408,7 @@ void MeshBase::createTextureImage(Vulkan * vk, std::string path)
 
 	vk->createImage(texWidth, texHeight, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0,
-		m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
+		VK_IMAGE_LAYOUT_PREINITIALIZED, m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
 
 	vk->transitionImageLayout(m_images[m_images.size() - 1].image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 1);
 	vk->copyBufferToImage(stagingBuffer, m_images[m_images.size() - 1].image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 0);

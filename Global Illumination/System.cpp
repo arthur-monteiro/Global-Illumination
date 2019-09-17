@@ -52,7 +52,7 @@ bool System::mainLoop()
 		if (std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - m_startTimeFPSCounter).count() > 1000.0f)
 		{
 			std::wstring text = L"FPS : " + std::to_wstring(m_fpsCount);
-			m_text.changeText(&m_vk, text, m_fpsCounterTextID);
+			//m_text.changeText(&m_vk, text, m_fpsCounterTextID);
 
 			m_fpsCount = 0;
 			m_startTimeFPSCounter = currentTime;
@@ -70,6 +70,7 @@ bool System::mainLoop()
 			updateCSM();
 			m_offscreenCascadedShadowMap.drawCall(&m_vk);
 			m_offscreenShadowCalculation.drawCall(&m_vk);
+			m_offscreenShadowBlur.drawCall(&m_vk);
 		}
 		m_swapChainRenderPass.drawCall(&m_vk);
 	}
@@ -224,14 +225,15 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 		{
 			// Init passes
 			m_offscreenCascadedShadowMap.initialize(&m_vk,
-				{ { 2048, 2048 }, { 1024, 1024 }, { 512, 512 }, { 256, 256 } },
+				{ { 8192, 8192 }, { 8192, 8192 }, { 8192, 8192 }, { 8192, 8192 } },
 				false, VK_SAMPLE_COUNT_1_BIT, false, true);
 			m_offscreenShadowCalculation.initialize(&m_vk, { m_vk.getSwapChainExtend() }, false, VK_SAMPLE_COUNT_1_BIT, true, true, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-			VkExtent2D shadowScreenDownscale = { m_vk.getSwapChainExtend().width / 4, m_vk.getSwapChainExtend().height / 4 };
-			m_offscreenShadowBlur.initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/comp.spv");
+			VkExtent2D shadowScreenDownscale = { m_vk.getSwapChainExtend().width / 2, m_vk.getSwapChainExtend().height / 2 };
 
 			// Init images
-			m_shadowScreenImage.create(&m_vk, shadowScreenDownscale);
+			m_shadowScreenImage.create(&m_vk, shadowScreenDownscale, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+
+			m_offscreenShadowBlur.initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/comp.spv", m_shadowScreenImage.getImageView());
 
 			// Add meshes
 			PipelineShaders offscreenShadowMap;
@@ -311,7 +313,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 		pbrCsmTextured.vertexShader = "Shaders/pbr_csm_textured/vert.spv";
 		pbrCsmTextured.fragmentShader = "Shaders/pbr_csm_textured/frag.spv";
 		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboDirLightCSM }, nullptr,
-			{ { m_offscreenShadowBlur.getImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL } } } },
+			{ { m_offscreenShadowBlur.getImageView(), VK_IMAGE_LAYOUT_GENERAL } } } },
 			pbrCsmTextured, 6, true);
 	}
 	else if (type == SCENE_TYPE_NO_SHADOW)
@@ -498,7 +500,7 @@ void System::setSemaphores()
             { m_offscreenCascadedShadowMap.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_VERTEX_SHADER_BIT }
         });
 		m_offscreenShadowBlur.setSemaphoreToWait(m_vk.getDevice(), {
-			{ m_offscreenShadowCalculation.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT }
+			{ m_offscreenShadowCalculation.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_ALL_COMMANDS_BIT }
 		});
         m_vk.setRenderFinishedLastRenderPassSemaphore(m_offscreenShadowBlur.getRenderFinishedSemaphore());
     }

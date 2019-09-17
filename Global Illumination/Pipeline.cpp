@@ -162,12 +162,17 @@ void Pipeline::initialize(Vulkan* vk, VkDescriptorSetLayout* descriptorSetLayout
 
 void Pipeline::intialize(Vulkan* vk, std::string computeShader, VkDescriptorSetLayout* descriptorSetLayout)
 {
+	/* Pipeline layout */
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1;
 	pipelineLayoutInfo.pSetLayouts = descriptorSetLayout;
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
 
+	if (vkCreatePipelineLayout(vk->getDevice(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
+		throw std::runtime_error("Error : pipeline layout creation");
+
+	/* Shader */
 	std::vector<char> computeShaderCode = readFile(computeShader);
 	VkShaderModule computeShaderModule = createShaderModule(computeShaderCode, vk->getDevice());
 
@@ -177,13 +182,14 @@ void Pipeline::intialize(Vulkan* vk, std::string computeShader, VkDescriptorSetL
 	compShaderStageInfo.module = computeShaderModule;
 	compShaderStageInfo.pName = "main";
 
-	if (vkCreatePipelineLayout(vk->getDevice(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
-		throw std::runtime_error("Error : pipeline layout creation");
-
+	/* Pipeline */
 	VkComputePipelineCreateInfo pipelineInfo;
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
 	pipelineInfo.stage = compShaderStageInfo;
 	pipelineInfo.layout = m_pipelineLayout;
+	pipelineInfo.flags = 0;
+	pipelineInfo.pNext = nullptr;
+	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 	if (vkCreateComputePipelines(vk->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_computePipeline) != VK_SUCCESS)
 		throw std::runtime_error("Error : compute pipeline creation");

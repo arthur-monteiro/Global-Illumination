@@ -10,11 +10,13 @@ class Image
 {
 public:
 	void loadTextureFromFile(Vulkan* vk, std::string path);
-	void create(Vulkan* vk, VkExtent2D extent);
+	void create(Vulkan* vk, VkExtent2D extent, VkImageUsageFlags usage);
+	void createTextureSampler(Vulkan* vk, VkSamplerAddressMode addressMode);
 
 	VkImage getImage() { return m_image; }
 	VkDeviceMemory getImageMemory() { return m_imageMemory; }
 	VkImageView getImageView() { return m_imageView; }
+	VkSampler getSampler() { return m_textureSampler; }
 
 private:
 	VkImage m_image;
@@ -22,5 +24,7 @@ private:
 	VkImageView m_imageView = VK_NULL_HANDLE;
 
 	uint32_t m_mipLevels;
+
+	VkSampler m_textureSampler = NULL;
 };
 

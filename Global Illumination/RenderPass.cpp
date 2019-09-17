@@ -573,7 +573,7 @@ void RenderPass::createColorResources(Vulkan* vk, VkExtent2D extent)
 	VkFormat colorFormat = m_format;
 
 	vk->createImage(extent.width, extent.height, 1, m_msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, 
-		VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0, m_colorImage, m_colorImageMemory);
+		VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0, VK_IMAGE_LAYOUT_PREINITIALIZED, m_colorImage, m_colorImageMemory);
 	m_colorImageView = vk->createImageView(m_colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_2D);
 
 	vk->transitionImageLayout(m_colorImage, colorFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 1);
@@ -781,7 +781,7 @@ void RenderPass::fillCommandBuffer(Vulkan * vk, std::vector<Operation> operation
 			{
 				VkImageMemoryBarrier barrier = {};
 				barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-				barrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				barrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
 				barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 				barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 				barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -828,7 +828,7 @@ void RenderPass::fillCommandBuffer(Vulkan * vk, std::vector<Operation> operation
 					VK_FILTER_LINEAR);
 
 				barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-				barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
 
 				barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 				barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;

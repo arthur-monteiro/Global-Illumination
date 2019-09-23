@@ -123,8 +123,9 @@ void ComputePass::initialize(Vulkan* vk, VkExtent2D extent, VkExtent3D dispatchG
 
 	vkCmdBindPipeline(m_commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipeline.getComputePipeline());
 	vkCmdBindDescriptorSets(m_commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipeline.getPipelineLayout(), 0, 1, &descriptorSet, 0, 0);
-
-	vkCmdDispatch(m_commandBuffer, extent.width / dispatchGroups.width, extent.height / dispatchGroups.height, dispatchGroups.depth);
+	uint32_t groupSizeX = extent.width % dispatchGroups.width != 0 ? extent.width / dispatchGroups.width + 1 : extent.width / dispatchGroups.width;
+	uint32_t groupSizeY = extent.height % dispatchGroups.height != 0 ? extent.height / dispatchGroups.height + 1 : extent.height / dispatchGroups.height;
+	vkCmdDispatch(m_commandBuffer, groupSizeX, groupSizeY, dispatchGroups.depth);
 
 	vkEndCommandBuffer(m_commandBuffer);
 

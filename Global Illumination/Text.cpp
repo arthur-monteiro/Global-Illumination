@@ -127,6 +127,8 @@ void Text::changeText(Vulkan * vk, std::wstring text, int textID)
 	float maxSize = m_texts[textID].maxSize;
 	glm::vec3 color = m_texts[textID].color;
 
+	vkQueueWaitIdle(vk->getGraphicalQueue());
+
 	for (int i = 0; i < m_texts[textID].vertexBufferMemories.size(); ++i)
 	{
 		vkDestroyBuffer(vk->getDevice(), m_texts[textID].vertexBuffers[i], nullptr);

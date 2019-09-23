@@ -61,7 +61,7 @@ private:
 private:
 	Vulkan m_vk;
 
-	glm::vec3 m_lightDir = glm::vec3(-1.0f, -1.0f, 0.0f);
+	glm::vec3 m_lightDir = glm::vec3(0.0f, -5.0f, -1.0f);
 
 	/* ----- Render Pass ------ */
     int m_sceneType = SCENE_TYPE_UNDEFINED;

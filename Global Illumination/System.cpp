@@ -52,10 +52,13 @@ bool System::mainLoop()
 		if (std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - m_startTimeFPSCounter).count() > 1000.0f)
 		{
 			std::wstring text = L"FPS : " + std::to_wstring(m_fpsCount);
-			//m_text.changeText(&m_vk, text, m_fpsCounterTextID);
+			m_text.changeText(&m_vk, text, m_fpsCounterTextID);
 
 			m_fpsCount = 0;
 			m_startTimeFPSCounter = currentTime;
+
+			/*std::cout << m_camera.getPosition().x << " " << m_camera.getPosition().y << " " << m_camera.getPosition().z << std::endl;
+			std::cout << m_camera.getTarget().x << " " << m_camera.getTarget().y << " " << m_camera.getTarget().z << std::endl;*/
 		}
 
 		float time = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() / 1000.0f;
@@ -91,6 +94,8 @@ void System::cleanup()
 
 	m_swapChainRenderPass.cleanup(&m_vk);
 	m_offscreenShadowMap.cleanup(&m_vk);
+	m_offscreenCascadedShadowMap.cleanup(&m_vk);
+	m_offscreenShadowCalculation.cleanup(&m_vk);
 
 	m_vk.cleanup();
 }
@@ -167,7 +172,7 @@ void System::create(bool recreate)
 	if (!recreate)
 	{
 		createRessources();
-		m_camera.initialize(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.01f, 5.0f, m_vk.getSwapChainExtend().width / (float)m_vk.getSwapChainExtend().height);
+		m_camera.initialize(glm::vec3(1.4f, 1.2f, 0.3f), glm::vec3(2.0f, 0.9f, -0.3f), glm::vec3(0.0f, 1.0f, 0.0f), 0.01f, 5.0f, m_vk.getSwapChainExtend().width / (float)m_vk.getSwapChainExtend().height);
 
 		m_sceneType = SCENE_TYPE_CASCADED_SHADOWMAP;
 	}
@@ -225,10 +230,10 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 		{
 			// Init passes
 			m_offscreenCascadedShadowMap.initialize(&m_vk,
-				{ { 8192, 8192 }, { 8192, 8192 }, { 8192, 8192 }, { 8192, 8192 } },
+				{ { 4096, 4096 }, { 2048, 2048 }, { 2048, 2048 }, { 2048, 2048 } },
 				false, VK_SAMPLE_COUNT_1_BIT, false, true);
 			m_offscreenShadowCalculation.initialize(&m_vk, { m_vk.getSwapChainExtend() }, false, VK_SAMPLE_COUNT_1_BIT, true, true, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-			VkExtent2D shadowScreenDownscale = { m_vk.getSwapChainExtend().width / 2, m_vk.getSwapChainExtend().height / 2 };
+			VkExtent2D shadowScreenDownscale = { m_vk.getSwapChainExtend().width / 2 , m_vk.getSwapChainExtend().height / 2 };
 
 			// Init images
 			m_shadowScreenImage.create(&m_vk, shadowScreenDownscale, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
@@ -345,6 +350,7 @@ void System::updateCSM()
 		float ar = (float)m_vk.getSwapChainExtend().height / m_vk.getSwapChainExtend().width;
 		float tanHalfHFOV = glm::tan((m_camera.getFOV() * (1.0 / ar)) / 2.0f);
 		float tanHalfVFOV = glm::tan((m_camera.getFOV()) / 2.0f);
+		float cosHalfHFOV = glm::cos((m_camera.getFOV() * (1.0 / ar)) / 2.0f);
 
 		float xn = startCascade * tanHalfHFOV;
 		float xf = endCascade * tanHalfHFOV;
@@ -354,10 +360,10 @@ void System::updateCSM()
 		glm::vec4 frustumCorners[8] = 
 		{
 			// near face
-			glm::vec4(xn, yn, -startCascade, 1.0),
-			glm::vec4(-xn, yn, -startCascade, 1.0),
-			glm::vec4(xn, -yn, -startCascade, 1.0),
-			glm::vec4(-xn, -yn, -startCascade, 1.0),
+			glm::vec4(xn, yn, -startCascade * cosHalfHFOV, 1.0),
+			glm::vec4(-xn, yn, -startCascade * cosHalfHFOV, 1.0),
+			glm::vec4(xn, -yn, -startCascade * cosHalfHFOV, 1.0),
+			glm::vec4(-xn, -yn, -startCascade * cosHalfHFOV, 1.0),
 
 			// far face
 			glm::vec4(xf, yf, -endCascade, 1.0),
@@ -378,7 +384,7 @@ void System::updateCSM()
 		//glm::vec3 frustumCenter = cascade == 0 ?
 		//	/* Cascade == 0 */ m_camera.getPosition() + m_camera.getOrientation() * (m_cascadeSplits[cascade] / 2.0f) :
 		//	/* Others */ m_camera.getPosition() + m_cascadeSplits[cascade - 1] * m_camera.getOrientation() + m_camera.getOrientation() * (m_cascadeSplits[cascade] / 2.0f);
-		glm::mat4 lightViewMatrix = glm::lookAt(-m_lightDir * 30.0f, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 lightViewMatrix = glm::lookAt(-glm::normalize(m_lightDir) * 30.0f, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		for (unsigned int j = 0; j < 8; j++)
 		{

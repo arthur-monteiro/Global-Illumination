@@ -26,6 +26,7 @@ public:
 	float getFar() { return m_far; }
 	glm::mat4 getProjection();
 	glm::vec3 getOrientation() { return m_orientation; }
+	glm::vec3 getTarget() { return m_target; }
 	float getFOV() { return m_radFOV; }
 
 	void setPosition(glm::vec3 position);
@@ -59,6 +60,6 @@ private:
 	float m_aspect;
 	float m_near = 0.1f;
 	float m_far = 50.0f;
-	float m_radFOV = glm::radians(70.0f);
+	float m_radFOV = glm::radians(45.0f);
 };
 

@@ -14,11 +14,13 @@ layout (binding = 6) uniform sampler2D shadowMap3;
 layout (binding = 7) uniform sampler2D shadowMap4;
 
 layout(location = 0) in vec3 viewPos;
-layout(location = 1) in vec4 posLightSpace[CASCADES_COUNT];
+layout(location = 1) in vec4 worldPos;
+layout(location = 2) in vec4 posLightSpace[CASCADES_COUNT];
 
 layout(location = 0) out vec4 outColor;
 
 const float PI = 3.14159265359;
+const float BIAS = 0.0005;
 
 float textureProj(vec4 shadowCoord, uint cascadeIndex)
 {
@@ -32,54 +34,58 @@ float textureProj(vec4 shadowCoord, uint cascadeIndex)
 	else if(cascadeIndex == 3)
 		closestDepth = texture(shadowMap4, shadowCoord.st).r; 
     float currentDepth = shadowCoord.z;
-	float bias = 0.0005;
-    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+
+    float shadow = currentDepth - BIAS > closestDepth  ? 1.0 : 0.0;
 
 	return shadow;
 }
 
-vec2 poissonDisk[36] = vec2[](
-	vec2(-0.412506, -0.505401),
-	vec2(-0.198678, -0.362386),
-	vec2(0.0612825, -0.360698),
-	vec2(-0.680803, -0.662816),
-	vec2(-0.275453, -0.057909),
-	vec2(-0.57524, -0.225002),
-	vec2(-0.135255, -0.644076),
-	vec2(-0.357393, -0.873324),
-	vec2(0.087715, -0.83279),
-	vec2(0.274221, -0.575671),
-	vec2(0.012977, 0.0652626),
-	vec2(-0.908303, -0.306803),
-	vec2(-0.632239, 0.236252),
-	vec2(-0.972579, 0.0551293),
-	vec2(-0.907004, 0.400391),
-	vec2(0.26208, -0.129809),
-	vec2(0.515364, -0.235511),
-	vec2(0.470022, -0.743824),
-	vec2(0.62804, -0.459096),
-	vec2(0.332402, 0.200743),
-	vec2(0.83457, -0.0398735),
-	vec2(0.645883, 0.24368),
-	vec2(0.367844, 0.453785),
-	vec2(0.700306, 0.512157),
-	vec2(-0.414574, 0.413026),
-	vec2(-0.51206, 0.680345),
-	vec2(0.40368, 0.800573),
-	vec2(-0.0603344, 0.708574),
-	vec2(0.0684587, 0.385982),
-	vec2(-0.209951, 0.191194),
-	vec2(-0.273511, 0.918154),
-	vec2(0.19039, 0.661354),
-	vec2(0.511419, 0.0151699),
-	vec2(0.962834, -0.256675),
-	vec2(0.897324, 0.331031),
-	vec2(0.00145936, 0.959284)
+float depthDifference(vec4 shadowCoord, uint cascadeIndex)
+{
+	float closestDepth;
+	if(cascadeIndex == 0)
+		closestDepth = texture(shadowMap1, shadowCoord.st).r; 
+	else if(cascadeIndex == 1)
+		closestDepth = texture(shadowMap2, shadowCoord.st).r; 
+	else if(cascadeIndex == 2)
+		closestDepth = texture(shadowMap3, shadowCoord.st).r; 
+	else if(cascadeIndex == 3)
+		closestDepth = texture(shadowMap4, shadowCoord.st).r; 
+    float currentDepth = shadowCoord.z;
+
+	return (currentDepth - BIAS) - closestDepth;
+}
+
+vec2 poissonDisk[16] = vec2[]( 
+   vec2( -0.94201624, -0.39906216 ), 
+   vec2( 0.94558609, -0.76890725 ), 
+   vec2( -0.094184101, -0.92938870 ), 
+   vec2( 0.34495938, 0.29387760 ), 
+   vec2( -0.91588581, 0.45771432 ), 
+   vec2( -0.81544232, -0.87912464 ), 
+   vec2( -0.38277543, 0.27676845 ), 
+   vec2( 0.97484398, 0.75648379 ), 
+   vec2( 0.44323325, -0.97511554 ), 
+   vec2( 0.53742981, -0.47373420 ), 
+   vec2( -0.26496911, -0.41893023 ), 
+   vec2( 0.79197514, 0.19090188 ), 
+   vec2( -0.24188840, 0.99706507 ), 
+   vec2( -0.81409955, 0.91437590 ), 
+   vec2( 0.19984126, 0.78641367 ), 
+   vec2( 0.14383161, -0.14100790 ) 
 );
+
 
 float rand(vec2 co){
 	return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
+
+float random(vec3 seed, int i){
+	vec4 seed4 = vec4(seed,i);
+	float dot_product = dot(seed4, vec4(12.9898,78.233,45.164,94.673));
+	return fract(sin(dot_product) * 43758.5453);
+}
+
 void main() 
 {
 	uint cascadeIndex = 0;
@@ -101,13 +107,21 @@ void main()
 	}
 	else 
 	{
+		float cascadeCoef = 1.0;
+		if(cascadeIndex > 0)
+			cascadeCoef = 2.0;
+		if(cascadeIndex > 2)
+			cascadeCoef = 3.0;
+
+		float distance = depthDifference(projCoords, cascadeIndex);
+		float divisor = mix(1500.0, 100.0, distance * 10.0) * cascadeCoef;
+
 		for(int i = 0; i < 16; i++)
 		{
-			int poissonDiskIndex = int(36.0*rand(gl_FragCoord.xy * i))%36;
-			shadow += 1.0 - textureProj(projCoords / projCoords.w + vec4(poissonDisk[i] / 2000.0, 0.0, 0.0), cascadeIndex);
+			int index = int(16.0*random(worldPos.xyz, i))%16;
+			shadow += 1.0 - textureProj(projCoords + vec4(poissonDisk[index] / divisor, 0.0, 0.0), cascadeIndex);
 		}
-
-		shadow /= 8;
+		shadow /= 16.0;
 	}	
 
     outColor = vec4(shadow.rrr, 1.0);

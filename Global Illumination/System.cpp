@@ -97,6 +97,12 @@ void System::cleanup()
 	m_offscreenCascadedShadowMap.cleanup(&m_vk);
 	m_offscreenShadowCalculation.cleanup(&m_vk);
 
+	/*for (int cascade(0); cascade < m_cascadeCount; ++cascade)
+	{
+		vkFreeMemory(m_vk.getDevice(), m_shadowMapBuffers[cascade].second, nullptr);
+		vkDestroyBuffer(m_vk.getDevice(), m_shadowMapBuffers[cascade].first, nullptr);
+	}*/
+
 	m_vk.cleanup();
 }
 
@@ -228,25 +234,65 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 		/* Cascade Shadow Map */
 		if (m_sceneType == SCENE_TYPE_CASCADED_SHADOWMAP)
 		{
-			// Init passes
-			m_offscreenCascadedShadowMap.initialize(&m_vk,
-				{ { 4096, 4096 }, { 2048, 2048 }, { 2048, 2048 }, { 2048, 2048 } },
-				false, VK_SAMPLE_COUNT_1_BIT, false, true);
-			m_offscreenShadowCalculation.initialize(&m_vk, { m_vk.getSwapChainExtend() }, false, VK_SAMPLE_COUNT_1_BIT, true, true, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-			VkExtent2D shadowScreenDownscale = { m_vk.getSwapChainExtend().width / 2 , m_vk.getSwapChainExtend().height / 2 };
+			/* Shadow maps pass */
+			std::vector<VkExtent2D> shadowMapExtents = { { 2048, 2048 }, { 1024, 1024 }, { 1024, 1024 }, { 1024, 1024 } };
 
-			// Init images
-			m_shadowScreenImage.create(&m_vk, shadowScreenDownscale, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+			m_offscreenCascadedShadowMap.initialize(&m_vk, shadowMapExtents,
+				false, VK_SAMPLE_COUNT_1_BIT, false, true, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL);
 
-			m_offscreenShadowBlur.initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/comp.spv", m_shadowScreenImage.getImageView());
-
-			// Add meshes
 			PipelineShaders offscreenShadowMap;
-			offscreenShadowMap.vertexShader = "Shaders/offscreenShadowMap/vert.spv";
+			offscreenShadowMap.vertexShader = "Shaders/pbr_csm_textured/shadowmap/vert.spv";
+			//offscreenShadowMap.fragmentShader = "Shaders/pbr_csm_textured/shadowmap/frag.spv";
 			for (int cascade(0); cascade < m_cascadeCount; ++cascade)
 			{
 				m_offscreenCascadedShadowMap.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVPCSM[cascade], &m_uboModel } } }, offscreenShadowMap, 0, false, cascade);
 			}
+
+			//std::array<Operation, 2> copyDepthToImageOperation;
+			//// Copy result depths to buffers
+			//copyDepthToImageOperation[0].type = OPERATION_TYPE_COPY_DEPTH_TO_BUFFER;
+			//m_shadowMapBuffers.resize(m_cascadeCount);
+			//for (int cascade(0); cascade < m_cascadeCount; ++cascade)
+			//{
+			//	m_vk.createBuffer(shadowMapExtents[cascade].width * shadowMapExtents[cascade].height * (uint32_t)2, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			//		0, m_shadowMapBuffers[cascade].first, m_shadowMapBuffers[cascade].second);
+			//}
+			//copyDepthToImageOperation[0].dstBuffers = { m_shadowMapBuffers[0].first, m_shadowMapBuffers[1].first, m_shadowMapBuffers[2].first, m_shadowMapBuffers[3].first };
+
+			//// Copy buffer to images
+			//copyDepthToImageOperation[1].type = OPERATION_TYPE_COPY_BUFFER_TO_IMAGE;
+			//copyDepthToImageOperation[1].srcBuffers = { m_shadowMapBuffers[0].first, m_shadowMapBuffers[1].first, m_shadowMapBuffers[2].first, m_shadowMapBuffers[3].first };
+			//m_shadowMapImages.resize(m_cascadeCount);
+			//for (int cascade(0); cascade < m_cascadeCount; ++cascade)
+			//{
+			//	m_shadowMapImages[cascade].create(&m_vk, shadowMapExtents[cascade], 
+			//		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, 
+			//		VK_FORMAT_R16_UNORM, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+			//}
+			//copyDepthToImageOperation[1].dstImages = { m_shadowMapImages[0].getImage(), m_shadowMapImages[1].getImage(), m_shadowMapImages[2].getImage(), m_shadowMapImages[3].getImage() };
+
+			//Operation downSamplingShadowMaps;
+			//downSamplingShadowMaps.type = OPERATION_TYPE_BLIT;
+			//std::vector<VkExtent2D> shadowMapExtentsDownsampled = { { shadowMapExtents[0].width, shadowMapExtents[0].height }, 
+			//	 { shadowMapExtents[1].width, shadowMapExtents[1].height }, 
+			//	 { shadowMapExtents[2].width, shadowMapExtents[2].height },
+			//	 { shadowMapExtents[3].width, shadowMapExtents[3].height } };
+			//m_shadowMapImagesDowngraded.resize(m_cascadeCount);
+			//for (int cascade(0); cascade < m_cascadeCount; ++cascade)
+			//{
+			//	m_shadowMapImagesDowngraded[cascade].create(&m_vk, shadowMapExtentsDownsampled[cascade],
+			//		VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+			//		VK_FORMAT_R16_UNORM, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			//}
+			//downSamplingShadowMaps.dstImages = { m_shadowMapImagesDowngraded[0].getImage(), m_shadowMapImagesDowngraded[1].getImage(),
+			//	m_shadowMapImagesDowngraded[2].getImage(), m_shadowMapImagesDowngraded[3].getImage() };
+			//downSamplingShadowMaps.srcImages = { m_shadowMapImages[0].getImage(), m_shadowMapImages[1].getImage(), m_shadowMapImages[2].getImage(), m_shadowMapImages[3].getImage() };
+			//downSamplingShadowMaps.dstBlitExtent = shadowMapExtentsDownsampled;
+
+			m_offscreenCascadedShadowMap.recordDraw(&m_vk/*, { copyDepthToImageOperation[0], copyDepthToImageOperation[1], downSamplingShadowMaps }*/);
+
+			/* Shadow Calculation pass */
+			m_offscreenShadowCalculation.initialize(&m_vk, { m_vk.getSwapChainExtend() }, false, VK_SAMPLE_COUNT_1_BIT, true, true, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
 			PipelineShaders shadowCalculation;
 			shadowCalculation.vertexShader = "Shaders/pbr_csm_textured/shadow_calculation/vert.spv";
@@ -266,16 +312,23 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 					}
 				},
 				shadowCalculation, m_cascadeCount, false
-			);		
-
-			// Record draw
-			m_offscreenCascadedShadowMap.recordDraw(&m_vk);
+			);
 
 			Operation blitOperation;
 			blitOperation.type = OPERATION_TYPE_BLIT;
-			blitOperation.dstBlitImage = m_shadowScreenImage.getImage();
-			blitOperation.dstBlitExtent = shadowScreenDownscale;
+			VkExtent2D shadowScreenDownscale = { m_vk.getSwapChainExtend().width / 2 , m_vk.getSwapChainExtend().height / 2 };
+			m_shadowScreenImage.create(&m_vk, shadowScreenDownscale, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, 
+				VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_GENERAL);
+			blitOperation.dstImages = { m_shadowScreenImage.getImage() };
+			blitOperation.dstBlitExtent = { shadowScreenDownscale };
+
 			m_offscreenShadowCalculation.recordDraw(&m_vk, { blitOperation });
+
+			/* Blur */
+			m_offscreenShadowBlur.initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/comp.spv", m_shadowScreenImage.getImageView());
+
+			m_quad.loadObj(&m_vk, "Models/square.obj", glm::vec3(0.0f, 0.0f, 1.0f));
+			m_quad.createTextureSampler(&m_vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 		}
 		/* Shadow Map */
 		if (m_sceneType == SCENE_TYPE_SHADOWMAP)
@@ -314,6 +367,12 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 	}
 	else if (type == SCENE_TYPE_CASCADED_SHADOWMAP)
     {
+		PipelineShaders renderQuad;
+		renderQuad.vertexShader = "Shaders/renderQuad/vert.spv";
+		renderQuad.fragmentShader = "Shaders/renderQuad/frag.spv";
+		m_swapChainRenderPass.addMesh(&m_vk, { { { &m_quad }, {}, nullptr, {  { m_offscreenCascadedShadowMap.getFrameBuffer(0).depthImageView, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL } } } },
+			renderQuad, 1);
+
 		PipelineShaders pbrCsmTextured;
 		pbrCsmTextured.vertexShader = "Shaders/pbr_csm_textured/vert.spv";
 		pbrCsmTextured.fragmentShader = "Shaders/pbr_csm_textured/frag.spv";
@@ -389,7 +448,7 @@ void System::updateCSM()
 		for (unsigned int j = 0; j < 8; j++)
 		{
 			// From view to world space
-			glm::vec4 vW = glm::inverse(m_camera.getViewMatrix()) * frustumCorners[j];
+			glm::vec4 vW = glm::inverse(m_camera.getViewMatrix(/*glm::vec3(m_camera.getOrientation().x, 0.0f, m_camera.getOrientation().z)*/)) * frustumCorners[j];
 
 			// From world to light space
 			frustumCornersL[j] = lightViewMatrix * vW;

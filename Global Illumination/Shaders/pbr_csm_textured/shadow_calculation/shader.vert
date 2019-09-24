@@ -26,7 +26,8 @@ layout(location = 2) in vec3 inTangent;
 layout(location = 3) in vec2 inTexCoord;
 
 layout(location = 0) out vec3 viewPos;
-layout(location = 1) out vec4 posLightSpace[CASCADES_COUNT];
+layout(location = 1) out vec4 worldPos;
+layout(location = 2) out vec4 posLightSpace[CASCADES_COUNT];
 
 out gl_PerVertex
 {
@@ -41,6 +42,8 @@ const mat4 biasMat = mat4(
 
 void main() {
     gl_Position = uboVP.proj * uboVP.view * uboModel.model * vec4(inPosition, 1.0);
+
+	worldPos = uboModel.model * vec4(inPosition, 1.0);
 	
 	viewPos = gl_Position.xyz;
 	for(int i = 0; i < CASCADES_COUNT; i++)

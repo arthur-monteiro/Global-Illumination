@@ -3,7 +3,7 @@
 void ComputePass::initialize(Vulkan* vk, VkExtent2D extent, VkExtent3D dispatchGroups, std::string computeShader, VkImageView inputImageView)
 {
 	/* Create image */
-	m_resultImage.create(vk, extent, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+	m_resultImage.create(vk, extent, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_GENERAL);
 	m_resultImage.createTextureSampler(vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 
 	/* Create command buffer */

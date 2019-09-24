@@ -29,11 +29,23 @@ struct Operation
 {
 #define OPERATION_TYPE_UNDEFINED -1
 #define OPERATION_TYPE_BLIT 0
+#define OPERATION_TYPE_COPY 1
+#define OPERATION_TYPE_COPY_DEPTH_TO_BUFFER 2
+#define OPERATION_TYPE_COPY_BUFFER_TO_IMAGE 3
 
 	int type = OPERATION_TYPE_UNDEFINED;
 
-	VkImage dstBlitImage = VK_NULL_HANDLE;
-	VkExtent2D dstBlitExtent = { 0, 0 };
+	// Blit or copy or copy buffer to image
+	std::vector<VkImage> dstImages;
+	std::vector<VkImage> srcImages;
+	// Blit
+	std::vector<VkExtent2D> dstBlitExtent;
+
+	// Copy image to buffer
+	std::vector<VkBuffer> dstBuffers;
+
+	// Copy buffer to image
+	std::vector<VkBuffer> srcBuffers;
 };
 
 class RenderPass

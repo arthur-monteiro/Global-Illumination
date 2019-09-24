@@ -20,7 +20,7 @@ public:
 
 	void update(GLFWwindow* window);
 
-	glm::mat4 getViewMatrix();
+	glm::mat4 getViewMatrix(glm::vec3 forceOrientation = glm::vec3(-1.0f));
 	glm::vec3 getPosition();
 	float getNear() { return m_near; }
 	float getFar() { return m_far; }

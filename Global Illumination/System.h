@@ -74,9 +74,12 @@ private:
 
 	/* CSM */
 	RenderPass m_offscreenCascadedShadowMap;
+	//std::vector<std::pair<VkBuffer, VkDeviceMemory>> m_shadowMapBuffers;
+	//std::vector<Image> m_shadowMapImages;
+	//std::vector<Image> m_shadowMapImagesDowngraded;
+	Image m_shadowScreenImage;
 	RenderPass m_offscreenShadowCalculation;
 	ComputePass m_offscreenShadowBlur;
-	Image m_shadowScreenImage;
     int m_cascadeCount = 4;
     std::vector<float> m_cascadeSplits;
 

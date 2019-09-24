@@ -1,5 +1,2 @@
-﻿  System.cpp
-F:\Code\Global Illumination\Global Illumination\Vulkan.h(59,1): warning C4267:  'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
-F:\Code\Global Illumination\Global Illumination\System.cpp(351,21): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
-F:\Code\Global Illumination\Global Illumination\System.cpp(353,21): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
-  Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe
+﻿LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  Global Illumination.vcxproj -> E:\nosave\VS Project\Global Illumination\x64\Debug\Global Illumination.exe

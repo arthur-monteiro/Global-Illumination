@@ -56,9 +56,12 @@ void Camera::update(GLFWwindow* window)
 	}
 }
 
-glm::mat4 Camera::getViewMatrix()
+glm::mat4 Camera::getViewMatrix(glm::vec3 forceOrientation)
 {
-	return glm::lookAt(m_position, m_target, m_verticalAxis);
+	if(forceOrientation.x == -1.0f)
+		return glm::lookAt(m_position, m_target, m_verticalAxis);
+	else 
+		return glm::lookAt(m_position, glm::normalize(m_position + forceOrientation), m_verticalAxis);
 }
 
 glm::vec3 Camera::getPosition()

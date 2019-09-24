@@ -10,7 +10,7 @@ class Image
 {
 public:
 	void loadTextureFromFile(Vulkan* vk, std::string path);
-	void create(Vulkan* vk, VkExtent2D extent, VkImageUsageFlags usage);
+	void create(Vulkan* vk, VkExtent2D extent, VkImageUsageFlags usage, VkFormat format, VkImageLayout finalLayout);
 	void createTextureSampler(Vulkan* vk, VkSamplerAddressMode addressMode);
 
 	VkImage getImage() { return m_image; }

@@ -436,7 +436,7 @@ void MeshBase::createTextureSampler(Vulkan * vk, VkSamplerAddressMode addressMod
 	samplerInfo.addressModeV = addressMode;
 	samplerInfo.addressModeW = addressMode;
 
-	samplerInfo.anisotropyEnable = VK_FALSE;
+	samplerInfo.anisotropyEnable = VK_TRUE;
 	samplerInfo.maxAnisotropy = 16;
 
 	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;

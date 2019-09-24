@@ -87,6 +87,8 @@ void System::cleanup()
 {
 	std::cout << "Cleanup..." << std::endl;
 
+	vkQueueWaitIdle(m_vk.getGraphicalQueue());
+
 	//m_skybox.cleanup(m_vk.getDevice());
 	//m_wall.cleanup(m_vk.getDevice());
 	m_sponza.cleanup(m_vk.getDevice());
@@ -235,7 +237,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 		if (m_sceneType == SCENE_TYPE_CASCADED_SHADOWMAP)
 		{
 			/* Shadow maps pass */
-			std::vector<VkExtent2D> shadowMapExtents = { { 2048, 2048 }, { 1024, 1024 }, { 1024, 1024 }, { 1024, 1024 } };
+			std::vector<VkExtent2D> shadowMapExtents = { { 4096, 4096 }, { 2048, 2048 }, { 2048, 2048 }, { 1024, 1024 } };
 
 			m_offscreenCascadedShadowMap.initialize(&m_vk, shadowMapExtents,
 				false, VK_SAMPLE_COUNT_1_BIT, false, true, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL);
@@ -326,9 +328,6 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 
 			/* Blur */
 			m_offscreenShadowBlur.initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/comp.spv", m_shadowScreenImage.getImageView());
-
-			m_quad.loadObj(&m_vk, "Models/square.obj", glm::vec3(0.0f, 0.0f, 1.0f));
-			m_quad.createTextureSampler(&m_vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 		}
 		/* Shadow Map */
 		if (m_sceneType == SCENE_TYPE_SHADOWMAP)
@@ -367,12 +366,6 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 	}
 	else if (type == SCENE_TYPE_CASCADED_SHADOWMAP)
     {
-		PipelineShaders renderQuad;
-		renderQuad.vertexShader = "Shaders/renderQuad/vert.spv";
-		renderQuad.fragmentShader = "Shaders/renderQuad/frag.spv";
-		m_swapChainRenderPass.addMesh(&m_vk, { { { &m_quad }, {}, nullptr, {  { m_offscreenCascadedShadowMap.getFrameBuffer(0).depthImageView, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL } } } },
-			renderQuad, 1);
-
 		PipelineShaders pbrCsmTextured;
 		pbrCsmTextured.vertexShader = "Shaders/pbr_csm_textured/vert.spv";
 		pbrCsmTextured.fragmentShader = "Shaders/pbr_csm_textured/frag.spv";

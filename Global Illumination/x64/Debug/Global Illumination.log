@@ -1,5 +1,8 @@
 ﻿  System.cpp
 F:\Code\Global Illumination\Global Illumination\Vulkan.h(59,1): warning C4267:  'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
-F:\Code\Global Illumination\Global Illumination\System.cpp(462,21): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
-F:\Code\Global Illumination\Global Illumination\System.cpp(464,21): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+F:\Code\Global Illumination\Global Illumination\System.cpp(478,21): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
+  main.cpp
+F:\Code\Global Illumination\Global Illumination\System.cpp(480,21): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+  Generating Code...
+F:\Code\Global Illumination\Global Illumination\Vulkan.h(59,1): warning C4267:  'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
   Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe

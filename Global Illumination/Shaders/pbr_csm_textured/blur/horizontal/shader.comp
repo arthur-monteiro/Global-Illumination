@@ -14,18 +14,18 @@ void main()
 
     if(inputTexel.g == 0.0)
     {
-        imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(inputTexel.rrr, 1.0));
+        imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(inputTexel.rgb, 1.0));
     }
     else
     {
-        float resultColor;
+        float resultColor = imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).r * weight[0];
 
-        for(int i = 1; i < 5; ++i)
+        for(int i = 1; i < 5; i++)
         {
             resultColor += imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x + i, gl_GlobalInvocationID.y)).r * weight[i];
             resultColor += imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x - i, gl_GlobalInvocationID.y)).r * weight[i];
         }
 
-        imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(resultColor.rrr, 1.0));
+        imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(resultColor, inputTexel.gb, 1.0));
     }
 }

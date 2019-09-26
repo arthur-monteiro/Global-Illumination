@@ -73,7 +73,11 @@ bool System::mainLoop()
 			updateCSM();
 			m_offscreenCascadedShadowMap.drawCall(&m_vk);
 			m_offscreenShadowCalculation.drawCall(&m_vk);
-			m_offscreenShadowBlur.drawCall(&m_vk);
+			for (int i(0); i < m_blurAmount; ++i)
+			{
+				m_offscreenShadowBlurHorizontal[i].drawCall(&m_vk);
+				m_offscreenShadowBlurVertical[i].drawCall(&m_vk);
+			}
 		}
 		m_swapChainRenderPass.drawCall(&m_vk);
 	}
@@ -325,7 +329,19 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 			m_offscreenShadowCalculation.recordDraw(&m_vk, { blitOperation });
 
 			/* Blur */
-			m_offscreenShadowBlur.initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/horizontal/comp.spv", m_shadowScreenImage.getImageView());
+			m_offscreenShadowBlurHorizontal.resize(m_blurAmount);
+			m_offscreenShadowBlurVertical.resize(m_blurAmount);
+			m_offscreenShadowBlurHorizontal[0].initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/horizontal/comp.spv", m_shadowScreenImage.getImageView());
+			m_offscreenShadowBlurVertical[0].initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/vertical/comp.spv", m_offscreenShadowBlurHorizontal[0].getImageView());
+			for (int i(1); i < m_blurAmount; ++i)
+			{
+				m_offscreenShadowBlurHorizontal[i].initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/horizontal/comp.spv", 
+					m_offscreenShadowBlurVertical[i - 1].getImageView());
+				m_offscreenShadowBlurVertical[i].initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/vertical/comp.spv", 
+					m_offscreenShadowBlurHorizontal[i].getImageView());
+			}
+				
+			
 		}
 		/* Shadow Map */
 		if (m_sceneType == SCENE_TYPE_SHADOWMAP)
@@ -368,7 +384,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 		pbrCsmTextured.vertexShader = "Shaders/pbr_csm_textured/vert.spv";
 		pbrCsmTextured.fragmentShader = "Shaders/pbr_csm_textured/frag.spv";
 		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboDirLightCSM }, nullptr,
-			{ { m_offscreenShadowBlur.getImageView(), VK_IMAGE_LAYOUT_GENERAL } } } },
+			{ { m_offscreenShadowBlurVertical[m_blurAmount - 1].getImageView(), VK_IMAGE_LAYOUT_GENERAL } } } },
 			pbrCsmTextured, 6, true);
 	}
 	else if (type == SCENE_TYPE_NO_SHADOW)
@@ -579,9 +595,22 @@ void System::setSemaphores()
         m_offscreenShadowCalculation.setSemaphoreToWait(m_vk.getDevice(), {
             { m_offscreenCascadedShadowMap.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_VERTEX_SHADER_BIT }
         });
-		m_offscreenShadowBlur.setSemaphoreToWait(m_vk.getDevice(), {
-			{ m_offscreenShadowCalculation.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_ALL_COMMANDS_BIT }
-		});
-        m_vk.setRenderFinishedLastRenderPassSemaphore(m_offscreenShadowBlur.getRenderFinishedSemaphore());
+
+		m_offscreenShadowBlurHorizontal[0].setSemaphoreToWait(m_vk.getDevice(), {
+				{ m_offscreenShadowCalculation.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_ALL_COMMANDS_BIT }
+			});
+		m_offscreenShadowBlurVertical[0].setSemaphoreToWait(m_vk.getDevice(), {
+			{ m_offscreenShadowBlurHorizontal[0].getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT }
+			});
+		for (int i(1); i < m_blurAmount; ++i)
+		{
+			m_offscreenShadowBlurHorizontal[i].setSemaphoreToWait(m_vk.getDevice(), {
+				{ m_offscreenShadowBlurVertical[i - 1].getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT }
+			});
+			m_offscreenShadowBlurVertical[i].setSemaphoreToWait(m_vk.getDevice(), {
+				{ m_offscreenShadowBlurHorizontal[i].getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT }
+				});
+		}
+        m_vk.setRenderFinishedLastRenderPassSemaphore(m_offscreenShadowBlurVertical[m_blurAmount - 1].getRenderFinishedSemaphore());
     }
 }

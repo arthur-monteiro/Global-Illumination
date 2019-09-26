@@ -41,8 +41,8 @@ void main()
 
 	float shadow = texture(screenShadows, coordShadow).x;
 
-	outColor = texture(screenShadows, coordShadow);
-	return;
+	//outColor = vec4(texture(screenShadows, coordShadow).rrr, 1.0);
+	//return;
 
 	vec3 albedo = pow(texture(texAlbedo, fragTexCoord).xyz, vec3(2.2));
 	if(shadow == 0.0)

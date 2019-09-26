@@ -1,0 +1,31 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout (binding = 0, rgba8) uniform readonly image2D inputImage;
+layout (binding = 1, rgba8) uniform image2D resultImage;
+
+float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+
+void main()
+{	
+    vec3 inputTexel = imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
+
+    if(inputTexel.g == 0.0)
+    {
+        imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(inputTexel.rgb, 1.0));
+    }
+    else
+    {
+        float resultColor = imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).r * weight[0];
+
+        for(int i = 1; i < 5; i++)
+        {
+            resultColor += imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y + i)).r * weight[i];
+            resultColor += imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y - i)).r * weight[i];
+        }
+
+        imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(resultColor, inputTexel.gb, 1.0));
+    }
+}

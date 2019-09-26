@@ -80,7 +80,9 @@ private:
 	//std::vector<Image> m_shadowMapImagesDowngraded;
 	Image m_shadowScreenImage;
 	RenderPass m_offscreenShadowCalculation;
-	ComputePass m_offscreenShadowBlur;
+	int m_blurAmount = 5;
+	std::vector<ComputePass> m_offscreenShadowBlurHorizontal;
+	std::vector<ComputePass> m_offscreenShadowBlurVertical;
     int m_cascadeCount = 4;
     std::vector<float> m_cascadeSplits;
 

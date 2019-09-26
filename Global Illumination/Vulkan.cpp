@@ -698,6 +698,7 @@ VkSurfaceFormatKHR Vulkan::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFo
 VkPresentModeKHR Vulkan::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes)
 {
 	VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
+	return bestMode;
 
 	for (const auto& availablePresentMode : availablePresentModes)
 	{

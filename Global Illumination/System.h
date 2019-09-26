@@ -73,6 +73,7 @@ private:
 	RenderPass m_offscreenShadowMap;
 
 	/* CSM */
+	std::vector<VkExtent2D> m_shadowMapExtents = { { 2048, 2048 }, { 1024, 1024 }, { 1024, 1024 }, { 512, 512 } };
 	RenderPass m_offscreenCascadedShadowMap;
 	//std::vector<std::pair<VkBuffer, VkDeviceMemory>> m_shadowMapBuffers;
 	//std::vector<Image> m_shadowMapImages;

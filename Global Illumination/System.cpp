@@ -237,9 +237,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 		if (m_sceneType == SCENE_TYPE_CASCADED_SHADOWMAP)
 		{
 			/* Shadow maps pass */
-			std::vector<VkExtent2D> shadowMapExtents = { { 4096, 4096 }, { 2048, 2048 }, { 2048, 2048 }, { 1024, 1024 } };
-
-			m_offscreenCascadedShadowMap.initialize(&m_vk, shadowMapExtents,
+			m_offscreenCascadedShadowMap.initialize(&m_vk, m_shadowMapExtents,
 				false, VK_SAMPLE_COUNT_1_BIT, false, true, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL);
 
 			PipelineShaders offscreenShadowMap;
@@ -256,7 +254,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 			//m_shadowMapBuffers.resize(m_cascadeCount);
 			//for (int cascade(0); cascade < m_cascadeCount; ++cascade)
 			//{
-			//	m_vk.createBuffer(shadowMapExtents[cascade].width * shadowMapExtents[cascade].height * (uint32_t)2, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			//	m_vk.createBuffer(m_shadowMapExtents[cascade].width * m_shadowMapExtents[cascade].height * (uint32_t)2, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			//		0, m_shadowMapBuffers[cascade].first, m_shadowMapBuffers[cascade].second);
 			//}
 			//copyDepthToImageOperation[0].dstBuffers = { m_shadowMapBuffers[0].first, m_shadowMapBuffers[1].first, m_shadowMapBuffers[2].first, m_shadowMapBuffers[3].first };
@@ -267,7 +265,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 			//m_shadowMapImages.resize(m_cascadeCount);
 			//for (int cascade(0); cascade < m_cascadeCount; ++cascade)
 			//{
-			//	m_shadowMapImages[cascade].create(&m_vk, shadowMapExtents[cascade], 
+			//	m_shadowMapImages[cascade].create(&m_vk, m_shadowMapExtents[cascade], 
 			//		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, 
 			//		VK_FORMAT_R16_UNORM, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 			//}
@@ -275,10 +273,10 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 
 			//Operation downSamplingShadowMaps;
 			//downSamplingShadowMaps.type = OPERATION_TYPE_BLIT;
-			//std::vector<VkExtent2D> shadowMapExtentsDownsampled = { { shadowMapExtents[0].width, shadowMapExtents[0].height }, 
-			//	 { shadowMapExtents[1].width, shadowMapExtents[1].height }, 
-			//	 { shadowMapExtents[2].width, shadowMapExtents[2].height },
-			//	 { shadowMapExtents[3].width, shadowMapExtents[3].height } };
+			//std::vector<VkExtent2D> shadowMapExtentsDownsampled = { { m_shadowMapExtents[0].width, m_shadowMapExtents[0].height }, 
+			//	 { m_shadowMapExtents[1].width, m_shadowMapExtents[1].height }, 
+			//	 { m_shadowMapExtents[2].width, m_shadowMapExtents[2].height },
+			//	 { m_shadowMapExtents[3].width, m_shadowMapExtents[3].height } };
 			//m_shadowMapImagesDowngraded.resize(m_cascadeCount);
 			//for (int cascade(0); cascade < m_cascadeCount; ++cascade)
 			//{
@@ -318,7 +316,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 
 			Operation blitOperation;
 			blitOperation.type = OPERATION_TYPE_BLIT;
-			VkExtent2D shadowScreenDownscale = { m_vk.getSwapChainExtend().width / 2 , m_vk.getSwapChainExtend().height / 2 };
+			VkExtent2D shadowScreenDownscale = { m_vk.getSwapChainExtend().width , m_vk.getSwapChainExtend().height };
 			m_shadowScreenImage.create(&m_vk, shadowScreenDownscale, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, 
 				VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_GENERAL);
 			blitOperation.dstImages = { m_shadowScreenImage.getImage() };
@@ -327,7 +325,7 @@ void System::createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recr
 			m_offscreenShadowCalculation.recordDraw(&m_vk, { blitOperation });
 
 			/* Blur */
-			m_offscreenShadowBlur.initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/comp.spv", m_shadowScreenImage.getImageView());
+			m_offscreenShadowBlur.initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/horizontal/comp.spv", m_shadowScreenImage.getImageView());
 		}
 		/* Shadow Map */
 		if (m_sceneType == SCENE_TYPE_SHADOWMAP)
@@ -399,63 +397,87 @@ void System::updateCSM()
 		float startCascade = lastSplitDist;
 		float endCascade = m_cascadeSplits[cascade];
 
+		//float ar = (float)m_vk.getSwapChainExtend().height / m_vk.getSwapChainExtend().width;
+		//float tanHalfHFOV = glm::tan((m_camera.getFOV() * (1.0 / ar)) / 2.0f);
+		//float tanHalfVFOV = glm::tan((m_camera.getFOV()) / 2.0f);
+		//float cosHalfHFOV = glm::cos((m_camera.getFOV() * (1.0 / ar)) / 2.0f);
+
+		//float xn = startCascade * tanHalfHFOV;
+		//float xf = endCascade * tanHalfHFOV;
+		//float yn = startCascade * tanHalfVFOV;
+		//float yf = endCascade * tanHalfVFOV;
+
+		//glm::vec4 frustumCorners[8] = 
+		//{
+		//	// near face
+		//	glm::vec4(xn, yn, -startCascade * cosHalfHFOV, 1.0),
+		//	glm::vec4(-xn, yn, -startCascade * cosHalfHFOV, 1.0),
+		//	glm::vec4(xn, -yn, -startCascade * cosHalfHFOV, 1.0),
+		//	glm::vec4(-xn, -yn, -startCascade * cosHalfHFOV, 1.0),
+
+		//	// far face
+		//	glm::vec4(xf, yf, -endCascade, 1.0),
+		//	glm::vec4(-xf, yf, -endCascade, 1.0),
+		//	glm::vec4(xf, -yf, -endCascade, 1.0),
+		//	glm::vec4(-xf, -yf, -endCascade, 1.0)
+		//};
+
+		//glm::vec4 frustumCornersL[8];
+
+		//float minX = std::numeric_limits<float>::max();
+		//float maxX = std::numeric_limits<float>::min();
+		//float minY = std::numeric_limits<float>::max();
+		//float maxY = std::numeric_limits<float>::min();
+		//float minZ = std::numeric_limits<float>::max();
+		//float maxZ = std::numeric_limits<float>::min();
+
+		////glm::vec3 frustumCenter = cascade == 0 ?
+		////	/* Cascade == 0 */ m_camera.getPosition() + m_camera.getOrientation() * (m_cascadeSplits[cascade] / 2.0f) :
+		////	/* Others */ m_camera.getPosition() + m_cascadeSplits[cascade - 1] * m_camera.getOrientation() + m_camera.getOrientation() * (m_cascadeSplits[cascade] / 2.0f);
+		//glm::mat4 lightViewMatrix = glm::lookAt(-glm::normalize(m_lightDir) * 30.0f, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+		//for (unsigned int j = 0; j < 8; j++)
+		//{
+		//	// From view to world space
+		//	glm::vec4 vW = glm::inverse(m_camera.getViewMatrix(/*glm::vec3(m_camera.getOrientation().x, 0.0f, m_camera.getOrientation().z)*/)) * frustumCorners[j];
+
+		//	// From world to light space
+		//	frustumCornersL[j] = lightViewMatrix * vW;
+
+		//	minX = std::min(minX, frustumCornersL[j].x);
+		//	maxX = std::max(maxX, frustumCornersL[j].x);
+		//	minY = std::min(minY, frustumCornersL[j].y);
+		//	maxY = std::max(maxY, frustumCornersL[j].y);
+		//	minZ = std::min(minZ, frustumCornersL[j].z);
+		//	maxZ = std::max(maxZ, frustumCornersL[j].z);
+		//}
+
+		//UniformBufferObjectVP vpTemp;
+		//vpTemp.proj = glm::ortho(minX, maxX, minY, maxY, 0.1f, 100.0f);
+		//vpTemp.view = lightViewMatrix;
+
+		float radius = (endCascade - startCascade) / 2;
+
 		float ar = (float)m_vk.getSwapChainExtend().height / m_vk.getSwapChainExtend().width;
-		float tanHalfHFOV = glm::tan((m_camera.getFOV() * (1.0 / ar)) / 2.0f);
-		float tanHalfVFOV = glm::tan((m_camera.getFOV()) / 2.0f);
 		float cosHalfHFOV = glm::cos((m_camera.getFOV() * (1.0 / ar)) / 2.0f);
+		double b = endCascade / cosHalfHFOV;
+		radius = glm::sqrt(b * b + (startCascade + radius) * (startCascade + radius) - 2 * b * startCascade * cosHalfHFOV);
 
-		float xn = startCascade * tanHalfHFOV;
-		float xf = endCascade * tanHalfHFOV;
-		float yn = startCascade * tanHalfVFOV;
-		float yf = endCascade * tanHalfVFOV;
+		float texelPerUnit = (float)m_shadowMapExtents[cascade].width / (radius * 2.0f);
+		glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(texelPerUnit));
+		glm::mat4 lookAt = scaleMat * glm::lookAt(glm::vec3(0.0f), -m_lightDir, glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 lookAtInv = glm::inverse(lookAt);
 
-		glm::vec4 frustumCorners[8] = 
-		{
-			// near face
-			glm::vec4(xn, yn, -startCascade * cosHalfHFOV, 1.0),
-			glm::vec4(-xn, yn, -startCascade * cosHalfHFOV, 1.0),
-			glm::vec4(xn, -yn, -startCascade * cosHalfHFOV, 1.0),
-			glm::vec4(-xn, -yn, -startCascade * cosHalfHFOV, 1.0),
+		glm::vec3 frustrumCenter = m_camera.getPosition() + startCascade * m_camera.getOrientation() + m_camera.getOrientation() * (endCascade / 2.0f);
+		frustrumCenter = lookAt * glm::vec4(frustrumCenter, 1.0f);
+		frustrumCenter.x = (float)floor(frustrumCenter.x);
+		frustrumCenter.y = (float)floor(frustrumCenter.y);
+		frustrumCenter = lookAtInv * glm::vec4(frustrumCenter, 1.0f);
 
-			// far face
-			glm::vec4(xf, yf, -endCascade, 1.0),
-			glm::vec4(-xf, yf, -endCascade, 1.0),
-			glm::vec4(xf, -yf, -endCascade, 1.0),
-			glm::vec4(-xf, -yf, -endCascade, 1.0)
-		};
-
-		glm::vec4 frustumCornersL[8];
-
-		float minX = std::numeric_limits<float>::max();
-		float maxX = std::numeric_limits<float>::min();
-		float minY = std::numeric_limits<float>::max();
-		float maxY = std::numeric_limits<float>::min();
-		float minZ = std::numeric_limits<float>::max();
-		float maxZ = std::numeric_limits<float>::min();
-
-		//glm::vec3 frustumCenter = cascade == 0 ?
-		//	/* Cascade == 0 */ m_camera.getPosition() + m_camera.getOrientation() * (m_cascadeSplits[cascade] / 2.0f) :
-		//	/* Others */ m_camera.getPosition() + m_cascadeSplits[cascade - 1] * m_camera.getOrientation() + m_camera.getOrientation() * (m_cascadeSplits[cascade] / 2.0f);
-		glm::mat4 lightViewMatrix = glm::lookAt(-glm::normalize(m_lightDir) * 30.0f, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-		for (unsigned int j = 0; j < 8; j++)
-		{
-			// From view to world space
-			glm::vec4 vW = glm::inverse(m_camera.getViewMatrix(/*glm::vec3(m_camera.getOrientation().x, 0.0f, m_camera.getOrientation().z)*/)) * frustumCorners[j];
-
-			// From world to light space
-			frustumCornersL[j] = lightViewMatrix * vW;
-
-			minX = std::min(minX, frustumCornersL[j].x);
-			maxX = std::max(maxX, frustumCornersL[j].x);
-			minY = std::min(minY, frustumCornersL[j].y);
-			maxY = std::max(maxY, frustumCornersL[j].y);
-			minZ = std::min(minZ, frustumCornersL[j].z);
-			maxZ = std::max(maxZ, frustumCornersL[j].z);
-		}
+		glm::mat4 lightViewMatrix = glm::lookAt(frustrumCenter - glm::normalize(m_lightDir), frustrumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
 
 		UniformBufferObjectVP vpTemp;
-		vpTemp.proj = glm::ortho(minX, maxX, minY, maxY, 0.1f, 100.0f);
+		vpTemp.proj = glm::ortho(-radius, radius, -radius, radius, -30.0f * 6.0f, 30.0f * 6.0f);
 		vpTemp.view = lightViewMatrix;
 
 		m_uboVPCSMData[cascade] = vpTemp;

@@ -8,32 +8,41 @@ layout (binding = 1, rgba8) uniform image2D resultImage;
 
 void main()
 {	
-    float blurImpact = 1.0;
+    vec3 inputTexel = imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
 
-    ivec2 offsets[9] = ivec2[](
-        ivec2(-1, 1), // top-left
-        ivec2(0, 1), // top-center
-        ivec2(1, 1), // top-right
-        ivec2(-1, 0),   // center-left
-        ivec2(0, 0),   // center-center
-        ivec2(1, 0),   // center-right
-        ivec2(-1, -1), // bottom-left
-        ivec2(0, -1), // bottom-center
-        ivec2(0, -1)  // bottom-right    
-    );
-    float kernel[9] = float[](
-        blurImpact, 2.0 * blurImpact, blurImpact,
-        2.0 * blurImpact,  4.0, 2.0 * blurImpact,
-        blurImpact, 2.0 * blurImpact, blurImpact
-    );
-    float sum = 12.0 * blurImpact + 4.0;
-
-	vec3 resultColor = vec3(0.0);
-
-    for(int i = 0; i < 9; ++i)
+    if(inputTexel.g == 0.0)
     {
-        resultColor += imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x + offsets[i].x, gl_GlobalInvocationID.y + offsets[i].y)).rgb * (kernel[i] / sum);
+        imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(inputTexel.rrr, 1.0));
     }
+    else
+    {
+        float blurImpact = 4.0;
 
-	imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(resultColor, 1.0));
+        ivec2 offsets[9] = ivec2[](
+            ivec2(-1, 1), // top-left
+            ivec2(0, 1), // top-center
+            ivec2(1, 1), // top-right
+            ivec2(-1, 0),   // center-left
+            ivec2(0, 0),   // center-center
+            ivec2(1, 0),   // center-right
+            ivec2(-1, -1), // bottom-left
+            ivec2(0, -1), // bottom-center
+            ivec2(0, -1)  // bottom-right    
+        );
+        float kernel[9] = float[](
+            blurImpact, 2.0 * blurImpact, blurImpact,
+            2.0 * blurImpact,  4.0, 2.0 * blurImpact,
+            blurImpact, 2.0 * blurImpact, blurImpact
+        );
+        float sum = 12.0 * blurImpact + 4.0;
+
+        float resultColor = 0.0;
+
+        for(int i = 0; i < 9; ++i)
+        {
+            resultColor += imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x + offsets[i].x, gl_GlobalInvocationID.y + offsets[i].y)).r * (kernel[i] / sum);
+        }
+
+        imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(resultColor.rrr, 1.0));
+    }
 }

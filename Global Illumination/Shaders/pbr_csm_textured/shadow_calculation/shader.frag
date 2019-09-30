@@ -173,7 +173,7 @@ void main()
 			distanceIterationLength = 1;
 		int distanceIterationScale = 2;
 		if(cascadeIndex > 0)
-			distanceIterationScale = 1;
+			distanceIterationScale = 2;
 		float maxDistance = 0.0;
 		int containZeroDepth = 0;
 		for(int i = -distanceIterationLength * distanceIterationScale; i <= distanceIterationLength * distanceIterationScale; i += distanceIterationScale)

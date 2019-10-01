@@ -64,33 +64,6 @@ struct MeshPipeline
 	}
 };
 
-struct FrameBuffer
-{
-	VkImageView imageView = VK_NULL_HANDLE;
-	VkImage image;
-	VkDeviceMemory imageMemory;
-	VkFramebuffer framebuffer;
-
-	VkImage depthImage;
-	VkDeviceMemory depthImageMemory;
-	VkImageView depthImageView;
-
-	void free(VkDevice device)
-	{
-		if (imageView != VK_NULL_HANDLE)
-		{
-			vkDestroyImageView(device, imageView, nullptr);
-			vkDestroyImage(device, image, nullptr);
-			vkFreeMemory(device, imageMemory, nullptr);
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
-		}
-
-		vkDestroyImageView(device, depthImageView, nullptr);
-		vkDestroyImage(device, depthImage, nullptr);
-		vkFreeMemory(device, depthImageMemory, nullptr);
-	}
-};
-
 class Vulkan
 {
 public:
@@ -123,14 +96,13 @@ public:
 	VkSampleCountFlagBits getMaxMsaaSamples() { return m_maxMsaaSamples; }
 
 	void setRenderFinishedLastRenderPassSemaphore(VkSemaphore semaphore) { m_renderFinishedLastRenderPassSemaphore = semaphore; }
+	void createSwapChain();
 
 private:
 	void createInstance();
 	void setupDebugCallback();
 	void pickPhysicalDevice();
 	void createDevice();
-	void createSwapChain();
-
 	void cleanupSwapChain();
 
 public :
@@ -159,7 +131,6 @@ public :
 	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t baseArrayLayer);
 	void copyImage(VkImage source, VkImage dst, uint32_t width, uint32_t height, uint32_t baseArrayLayer, uint32_t mipLevel);
-	FrameBuffer createFrameBuffer(VkExtent2D extent, VkRenderPass renderPass, VkSampleCountFlagBits msaaSamples, VkImageView colorImageView, VkFormat depthFormat, VkFormat imageFormat);
 	void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, uint32_t baseArrayLayer);
 	VkSampleCountFlagBits getMaxUsableSampleCount();
 

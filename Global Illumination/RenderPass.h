@@ -48,12 +48,30 @@ struct Operation
 	std::vector<VkBuffer> srcBuffers;
 };
 
+struct FrameBuffer
+{
+	std::vector<Image> colorImages;
+	Image depthImage;
+	std::vector<Image> resolveImages;
+
+	VkFramebuffer framebuffer;
+
+	void free(VkDevice device)
+	{
+		vkDestroyFramebuffer(device, framebuffer, nullptr);
+
+		for (int i(0); i < colorImages.size(); ++i)
+			colorImages[i].cleanup(device);
+		depthImage.cleanup(device);
+	}
+};
+
 class RenderPass
 {
 public:
 	~RenderPass();
 
-	void initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool present, VkSampleCountFlagBits msaaSamples, bool colorAttachment = true, bool depthAttachment = true, 
+	void initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool present, VkSampleCountFlagBits msaaSamples, std::vector<VkFormat> colorFormats, VkFormat depthFormat,
 		VkImageLayout finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	int addMesh(Vulkan * vk, std::vector<MeshRender> mesh, PipelineShaders pipelineShaders, int nbTexture, bool alphaBlending = false, int frameBufferID = 0);
@@ -61,6 +79,7 @@ public:
 	int addText(Vulkan * vk, Text * text);
 	void addMenu(Vulkan* vk, Menu * menu);
 	void updateImageViewMenuItemOption(Vulkan* vk, VkImageView imageView);
+	void clearMeshes(VkDevice device);
 	void recordDraw(Vulkan* vk, std::vector<Operation> operations = {});
 
 	void drawCall(Vulkan * vk);
@@ -81,7 +100,8 @@ public:
 	bool getDrawMenu() { return m_drawMenu; }
 
 private:
-	void createRenderPass(VkDevice device, VkImageLayout finalLayout, bool colorAttachment, bool depthAttachment);
+	void createRenderPass(VkDevice device, VkImageLayout finalLayout);
+	FrameBuffer createFrameBuffer(Vulkan* vk, VkExtent2D extent, VkRenderPass renderPass, VkSampleCountFlagBits msaaSamples, VkFormat depthFormat, std::vector<VkFormat> imageFormats);
 	void createColorResources(Vulkan * vk, VkExtent2D extent);
 	VkDescriptorSetLayout createDescriptorSetLayout(VkDevice device, std::vector<UboBase*> uniformBuffers, int nbTexture);
 	void createDescriptorPool(VkDevice device);
@@ -94,14 +114,13 @@ public:
 	VkRenderPass getRenderPass() { return m_renderPass; }
 	FrameBuffer getFrameBuffer(int index) { return m_frameBuffers[index]; }
 	VkSemaphore getRenderFinishedSemaphore() { return m_renderCompleteSemaphore; }
+	bool getIsInitialized() { return m_isInitialized; }
 
 private:
 	bool m_isInitialized = false;
 
-	VkFormat m_format;
-	VkFormat m_depthFormat;
-	bool m_useColorAttachment = false;
-	bool m_useDepthAttachment = false;
+	std::vector<VkFormat> m_colorAttachmentFormats;
+	VkFormat m_depthAttachmentFormat;
 
 	VkRenderPass m_renderPass;
 	VkDescriptorPool m_descriptorPool;

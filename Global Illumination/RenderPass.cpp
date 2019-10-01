@@ -6,7 +6,8 @@ RenderPass::~RenderPass()
 		std::cout << "Render pass not destroyed !" << std::endl;
 }
 
-void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool present, VkSampleCountFlagBits msaaSamples, bool colorAttachment, bool depthAttachment, VkImageLayout finalLayout)
+void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool present, VkSampleCountFlagBits msaaSamples, std::vector<VkFormat> colorFormats, VkFormat depthFormat, 
+	VkImageLayout finalLayout)
 {
 	if (m_isInitialized)
 		return;
@@ -15,52 +16,42 @@ void RenderPass::initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool pre
 		throw std::runtime_error("Can't create RenderPass without extent");
 
 	m_text = nullptr;
-	m_useColorAttachment = colorAttachment;
-	m_useDepthAttachment = depthAttachment;
+	m_colorAttachmentFormats = colorFormats;
+	m_depthAttachmentFormat = depthFormat;
 	m_msaaSamples = msaaSamples;
-	m_extent = !present ? extent : std::vector<VkExtent2D>(1, vk->getSwapChainExtend());
+	m_extent = extent;
+	m_useSwapChain = present;
 
-	m_format = vk->getSwapChainImageFormat();
-	if (!present)
-		m_format = VK_FORMAT_R32G32B32A32_SFLOAT;
-	m_depthFormat = vk->findDepthFormat();
-	if(!colorAttachment)
-		m_depthFormat = VK_FORMAT_D16_UNORM;
-
-	if(present)
-		createRenderPass(vk->getDevice(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, colorAttachment, depthAttachment); 
-	else
-		createRenderPass(vk->getDevice(), finalLayout, colorAttachment, depthAttachment);
+	createRenderPass(vk->getDevice(), finalLayout);
 	createDescriptorPool(vk->getDevice());
 	
-	if(colorAttachment && msaaSamples != VK_SAMPLE_COUNT_1_BIT)
+	if(m_useSwapChain && m_msaaSamples != VK_SAMPLE_COUNT_1_BIT)
 		createColorResources(vk, m_extent[0]);
-#ifndef NDEBUG
-	if (msaaSamples != VK_SAMPLE_COUNT_1_BIT && m_extent.size() > 1)
-		std::cout << "Warning : Can't create MSAA pass with multiple frambuffers" << std::endl; // !! to be fixed
-#endif // NDEBUG
 
-	if (!present)
+	if (!m_useSwapChain)
 	{
 		m_frameBuffers.resize(m_extent.size());
 		m_commandBuffer.resize(m_extent.size());
-		for(int i(0); i < m_extent.size(); ++i)
-			m_frameBuffers[i] = vk->createFrameBuffer(extent[i], m_renderPass, m_msaaSamples, m_colorImageView, depthAttachment ? m_depthFormat : VK_FORMAT_UNDEFINED,
-				colorAttachment ? m_format : VK_FORMAT_UNDEFINED);
+		for (int i(0); i < m_extent.size(); ++i)
+			m_frameBuffers[i] = createFrameBuffer(vk, extent[i], m_renderPass, m_msaaSamples, m_depthAttachmentFormat, m_colorAttachmentFormats);
 	}
 	else
 		vk->createSwapchainFramebuffers(m_renderPass, m_msaaSamples, m_colorImageView);
 
-	if (colorAttachment)
+	if (m_colorAttachmentFormats.size() == 1) // we draw text only if there is 1 color attachment
 	{
 		UniformBufferObject<UniformBufferObjectSingleVec> uboTemp;
 		uboTemp.load(vk, { glm::vec4(0.0f) }, VK_SHADER_STAGE_FRAGMENT_BIT);
 		m_textDescriptorSetLayout = createDescriptorSetLayout(vk->getDevice(), { &uboTemp }, 1);
-		m_textPipeline.initialize(vk, &m_textDescriptorSetLayout, m_renderPass, { "Shaders/text/vert.spv", "", "Shaders/text/frag.spv" }, true, m_msaaSamples, { TextVertex::getBindingDescription() }, TextVertex::getAttributeDescriptions(), vk->getSwapChainExtend());
+		m_textPipeline.initialize(vk, &m_textDescriptorSetLayout, m_renderPass, 
+			{ "Shaders/text/vert.spv", "", "Shaders/text/frag.spv" }, 
+			true, m_msaaSamples, 
+			{ TextVertex::getBindingDescription() }, 
+			TextVertex::getAttributeDescriptions(), 
+			vk->getSwapChainExtend(), std::max(static_cast<int>(m_colorAttachmentFormats.size()), 1));
 		uboTemp.cleanup(vk->getDevice());
 	}
 
-	m_useSwapChain = present;
 	VkSemaphoreCreateInfo semaphoreInfo = {};
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	if (vkCreateSemaphore(vk->getDevice(), &semaphoreInfo, nullptr, &m_renderCompleteSemaphore) != VK_SUCCESS)
@@ -87,7 +78,7 @@ int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, PipelineSha
 
 	Pipeline pipeline;
 	pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, pipelineShaders, alphaBlending, m_msaaSamples, { VertexPBR::getBindingDescription(0) },
-		VertexPBR::getAttributeDescriptions(0), m_extent[frameBufferID]);
+		VertexPBR::getAttributeDescriptions(0), m_extent[frameBufferID], std::max(static_cast<int>(m_colorAttachmentFormats.size()), 1));
 	meshesPipeline.pipeline = pipeline.getGraphicsPipeline();
 	meshesPipeline.pipelineLayout = pipeline.getPipelineLayout();
 	
@@ -100,8 +91,8 @@ int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, PipelineSha
 			meshesPipeline.nbIndices.push_back(meshes[i].meshes[k]->getNumIndices());
 
 #ifndef NDEBUG
-			if (meshes[i].meshes[k]->getImageView().size() + meshes[i].images.size() != nbTexture)
-				std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
+		//	if (meshes[i].meshes[k]->getImageView().size() + meshes[i].images.size() != nbTexture)
+		//		std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
 #endif // DEBUG
 
 			std::vector<VkImageView> imageViewToAdd = meshes[i].meshes[k]->getImageView();
@@ -162,7 +153,7 @@ int RenderPass::addMeshInstanced(Vulkan* vk, std::vector<MeshRender> meshes, std
 #endif // NDEBUG
 
 	pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, { vertPath, "", fragPath }, false, m_msaaSamples, { VertexPBR::getBindingDescription(0), ModelInstance::getBindingDescription(1) },
-		attributeDescription, m_extent[0]);
+		attributeDescription, m_extent[0], std::max(static_cast<int>(m_colorAttachmentFormats.size()), 1));
 	meshesPipelineInstanced.pipeline = pipeline.getGraphicsPipeline();
 	meshesPipelineInstanced.pipelineLayout = pipeline.getPipelineLayout();
 
@@ -176,8 +167,8 @@ int RenderPass::addMeshInstanced(Vulkan* vk, std::vector<MeshRender> meshes, std
 			meshesPipelineInstanced.instanceBuffer.push_back(meshes[i].instance->getInstanceBuffer());
 
 #ifndef NDEBUG
-			if (meshes[i].meshes[k]->getImageView().size() != nbTexture)
-				std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
+		//	if (meshes[i].meshes[k]->getImageView().size() != nbTexture)
+		//		std::cout << "Attention : le nombre de texture utilisés n'est pas égale au nombre de textures du mesh" << std::endl;
 #endif // DEBUG
 
 			VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), descriptorSetLayout,
@@ -238,7 +229,7 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 
 		Pipeline pipeline;
 		pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, { "Shaders/menuFullQuad/vert.spv", "", "Shaders/menuFullQuad/frag.spv" }, true, m_msaaSamples,
-			{ VertexQuad::getBindingDescription(0) }, VertexQuad::getAttributeDescriptions(0), m_extent[0]);
+			{ VertexQuad::getBindingDescription(0) }, VertexQuad::getAttributeDescriptions(0), m_extent[0], std::max(static_cast<int>(m_colorAttachmentFormats.size()), 1));
 		meshesPipeline.pipeline = pipeline.getGraphicsPipeline();
 		meshesPipeline.pipelineLayout = pipeline.getPipelineLayout();
 
@@ -262,7 +253,7 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 
 		Pipeline pipeline;
 		pipeline.initialize(vk, &descriptorSetLayout, m_renderPass, { "Shaders/menuItemQuad/vert.spv", "", "Shaders/menuItemQuad/frag.spv" }, true, m_msaaSamples,
-			{ VertexQuad::getBindingDescription(0) }, VertexQuad::getAttributeDescriptions(0), m_extent[0]);
+			{ VertexQuad::getBindingDescription(0) }, VertexQuad::getAttributeDescriptions(0), m_extent[0], std::max(static_cast<int>(m_colorAttachmentFormats.size()), 1));
 		meshesPipeline.pipeline = pipeline.getGraphicsPipeline();
 		meshesPipeline.pipelineLayout = pipeline.getPipelineLayout();
 
@@ -313,7 +304,7 @@ void RenderPass::addMenu(Vulkan* vk, Menu * menu)
 
 		Pipeline pipeline;
 		pipeline.initialize(vk, &m_menuOptionImageDescriptorLayout, m_renderPass, { "Shaders/menuOptionImageQuad/vert.spv", "", "Shaders/menuOptionImageQuad/frag.spv" }, false, m_msaaSamples,
-			{ VertexQuadTextured::getBindingDescription(0) }, VertexQuadTextured::getAttributeDescriptions(0), m_extent[0]);
+			{ VertexQuadTextured::getBindingDescription(0) }, VertexQuadTextured::getAttributeDescriptions(0), m_extent[0], std::max(static_cast<int>(m_colorAttachmentFormats.size()), 1));
 		meshPipeline.pipeline = pipeline.getGraphicsPipeline();
 		meshPipeline.pipelineLayout = pipeline.getPipelineLayout();
 
@@ -352,6 +343,15 @@ void RenderPass::updateImageViewMenuItemOption(Vulkan* vk, VkImageView imageView
 	m_drawOptionImage = true;
 
 	recordDraw(vk);
+}
+
+void RenderPass::clearMeshes(VkDevice device)
+{
+	for (int i(0); i < m_meshesPipeline.size(); ++i)
+		m_meshesPipeline[i].free(device, m_descriptorPool, true); // doesn't destroy resources
+
+	m_meshes.clear();
+	m_meshesPipeline.clear();
 }
 
 void RenderPass::recordDraw(Vulkan * vk, std::vector<Operation> operations)
@@ -455,72 +455,86 @@ void RenderPass::cleanup(Vulkan * vk)
 
 	vkDestroyDescriptorPool(vk->getDevice(), m_descriptorPool, nullptr);
 	vkDestroyRenderPass(vk->getDevice(), m_renderPass, nullptr);
+	m_renderPass = VK_NULL_HANDLE;
 
 	m_isInitialized = false;
 }
 
-void RenderPass::createRenderPass(VkDevice device, VkImageLayout finalLayout, bool useColorAttachment, bool useDepthAttachment)
+void RenderPass::createRenderPass(VkDevice device, VkImageLayout finalLayout)
 {
-	VkAttachmentDescription colorAttachment = {};
-	colorAttachment.format = m_format;
-	colorAttachment.samples = m_msaaSamples;
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = m_msaaSamples != VK_SAMPLE_COUNT_1_BIT ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : finalLayout;
+	/* Color attachment */
+	std::vector<VkAttachmentDescription> colorAttachments(m_colorAttachmentFormats.size());
+	for (int i(0); i < m_colorAttachmentFormats.size(); ++i)
+	{
+		colorAttachments[i].format = m_colorAttachmentFormats[i];
+		colorAttachments[i].samples = m_msaaSamples;
+		colorAttachments[i].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachments[i].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachments[i].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachments[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachments[i].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachments[i].finalLayout = m_msaaSamples != VK_SAMPLE_COUNT_1_BIT ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : finalLayout;
+	}
 
-	VkAttachmentReference colorAttachmentRef = {};
-	colorAttachmentRef.attachment = 0;
-	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	std::vector<VkAttachmentReference> colorAttachmentRefs(m_colorAttachmentFormats.size());
+	for (int i(0); i < m_colorAttachmentFormats.size(); ++i)
+	{
+		colorAttachmentRefs[i].attachment = i;
+		colorAttachmentRefs[i].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	}
 
+	/* Depth attachment */
 	VkAttachmentDescription depthAttachment = {};
-	depthAttachment.format = m_depthFormat;
+
+	depthAttachment.format = m_depthAttachmentFormat;
 	depthAttachment.samples = m_msaaSamples;
 	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	if (useColorAttachment)
+	if (m_colorAttachmentFormats.size() > 0)
 		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	else 
+	else // no color attachment -> we will use the depth texture
 		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	if(useColorAttachment)
+	if (m_colorAttachmentFormats.size() > 0)
 		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	else
 		depthAttachment.finalLayout = finalLayout;
 
 	VkAttachmentReference depthAttachmentRef = {};
-	depthAttachmentRef.attachment = useColorAttachment ? 1 : 0;
+	depthAttachmentRef.attachment = m_colorAttachmentFormats.size();
 	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	VkAttachmentDescription colorAttachmentResolve = {};
-	colorAttachmentResolve.format = m_format;
-	colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
-	colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachmentResolve.finalLayout = finalLayout;
+	std::vector<VkAttachmentDescription> colorAttachmentResolves(m_colorAttachmentFormats.size());
+	for (int i(0); i < m_colorAttachmentFormats.size(); ++i)
+	{
+		colorAttachmentResolves[i].format = m_colorAttachmentFormats[i];
+		colorAttachmentResolves[i].samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachmentResolves[i].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachmentResolves[i].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachmentResolves[i].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachmentResolves[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachmentResolves[i].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachmentResolves[i].finalLayout = finalLayout;
+	}
 
-	VkAttachmentReference colorAttachmentResolveRef = {};
-	colorAttachmentResolveRef.attachment = useDepthAttachment ? 2 : 1;
-	colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	std::vector<VkAttachmentReference> colorAttachmentResolveRefs(m_colorAttachmentFormats.size());
+	for (int i(0); i < m_colorAttachmentFormats.size(); ++i)
+	{
+		colorAttachmentResolveRefs[i].attachment = m_colorAttachmentFormats.size() + 1 + i;
+		colorAttachmentResolveRefs[i].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	}
 
 	VkSubpassDescription subpass = {};
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpass.colorAttachmentCount = useColorAttachment ? 1 : 0;
-	if(useColorAttachment)
-		subpass.pColorAttachments = &colorAttachmentRef;
-	if(useDepthAttachment)
-		subpass.pDepthStencilAttachment = &depthAttachmentRef;
+	subpass.colorAttachmentCount = colorAttachmentRefs.size();
+	subpass.pColorAttachments = colorAttachmentRefs.data();
+	subpass.pDepthStencilAttachment = &depthAttachmentRef;
 	if(m_msaaSamples != VK_SAMPLE_COUNT_1_BIT)
-		subpass.pResolveAttachments = &colorAttachmentResolveRef;
+		subpass.pResolveAttachments = colorAttachmentResolveRefs.data();
 
-	std::vector<VkSubpassDependency> dependencies(useColorAttachment ? 1 : 2);
-	if (useColorAttachment)
+	std::vector<VkSubpassDependency> dependencies(m_colorAttachmentFormats.size() > 0 ? 1 : 2);
+	if (m_colorAttachmentFormats.size() > 0)
 	{
 		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependencies[0].dstSubpass = 0;
@@ -549,12 +563,13 @@ void RenderPass::createRenderPass(VkDevice device, VkImageLayout finalLayout, bo
 	}
 
 	std::vector<VkAttachmentDescription> attachments;
-	if(useColorAttachment && m_msaaSamples != VK_SAMPLE_COUNT_1_BIT)
-		attachments = { colorAttachment, depthAttachment, colorAttachmentResolve };
-	else if(useColorAttachment)
-		attachments = { colorAttachment, depthAttachment };
-	else 
-		attachments = { depthAttachment };
+	for (int i(0); i < m_colorAttachmentFormats.size(); ++i)
+		attachments.push_back(colorAttachments[i]);
+	attachments.push_back(depthAttachment);
+	if (m_msaaSamples != VK_SAMPLE_COUNT_1_BIT)
+		for (int i(0); i < m_colorAttachmentFormats.size(); ++i)
+			attachments.push_back(colorAttachmentResolves[i]);
+	
 	VkRenderPassCreateInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -568,9 +583,68 @@ void RenderPass::createRenderPass(VkDevice device, VkImageLayout finalLayout, bo
 		throw std::runtime_error("Erreur : render pass");
 }
 
+FrameBuffer RenderPass::createFrameBuffer(Vulkan * vk, VkExtent2D extent, VkRenderPass renderPass, VkSampleCountFlagBits msaaSamples, VkFormat depthFormat, std::vector<VkFormat> imageFormats)
+{
+	FrameBuffer frameBuffer;
+
+	/* Depth image */
+	VkImageUsageFlags depthUsage;
+	if (imageFormats.size() == 0)
+		depthUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	else
+		depthUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	frameBuffer.depthImage.create(vk, extent, depthUsage, depthFormat, msaaSamples, VK_IMAGE_ASPECT_DEPTH_BIT);
+	frameBuffer.depthImage.transitionImageLayout(vk, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+	/* Color images */
+	frameBuffer.colorImages.resize(imageFormats.size());
+	for (int i(0); i < imageFormats.size(); ++i)
+	{
+		VkImageUsageFlags colorUsage;
+		if (msaaSamples != VK_SAMPLE_COUNT_1_BIT)
+			colorUsage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		else
+			colorUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		frameBuffer.colorImages[i].create(vk, extent, colorUsage, imageFormats[i], msaaSamples, VK_IMAGE_ASPECT_COLOR_BIT);
+	}
+
+	/* Resolve images */
+	if (msaaSamples != VK_SAMPLE_COUNT_1_BIT)
+	{
+		frameBuffer.resolveImages.resize(imageFormats.size());
+		for (int i(0); i < imageFormats.size(); ++i)
+		{
+			frameBuffer.resolveImages[i].create(vk, extent, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, imageFormats[i], VK_SAMPLE_COUNT_1_BIT, 
+				VK_IMAGE_ASPECT_COLOR_BIT);
+		}
+	}
+
+	std::vector<VkImageView> attachments;
+	for (int i(0); i < imageFormats.size(); ++i)
+		attachments.push_back(frameBuffer.colorImages[i].getImageView());
+	attachments.push_back(frameBuffer.depthImage.getImageView());
+	if(msaaSamples != VK_SAMPLE_COUNT_1_BIT)
+		for (int i(0); i < imageFormats.size(); ++i)
+			attachments.push_back(frameBuffer.resolveImages[i].getImageView());
+
+	VkFramebufferCreateInfo framebufferInfo = {};
+	framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	framebufferInfo.renderPass = renderPass;
+	framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+	framebufferInfo.pAttachments = attachments.data();
+	framebufferInfo.width = extent.width;
+	framebufferInfo.height = extent.height;
+	framebufferInfo.layers = 1;
+
+	if (vkCreateFramebuffer(vk->getDevice(), &framebufferInfo, nullptr, &frameBuffer.framebuffer) != VK_SUCCESS)
+		throw std::runtime_error("Erreur : framebuffer");
+
+	return frameBuffer;
+}
+
 void RenderPass::createColorResources(Vulkan* vk, VkExtent2D extent)
 {
-	VkFormat colorFormat = m_format;
+	VkFormat colorFormat = m_colorAttachmentFormats[0];
 
 	vk->createImage(extent.width, extent.height, 1, m_msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, 
 		VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0, VK_IMAGE_LAYOUT_PREINITIALIZED, m_colorImage, m_colorImageMemory);
@@ -728,10 +802,9 @@ void RenderPass::fillCommandBuffer(Vulkan * vk, std::vector<Operation> operation
 		renderPassInfo.renderArea.extent = m_extent[i];
 
 		std::vector<VkClearValue> clearValues = {};
-		if (m_useColorAttachment && m_useDepthAttachment)
-			clearValues = { { 0.0f, 0.0f, 1.0f, 1.0f }, { 1.0f } };
-		else if (m_useDepthAttachment)
-			clearValues = { { 1.0f } };
+		for (int j(0); j < m_colorAttachmentFormats.size(); ++j)
+			clearValues.push_back({ 0.0f, 0.0f, 1.0f, 1.0f });
+		clearValues.push_back({ 1.0f });
 
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
@@ -822,7 +895,7 @@ void RenderPass::fillCommandBuffer(Vulkan * vk, std::vector<Operation> operation
 				blit.dstSubresource.layerCount = 1;
 
 				vkCmdBlitImage(m_commandBuffer[i],
-					m_frameBuffers[i].image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+					m_frameBuffers[i].colorImages[0].getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 					operations[j].dstImages[i], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 					1, &blit,
 					VK_FILTER_LINEAR);
@@ -889,7 +962,7 @@ void RenderPass::fillCommandBuffer(Vulkan * vk, std::vector<Operation> operation
 				copyRegion.extent = { m_extent[i].width, m_extent[i].height, 1 };
 
 				vkCmdCopyImage(m_commandBuffer[i],
-					m_frameBuffers[i].depthImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+					m_frameBuffers[i].depthImage.getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 					operations[j].dstImages[i], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 					1, &copyRegion);
 
@@ -924,7 +997,7 @@ void RenderPass::fillCommandBuffer(Vulkan * vk, std::vector<Operation> operation
 				copyImageToBufferInfo.imageSubresource.baseArrayLayer = 0;
 				copyImageToBufferInfo.imageSubresource.layerCount = 1;
 
-				vkCmdCopyImageToBuffer(m_commandBuffer[i], m_frameBuffers[i].depthImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				vkCmdCopyImageToBuffer(m_commandBuffer[i], m_frameBuffers[i].depthImage.getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 					operations[j].dstBuffers[i], 1, &copyImageToBufferInfo);
 			}
 			else if (operations[j].type == OPERATION_TYPE_COPY_BUFFER_TO_IMAGE)

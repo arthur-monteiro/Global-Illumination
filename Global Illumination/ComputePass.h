@@ -10,6 +10,7 @@ class ComputePass
 public:
 	void initialize(Vulkan* vk, VkExtent2D extent, VkExtent3D dispatchGroups, std::string computeShader, VkImageView inputImageView);
 	void drawCall(Vulkan* vk);
+	void cleanup(VkDevice device);
 
 	VkImageView getImageView() { return m_resultImage.getImageView(); }
 	VkSemaphore getRenderFinishedSemaphore() { return m_renderCompleteSemaphore; }

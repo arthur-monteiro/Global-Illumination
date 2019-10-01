@@ -20,10 +20,8 @@
 #include "Instance.h"
 #include "Model.h"
 
-const int SCENE_TYPE_UNDEFINED = -1;
-const int SCENE_TYPE_SHADOWMAP = 0;
-const int SCENE_TYPE_NO_SHADOW = 1;
-const int SCENE_TYPE_CASCADED_SHADOWMAP = 2;
+const uint32_t EFFECT_TYPE_CASCADED_SHADOW_MAPPING = 0x1;
+const uint32_t EFFECT_TYPE_RSM = (0x1 << 1);
 
 class System
 {
@@ -52,7 +50,7 @@ public:
 private:
 	void create(bool recreate = false);
 	void createRessources();
-	void createPasses(int type, VkSampleCountFlagBits msaaSamples, bool recreate = false);
+	void createPasses(bool recreate = false);
 	void createUniformBufferObjects();
 	void setSemaphores();
 
@@ -64,16 +62,13 @@ private:
 	glm::vec3 m_lightDir = glm::vec3(1.5f, -5.0f, -1.0f);
 
 	/* ----- Render Pass ------ */
-    int m_sceneType = SCENE_TYPE_UNDEFINED;
+	uint32_t m_usedEffects = 0x0;
 
 	/* Final Pass */
 	RenderPass m_swapChainRenderPass;
 
-	/* Shadow Mapping */
-	RenderPass m_offscreenShadowMap;
-
 	/* CSM */
-	std::vector<VkExtent2D> m_shadowMapExtents = { { 2048, 2048 }, { 1024, 1024 }, { 1024, 1024 }, { 512, 512 } };
+	std::vector<VkExtent2D> m_shadowMapExtents = { { 2048, 2048 }, { 1024, 1024 }, { 1024, 1024 }, { 1024, 1024 } };
 	RenderPass m_offscreenCascadedShadowMap;
 	//std::vector<std::pair<VkBuffer, VkDeviceMemory>> m_shadowMapBuffers;
 	//std::vector<Image> m_shadowMapImages;
@@ -85,6 +80,9 @@ private:
 	std::vector<ComputePass> m_offscreenShadowBlurVertical;
     int m_cascadeCount = 4;
     std::vector<float> m_cascadeSplits;
+
+	/* RSM */
+	RenderPass m_offscreenRSM;
 
 	/* ----- Meshes / Models ----- */
 

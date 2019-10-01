@@ -3,7 +3,8 @@
 void ComputePass::initialize(Vulkan* vk, VkExtent2D extent, VkExtent3D dispatchGroups, std::string computeShader, VkImageView inputImageView)
 {
 	/* Create image */
-	m_resultImage.create(vk, extent, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_GENERAL);
+	m_resultImage.create(vk, extent, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
+	m_resultImage.transitionImageLayout(vk, VK_IMAGE_LAYOUT_GENERAL);
 	m_resultImage.createTextureSampler(vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 
 	/* Create command buffer */
@@ -150,6 +151,14 @@ void ComputePass::drawCall(Vulkan* vk)
 
 	if (vkQueueSubmit(vk->getComputeQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
 		throw std::runtime_error("Error : submit to compute queue");
+}
+
+void ComputePass::cleanup(VkDevice device)
+{
+	m_resultImage.cleanup(device);
+
+	vkDestroyDescriptorPool(device, m_descriptorPool, nullptr);
+	vkDestroyCommandPool(device, m_commandPool, nullptr);
 }
 
 void ComputePass::setSemaphoreToWait(VkDevice device, std::vector<Semaphore> semaphores)

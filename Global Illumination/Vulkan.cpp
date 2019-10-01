@@ -28,7 +28,7 @@ void Vulkan::initialize(int width, int height, std::string appName, std::functio
 		setupDebugCallback();
 #endif
 		if (glfwCreateWindowSurface(m_instance, m_window, nullptr, &m_surface) != VK_SUCCESS)
-			throw std::runtime_error("Erreur : Cr�ation de la surface");
+			throw std::runtime_error("Error : window surface creation");
 		pickPhysicalDevice();
 		m_deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 		createDevice();
@@ -204,7 +204,7 @@ void Vulkan::createSwapChain()
 	createInfo.clipped = VK_TRUE;
 
 	if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &m_swapChain) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : Cr�ation de la swap chain !");
+		throw std::runtime_error("Error : swapchain creation");
 
 	vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, nullptr);
 	m_swapChainImages.resize(imageCount);
@@ -885,63 +885,6 @@ void Vulkan::copyImage(VkImage source, VkImage dst, uint32_t width, uint32_t hei
 	endSingleTimeCommands(commandBuffer);
 }
 
-FrameBuffer Vulkan::createFrameBuffer(VkExtent2D extent, VkRenderPass renderPass, VkSampleCountFlagBits msaaSamples, VkImageView colorImageView, VkFormat depthFormat, VkFormat imageFormat)
-{
-	FrameBuffer frameBuffer;
-
-	if (depthFormat != VK_FORMAT_UNDEFINED)
-	{
-		if(imageFormat != VK_FORMAT_UNDEFINED)
-			createImage(extent.width, extent.height, 1, msaaSamples, depthFormat,
-				VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0, VK_IMAGE_LAYOUT_PREINITIALIZED, frameBuffer.depthImage, frameBuffer.depthImageMemory);
-		else
-			createImage(extent.width, extent.height, 1, msaaSamples, depthFormat,
-				VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0, VK_IMAGE_LAYOUT_PREINITIALIZED, frameBuffer.depthImage, frameBuffer.depthImageMemory);
-		frameBuffer.depthImageView = createImageView(frameBuffer.depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1, VK_IMAGE_VIEW_TYPE_2D);
-
-		transitionImageLayout(frameBuffer.depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 1);
-	}
-
-	if (imageFormat != VK_FORMAT_UNDEFINED)
-	{
-		createImage(extent.width, extent.height, 1, VK_SAMPLE_COUNT_1_BIT, imageFormat, VK_IMAGE_TILING_OPTIMAL,
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0, VK_IMAGE_LAYOUT_PREINITIALIZED,
-			frameBuffer.image, frameBuffer.imageMemory);
-		frameBuffer.imageView = createImageView(frameBuffer.image, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_2D);
-	}
-
-	std::vector<VkImageView> attachments;
-	if (imageFormat != VK_FORMAT_UNDEFINED && msaaSamples != VK_SAMPLE_COUNT_1_BIT)
-		attachments = {
-			colorImageView,
-			frameBuffer.depthImageView,
-			frameBuffer.imageView
-	};
-	else if (imageFormat != VK_FORMAT_UNDEFINED)
-		attachments = {
-			frameBuffer.imageView,
-			frameBuffer.depthImageView
-	};
-	else if(depthFormat != VK_FORMAT_UNDEFINED)
-		attachments = { frameBuffer.depthImageView };
-
-	VkFramebufferCreateInfo framebufferInfo = {};
-	framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-	framebufferInfo.renderPass = renderPass;
-	framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-	framebufferInfo.pAttachments = attachments.data();
-	framebufferInfo.width = extent.width;
-	framebufferInfo.height = extent.height;
-	framebufferInfo.layers = 1;
-
-	if (vkCreateFramebuffer(m_device, &framebufferInfo, nullptr, &frameBuffer.framebuffer) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : framebuffer");
-
-	return frameBuffer;
-}
-
 void Vulkan::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, uint32_t baseArrayLayer)
 {
 	VkFormatProperties formatProperties;
@@ -1127,7 +1070,7 @@ void Vulkan::createSemaphores()
 
 	if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_imageAvailableSemaphore) != VK_SUCCESS ||
 		vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphore) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : cr�ation des s�maphores");
+		throw std::runtime_error("Error : semaphore creation");
 }
 
 void Vulkan::drawFrame()
@@ -1142,15 +1085,15 @@ void Vulkan::drawFrame()
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 	{
-		throw std::runtime_error("Erreur : impossible d'acqu�rir l'image");
+		throw std::runtime_error("Error : can't acquire image");
 	}
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-
     std::vector<VkSemaphore> waitSemaphores = { m_imageAvailableSemaphore, m_renderFinishedLastRenderPassSemaphore };
     std::vector<VkPipelineStageFlags> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT };
+
     if (m_renderFinishedLastRenderPassSemaphore == VK_NULL_HANDLE)
 	{
         waitSemaphores = { m_imageAvailableSemaphore };

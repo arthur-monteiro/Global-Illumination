@@ -265,7 +265,7 @@ class Pipeline
 public:
 	void initialize(Vulkan* vk, VkDescriptorSetLayout* descriptorSetLayout, VkRenderPass renderPass, PipelineShaders shaders, 
 		bool alphaBlending, VkSampleCountFlagBits msaaSamples, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
-		std::vector<VkVertexInputAttributeDescription> attributeInputDescription, VkExtent2D extent);
+		std::vector<VkVertexInputAttributeDescription> attributeInputDescription, VkExtent2D extent, int outTextureNumber);
 	void intialize(Vulkan* vk, std::string computeShader, VkDescriptorSetLayout* descriptorSetLayout);
 
 private:

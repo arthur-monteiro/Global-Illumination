@@ -39,6 +39,7 @@ public:
 	void changeShadows(std::wstring value);
 	void changeGlobalIllumination(std::wstring value);
 	void changeMSAA(std::wstring value);
+	void changeReflectiveShadowMap(bool status);
 
 	static void recreateCallback(void* instance) { reinterpret_cast<System*>(instance)->create(true); }
 	static void setMenuOptionImageViewCallback(void* instance, VkImageView imageView) { reinterpret_cast<System*>(instance)->setMenuOptionImageView(imageView); }
@@ -47,6 +48,8 @@ public:
 	static void changeShadowsCallback(void* instance, std::wstring value) { reinterpret_cast<System*>(instance)->changeShadows(value); }
 	static void changeMSAACallback(void* instance, std::wstring value) { reinterpret_cast<System*>(instance)->changeMSAA(value); }
 	static void changeGlobalIlluminationCallback(void* instance, std::wstring value) { reinterpret_cast<System*>(instance)->changeGlobalIllumination(value); }
+	static void changeReflectiveShadowMapCallback(void* instance, bool status) { reinterpret_cast<System*>(instance)->changeReflectiveShadowMap(status); }
+
 private:
 	void create(bool recreate = false);
 	void createRessources();
@@ -78,8 +81,8 @@ private:
 	int m_blurAmount = 2;
 	std::vector<ComputePass> m_offscreenShadowBlurHorizontal;
 	std::vector<ComputePass> m_offscreenShadowBlurVertical;
-    int m_cascadeCount = 4;
-    std::vector<float> m_cascadeSplits;
+	int m_cascadeCount = 4;
+	std::vector<float> m_cascadeSplits;
 
 	/* RSM */
 	RenderPass m_offscreenRSM;
@@ -139,6 +142,12 @@ private:
 	UniformBufferObjectArrayMat m_uboLightSpaceCSMData;
 	UniformBufferObject<UniformBufferObjectCSM> m_uboCascadeSplits;
 	UniformBufferObjectCSM m_uboCascadeSplitsData;
+
+	/* RSM */
+	UniformBufferObject<UniformBufferObjectVP> m_uboVPRSM;
+	UniformBufferObjectVP m_uboVPRSMData;
+	UniformBufferObject<UniformBufferObjectSingleMat> m_uboProjRSM;
+	UniformBufferObjectSingleMat m_uboProjRSMData;
 
 	/* Unused*/
 	UniformBufferObject<UniformBufferObjectVP> m_uboVPSkybox;

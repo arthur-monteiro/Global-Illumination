@@ -59,21 +59,15 @@ void main()
 	vec3 radiance     = uboLights.colorDirLight.xyz;        
 	
 	// cook-torrance brdf
-	float NDF = DistributionGGX(N, H, roughness);        
-	float G   = GeometrySmith(N, V, L, roughness);      
 	vec3 F    = fresnelSchlickRoughness(max(dot(H, V), 0.0), F0, roughness);       
 	
 	vec3 kS = F;
 	vec3 kD = vec3(1.0) - kS;
 	kD *= 1.0 - metallic;	  
-	
-	vec3 nominator    = NDF * G * F;
-	float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0); 
-	vec3 specular     = nominator / max(denominator, 0.001);
 		
 	// add to outgoing radiance Lo
 	float NdotL = max(dot(N, L), 0.0);                
-	Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+	Lo += (kD * albedo / PI) * radiance * NdotL;
 
 	vec3 ambient = vec3(uboLights.ambient) * albedo;
 

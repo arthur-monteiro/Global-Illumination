@@ -112,12 +112,12 @@ int RenderPass::addMesh(Vulkan * vk, std::vector<MeshRender> meshes, PipelineSha
 				for (int j(0); j < meshes[i].meshes[k]->getImageView().size(); ++j)
 					imageLayouts[j] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 				for (int j(meshes[i].meshes[k]->getImageView().size()); j < imageViewToAdd.size(); ++j)
-					imageLayouts[j] = m_meshes[i].images[j - meshes[i].meshes[k]->getImageView().size()].second;
+					imageLayouts[j] = meshes[i].images[j - meshes[i].meshes[k]->getImageView().size()].second;
 			}
 			else
 			{
 				for (int j(0); j < imageLayouts.size(); ++j)
-					imageLayouts[j] = m_meshes[i].images[j].second;
+					imageLayouts[j] = meshes[i].images[j].second;
 			}
 
 			VkDescriptorSet descriptorSet = createDescriptorSet(vk->getDevice(), descriptorSetLayout,
@@ -803,7 +803,7 @@ void RenderPass::fillCommandBuffer(Vulkan * vk, std::vector<Operation> operation
 
 		std::vector<VkClearValue> clearValues = {};
 		for (int j(0); j < m_colorAttachmentFormats.size(); ++j)
-			clearValues.push_back({ 0.0f, 0.0f, 1.0f, 1.0f });
+			clearValues.push_back({ 0.0f, 0.0f, 0.0f, 1.0f });
 		clearValues.push_back({ 1.0f });
 
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());

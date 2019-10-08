@@ -135,6 +135,8 @@ void ComputePass::initialize(Vulkan* vk, VkExtent2D extent, VkExtent3D dispatchG
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	if (vkCreateSemaphore(vk->getDevice(), &semaphoreInfo, nullptr, &m_renderCompleteSemaphore) != VK_SUCCESS)
 		throw std::runtime_error("Error : semaphore creation");
+
+	m_initialiazed = true; // gj !
 }
 
 void ComputePass::drawCall(Vulkan* vk)
@@ -155,6 +157,9 @@ void ComputePass::drawCall(Vulkan* vk)
 
 void ComputePass::cleanup(VkDevice device)
 {
+	if (!m_initialiazed)
+		return;
+
 	m_resultImage.cleanup(device);
 
 	vkDestroyDescriptorPool(device, m_descriptorPool, nullptr);

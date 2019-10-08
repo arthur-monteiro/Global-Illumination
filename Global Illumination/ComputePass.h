@@ -17,6 +17,8 @@ public:
 
 	void setSemaphoreToWait(VkDevice device, std::vector<Semaphore> semaphores);
 private:
+	bool m_initialiazed = false;
+
 	Image m_resultImage;
 	VkCommandPool m_commandPool;
 	VkCommandBuffer m_commandBuffer;

@@ -77,6 +77,10 @@ bool System::mainLoop()
 				m_offscreenShadowBlurVertical[i].drawCall(&m_vk);
 			}
 		}
+		else if (m_usedEffects == EFFECT_TYPE_RSM)
+		{
+			m_offscreenRSM.drawCall(&m_vk);
+		}
 		m_swapChainRenderPass.drawCall(&m_vk);
 	}
 
@@ -99,7 +103,7 @@ void System::cleanup()
 	m_swapChainRenderPass.cleanup(&m_vk);
 	m_offscreenCascadedShadowMap.cleanup(&m_vk);
 	m_offscreenShadowCalculation.cleanup(&m_vk);
-	for (int i(0); i < m_blurAmount; ++i)
+	for (int i(0); i < m_offscreenShadowBlurHorizontal.size() /* don't clean if vector empty */; ++i)
 	{
 		m_offscreenShadowBlurHorizontal[i].cleanup(m_vk.getDevice());
 		m_offscreenShadowBlurVertical[i].cleanup(m_vk.getDevice());
@@ -137,10 +141,11 @@ void System::drawFPSCounter(bool status)
 void System::changeShadows(std::wstring value)
 {
 	if (value == L"No")
-		m_usedEffects = m_usedEffects &~ EFFECT_TYPE_CASCADED_SHADOW_MAPPING;
+		m_usedEffects = m_usedEffects & ~EFFECT_TYPE_CASCADED_SHADOW_MAPPING;
 	else if (value == L"CSM")
 		m_usedEffects |= EFFECT_TYPE_CASCADED_SHADOW_MAPPING;
 
+	createUniformBufferObjects();
 	createPasses(true);
 	setSemaphores();
 
@@ -168,12 +173,22 @@ void System::changeMSAA(std::wstring value)
 {
 	if (value == L"No")
 		m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-	else if(value == L"2x")
+	else if (value == L"2x")
 		m_msaaSamples = VK_SAMPLE_COUNT_2_BIT;
 	else if (value == L"4x")
 		m_msaaSamples = VK_SAMPLE_COUNT_4_BIT;
 	else if (value == L"8x")
 		m_msaaSamples = VK_SAMPLE_COUNT_8_BIT;
+
+	create(true);
+}
+
+void System::changeReflectiveShadowMap(bool status)
+{
+	if (status)
+		m_usedEffects |= EFFECT_TYPE_RSM;
+	else
+		m_usedEffects &= ~EFFECT_TYPE_RSM;
 
 	create(true);
 }
@@ -187,7 +202,7 @@ void System::create(bool recreate)
 		createRessources();
 		m_camera.initialize(glm::vec3(1.4f, 1.2f, 0.3f), glm::vec3(2.0f, 0.9f, -0.3f), glm::vec3(0.0f, 1.0f, 0.0f), 0.01f, 5.0f, m_vk.getSwapChainExtend().width / (float)m_vk.getSwapChainExtend().height);
 
-		m_usedEffects = EFFECT_TYPE_CASCADED_SHADOW_MAPPING;
+		m_usedEffects = 0;
 	}
 	else
 		m_camera.setAspect(m_vk.getSwapChainExtend().width / (float)m_vk.getSwapChainExtend().height);
@@ -204,10 +219,11 @@ void System::createRessources()
 
 	m_menu.initialize(&m_vk, "Fonts/arial.ttf", setMenuOptionImageViewCallback, this);
 	m_menu.addBooleanItem(&m_vk, L"FPS Counter", drawFPSCounterCallback, true, this, { "", "" });
-	int shadowsItemID = m_menu.addPicklistItem(&m_vk, L"Shadows", changeShadowsCallback, this, 1, { L"No", L"CSM" });
+	int shadowsItemID = m_menu.addPicklistItem(&m_vk, L"Shadows", changeShadowsCallback, this, 0, { L"No", L"CSM" });
 	int pcfItemID = m_menu.addBooleanItem(&m_vk, L"Percentage Closer Filtering", changePCFCallback, true, this, { "Image_options/shadow_no_pcf.JPG", "Image_options/shadow_with_pcf.JPG" });
 	m_menu.addPicklistItem(&m_vk, L"MSAA", changeMSAACallback, this, 0, { L"No", L"2x", L"4x", L"8x" });
-	m_menu.addPicklistItem(&m_vk, L"Global Illumination", changeGlobalIlluminationCallback, this, 1, { L"No", L"Ambient Lightning" });
+	m_menu.addPicklistItem(&m_vk, L"Global Illumination", changeGlobalIlluminationCallback, this, 0, { L"No", L"Ambient Lightning" });
+	m_menu.addBooleanItem(&m_vk, L"Reflective shadow Map", changeReflectiveShadowMapCallback, false, this, { "", "" });
 
 	m_menu.addDependency(MENU_ITEM_TYPE_PICKLIST, shadowsItemID, MENU_ITEM_TYPE_BOOLEAN, pcfItemID, { 1 });
 
@@ -296,7 +312,7 @@ void System::createPasses(bool recreate)
 			Operation blitOperation;
 			blitOperation.type = OPERATION_TYPE_BLIT;
 			VkExtent2D shadowScreenDownscale = { m_vk.getSwapChainExtend().width , m_vk.getSwapChainExtend().height };
-			m_shadowScreenImage.create(&m_vk, shadowScreenDownscale, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, 
+			m_shadowScreenImage.create(&m_vk, shadowScreenDownscale, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
 				VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
 			m_shadowScreenImage.transitionImageLayout(&m_vk, VK_IMAGE_LAYOUT_GENERAL);
 			blitOperation.dstImages = { m_shadowScreenImage.getImage() };
@@ -311,28 +327,43 @@ void System::createPasses(bool recreate)
 			m_offscreenShadowBlurVertical[0].initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/vertical/comp.spv", m_offscreenShadowBlurHorizontal[0].getImageView());
 			for (int i(1); i < m_blurAmount; ++i)
 			{
-				m_offscreenShadowBlurHorizontal[i].initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/horizontal/comp.spv", 
+				m_offscreenShadowBlurHorizontal[i].initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/horizontal/comp.spv",
 					m_offscreenShadowBlurVertical[i - 1].getImageView());
-				m_offscreenShadowBlurVertical[i].initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/vertical/comp.spv", 
+				m_offscreenShadowBlurVertical[i].initialize(&m_vk, shadowScreenDownscale, { 16, 16, 1 }, "Shaders/pbr_csm_textured/blur/vertical/comp.spv",
 					m_offscreenShadowBlurHorizontal[i].getImageView());
 			}
 		}
 
 		/* Reflective Shadow Map */
-		if (true || m_usedEffects & EFFECT_TYPE_RSM) // !!
+		if (m_usedEffects & EFFECT_TYPE_RSM)
 		{
-			m_offscreenRSM.initialize(&m_vk, { { 64, 8 } }, false, VK_SAMPLE_COUNT_1_BIT, {
+			m_offscreenRSM.initialize(&m_vk, { { 64, 64 } }, false, VK_SAMPLE_COUNT_1_BIT, {
 				VK_FORMAT_R32G32B32A32_SFLOAT /* world space*/,
 				VK_FORMAT_R32G32B32A32_SFLOAT /* normal */,
 				VK_FORMAT_R32G32B32A32_SFLOAT /* flux */ },
 				m_vk.findDepthFormat(),
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+			MeshRender sponzaMeshes;
+			sponzaMeshes.meshes = m_sponza.getMeshes();
+			sponzaMeshes.ubos = { &m_uboVPRSM, &m_uboModel, &m_uboDirLight };
+
+			PipelineShaders rsmRenderingPipeline;
+			rsmRenderingPipeline.vertexShader = "Shaders/reflective_shadow_map/vert.spv";
+			rsmRenderingPipeline.fragmentShader = "Shaders/reflective_shadow_map/frag.spv";
+
+			m_offscreenRSM.addMesh(&m_vk, { sponzaMeshes }, rsmRenderingPipeline, 5, false);
+			m_offscreenRSM.recordDraw(&m_vk);
+
+			// TEMP
+			m_quad.loadObj(&m_vk, "Models/square.obj", glm::vec3(0.0f, 0.0f, 1.0f));
+			m_quad.createTextureSampler(&m_vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 		}
 	}
 
 	// Set on screen render pass shaders / meshes
 	if (m_usedEffects == EFFECT_TYPE_CASCADED_SHADOW_MAPPING)
-    {
+	{
 		PipelineShaders pbrCsmTextured;
 		pbrCsmTextured.vertexShader = "Shaders/pbr_csm_textured/vert.spv";
 		pbrCsmTextured.fragmentShader = "Shaders/pbr_csm_textured/frag.spv";
@@ -347,6 +378,32 @@ void System::createPasses(bool recreate)
 		pbrNoShadowTextured.fragmentShader = "Shaders/pbr_no_shadow_textured/frag.spv";
 		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboDirLight }, nullptr, { {} } } },
 			pbrNoShadowTextured, 5);
+	}
+	else if (m_usedEffects == EFFECT_TYPE_RSM)
+	{
+		PipelineShaders renderQuad;
+		renderQuad.vertexShader = "Shaders/renderQuad/vert.spv";
+		renderQuad.fragmentShader = "Shaders/renderQuad/frag.spv";
+		m_swapChainRenderPass.addMesh(&m_vk, {
+			{ { &m_quad }, {}, nullptr,
+			  {  { m_offscreenRSM.getFrameBuffer(0).colorImages[2].getImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL } }
+			}
+			}, renderQuad, 1);
+
+		PipelineShaders pbrNoShadowTextured;
+		pbrNoShadowTextured.vertexShader = "Shaders/pbr_no_shadow_rsm_textured/vert.spv";
+		pbrNoShadowTextured.fragmentShader = "Shaders/pbr_no_shadow_rsm_textured/frag.spv";
+
+		MeshRender meshesRender;
+		meshesRender.meshes = m_sponza.getMeshes();
+		meshesRender.ubos = { &m_uboVP, &m_uboModel, &m_uboProjRSM , &m_uboDirLight };
+		meshesRender.instance = nullptr;
+		meshesRender.images = {
+			{ m_offscreenRSM.getFrameBuffer(0).colorImages[0].getImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
+			{ m_offscreenRSM.getFrameBuffer(0).colorImages[1].getImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
+			{ m_offscreenRSM.getFrameBuffer(0).colorImages[2].getImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+		};
+		m_swapChainRenderPass.addMesh(&m_vk, { meshesRender }, pbrNoShadowTextured, 8);
 	}
 
 	m_swapChainRenderPass.addMenu(&m_vk, &m_menu);
@@ -463,33 +520,33 @@ void System::updateCSM()
 
 void System::createUniformBufferObjects()
 {
-    /* In all types */
-    {
-        m_uboDirLightData.camPos = glm::vec4(m_camera.getPosition(), 1.0f);
-        m_uboDirLightData.colorLight = glm::vec4(10.0f);
-        m_uboDirLightData.dirLight = glm::vec4(m_lightDir, 0.0f);
-        m_uboDirLightData.usePCF = 1.0f;
-        m_uboDirLightData.ambient = 0.2f;
-        m_uboDirLight.load(&m_vk, m_uboDirLightData, VK_SHADER_STAGE_FRAGMENT_BIT);
+	/* In all types */
+	{
+		m_uboDirLightData.camPos = glm::vec4(m_camera.getPosition(), 1.0f);
+		m_uboDirLightData.colorLight = glm::vec4(10.0f);
+		m_uboDirLightData.dirLight = glm::vec4(m_lightDir, 0.0f);
+		m_uboDirLightData.usePCF = 1.0f;
+		m_uboDirLightData.ambient = 0.2f;
+		m_uboDirLight.load(&m_vk, m_uboDirLightData, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-        m_uboDirLightCSMData.camPos = m_uboDirLightData.camPos;
-        m_uboDirLightCSMData.colorLight = m_uboDirLightData.colorLight;
-        m_uboDirLightCSMData.dirLight = m_uboDirLightData.dirLight;
-        m_uboDirLightCSMData.ambient = m_uboDirLightData.ambient;
-        //m_uboDirLightCSMData.cascadeSplits = std::vector<float>(m_cascadeCount);
-        m_uboDirLightCSM.load(&m_vk, m_uboDirLightCSMData, VK_SHADER_STAGE_FRAGMENT_BIT);
+		m_uboDirLightCSMData.camPos = m_uboDirLightData.camPos;
+		m_uboDirLightCSMData.colorLight = m_uboDirLightData.colorLight;
+		m_uboDirLightCSMData.dirLight = m_uboDirLightData.dirLight;
+		m_uboDirLightCSMData.ambient = m_uboDirLightData.ambient;
+		//m_uboDirLightCSMData.cascadeSplits = std::vector<float>(m_cascadeCount);
+		m_uboDirLightCSM.load(&m_vk, m_uboDirLightCSMData, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-        m_uboVPData.proj = m_camera.getProjection();
-        m_uboVPData.view = m_camera.getViewMatrix();
-        m_uboVP.load(&m_vk, m_uboVPData, VK_SHADER_STAGE_VERTEX_BIT);
-    }
+		m_uboVPData.proj = m_camera.getProjection();
+		m_uboVPData.view = m_camera.getViewMatrix();
+		m_uboVP.load(&m_vk, m_uboVPData, VK_SHADER_STAGE_VERTEX_BIT);
+	}
 
-    if(m_usedEffects & EFFECT_TYPE_CASCADED_SHADOW_MAPPING)
-    {
-        m_uboVPCSMData.resize(m_cascadeCount);
-        m_uboVPCSM.resize(m_cascadeCount);
+	if (m_usedEffects & EFFECT_TYPE_CASCADED_SHADOW_MAPPING)
+	{
+		m_uboVPCSMData.resize(m_cascadeCount);
+		m_uboVPCSM.resize(m_cascadeCount);
 
-        //m_cascadeSplits.resize(m_cascadeCount);
+		//m_cascadeSplits.resize(m_cascadeCount);
 		float near = m_camera.getNear();
 		float far = 32.0f; // we don't render shadows on all the range
 		for (float i(1.0f / m_cascadeCount); i <= 1.0f; i += 1.0f / m_cascadeCount)
@@ -499,34 +556,43 @@ void System::createUniformBufferObjects()
 
 			m_cascadeSplits.push_back(glm::mix(d_uni, d_log, 0.5f));
 		}
-      //  m_cascadeSplits = { 4.0f, 10.0f, 20.0f, 32.0f };
+		//m_cascadeSplits = { 4.0f, 10.0f, 20.0f, 32.0f };
 
-        for (int i(0); i < m_uboVPCSM.size(); ++i)
-        {
-            m_uboVPCSM[i].load(&m_vk, {}, VK_SHADER_STAGE_VERTEX_BIT);
-        }
+		for (int i(0); i < m_uboVPCSM.size(); ++i)
+		{
+			m_uboVPCSM[i].load(&m_vk, {}, VK_SHADER_STAGE_VERTEX_BIT);
+		}
 
-        m_uboLightSpaceCSMData.matrices = std::vector<glm::mat4>(m_cascadeCount);
-        m_uboLightSpaceCSM.load(&m_vk, m_uboLightSpaceCSMData.getData(), m_uboLightSpaceCSMData.getSize(), VK_SHADER_STAGE_VERTEX_BIT);
+		m_uboLightSpaceCSMData.matrices = std::vector<glm::mat4>(m_cascadeCount);
+		m_uboLightSpaceCSM.load(&m_vk, m_uboLightSpaceCSMData.getData(), m_uboLightSpaceCSMData.getSize(), VK_SHADER_STAGE_VERTEX_BIT);
 
-        m_uboCascadeSplitsData.cascadeSplits.resize(m_cascadeCount);
-        for (int i(0); i < m_cascadeCount; ++i)
-            m_uboCascadeSplitsData.cascadeSplits[i].x = m_cascadeSplits[i];
-        m_uboCascadeSplits.load(&m_vk, m_uboCascadeSplitsData.getData(), m_uboCascadeSplitsData.getSize(), VK_SHADER_STAGE_FRAGMENT_BIT);
+		m_uboCascadeSplitsData.cascadeSplits.resize(m_cascadeCount);
+		for (int i(0); i < m_cascadeCount; ++i)
+			m_uboCascadeSplitsData.cascadeSplits[i].x = m_cascadeSplits[i];
+		m_uboCascadeSplits.load(&m_vk, m_uboCascadeSplitsData.getData(), m_uboCascadeSplitsData.getSize(), VK_SHADER_STAGE_FRAGMENT_BIT);
 
-        updateCSM();
-    }
+		updateCSM();
+	}
+	if (m_usedEffects & EFFECT_TYPE_RSM)
+	{
+		m_uboVPRSMData.view = glm::lookAt(glm::normalize(m_lightDir) * -30.0f, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		m_uboVPRSMData.proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 50.0f);
+		m_uboVPRSM.load(&m_vk, m_uboVPRSMData, VK_SHADER_STAGE_VERTEX_BIT);
+
+		m_uboProjRSMData.matrix = m_uboVPRSMData.proj * m_uboVPRSMData.view * m_uboModelData.matrix;
+		m_uboProjRSM.load(&m_vk, m_uboProjRSMData, VK_SHADER_STAGE_VERTEX_BIT);
+	}
 }
 
 void System::setSemaphores()
 {
-    if (m_usedEffects == 0)
-        m_vk.setRenderFinishedLastRenderPassSemaphore(VK_NULL_HANDLE);
-    else if (m_usedEffects == EFFECT_TYPE_CASCADED_SHADOW_MAPPING)
-    {
-        m_offscreenShadowCalculation.setSemaphoreToWait(m_vk.getDevice(), {
-            { m_offscreenCascadedShadowMap.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_VERTEX_SHADER_BIT }
-        });
+	if (m_usedEffects == 0)
+		m_vk.setRenderFinishedLastRenderPassSemaphore(VK_NULL_HANDLE);
+	else if (m_usedEffects == EFFECT_TYPE_CASCADED_SHADOW_MAPPING)
+	{
+		m_offscreenShadowCalculation.setSemaphoreToWait(m_vk.getDevice(), {
+			{ m_offscreenCascadedShadowMap.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_VERTEX_SHADER_BIT }
+			});
 
 		m_offscreenShadowBlurHorizontal[0].setSemaphoreToWait(m_vk.getDevice(), {
 				{ m_offscreenShadowCalculation.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_ALL_COMMANDS_BIT }
@@ -538,11 +604,15 @@ void System::setSemaphores()
 		{
 			m_offscreenShadowBlurHorizontal[i].setSemaphoreToWait(m_vk.getDevice(), {
 				{ m_offscreenShadowBlurVertical[i - 1].getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT }
-			});
+				});
 			m_offscreenShadowBlurVertical[i].setSemaphoreToWait(m_vk.getDevice(), {
-				{ m_offscreenShadowBlurHorizontal[i].getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT } 
-			});
+				{ m_offscreenShadowBlurHorizontal[i].getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT }
+				});
 		}
-        m_vk.setRenderFinishedLastRenderPassSemaphore(m_offscreenShadowBlurVertical[m_blurAmount - 1].getRenderFinishedSemaphore());
-    }
+		m_vk.setRenderFinishedLastRenderPassSemaphore(m_offscreenShadowBlurVertical[m_blurAmount - 1].getRenderFinishedSemaphore());
+	}
+	else if (m_usedEffects == EFFECT_TYPE_RSM)
+	{
+		m_vk.setRenderFinishedLastRenderPassSemaphore(m_offscreenRSM.getRenderFinishedSemaphore());
+	}
 }

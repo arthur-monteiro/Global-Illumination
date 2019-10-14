@@ -20,7 +20,7 @@ layout(binding = 7) uniform sampler2D texAO;
 
 layout(location = 0) in vec3 worldPos;
 layout(location = 1) in vec2 fragTexCoord;
-layout(location = 2) in mat3 tbn;
+layout(location = 2) in vec3 normal;
 
 layout(location = 0) out vec4 outWorldSpace;
 layout(location = 1) out vec4 outNormal;
@@ -39,12 +39,9 @@ void main()
 	float roughness = texture(texRoughness, fragTexCoord).x;
 	float metallic = texture(texMetal, fragTexCoord).x;
 	float ao = texture(texAO, fragTexCoord).x;
-	vec3 normal = (texture(texNormal, fragTexCoord).xyz * 2.0 - vec3(1.0)) * tbn;
+	//vec3 normal = (texture(texNormal, fragTexCoord).xyz * 2.0 - vec3(1.0)) * tbn;
 
-	outNormal = vec4(normal, 1.0);
-	outWorldSpace = vec4(worldPos, 1.0);
-
-	vec3 N = normalize(normal); 
+	vec3 N = normalize(vec3(normal.x, normal.y, normal.z)); 
     vec3 V = normalize(uboLights.camPos.xyz - worldPos);
 	vec3 R = reflect(-V, N);  
 
@@ -77,6 +74,8 @@ void main()
     color = pow(color, vec3(1.0/2.2));
 
     outFlux = vec4(color, texture(texAlbedo, fragTexCoord).a);
+	outNormal = vec4(N, 1.0);
+	outWorldSpace = vec4(worldPos, 1.0);
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)

@@ -190,7 +190,9 @@ void System::changeReflectiveShadowMap(bool status)
 	else
 		m_usedEffects &= ~EFFECT_TYPE_RSM;
 
-	create(true);
+	createUniformBufferObjects();
+	createPasses(true);
+	setSemaphores();
 }
 
 void System::create(bool recreate)
@@ -202,7 +204,7 @@ void System::create(bool recreate)
 		createRessources();
 		m_camera.initialize(glm::vec3(1.4f, 1.2f, 0.3f), glm::vec3(2.0f, 0.9f, -0.3f), glm::vec3(0.0f, 1.0f, 0.0f), 0.01f, 5.0f, m_vk.getSwapChainExtend().width / (float)m_vk.getSwapChainExtend().height);
 
-		m_usedEffects = 0;
+		m_usedEffects = EFFECT_TYPE_RSM;
 	}
 	else
 		m_camera.setAspect(m_vk.getSwapChainExtend().width / (float)m_vk.getSwapChainExtend().height);
@@ -242,12 +244,6 @@ void System::createPasses(bool recreate)
 		m_uboVPData.proj = m_camera.getProjection(); // change aspect
 
 		//m_swapChainRenderPass.initialize(&m_vk, { { 0, 0 } }, true, msaaSamples);
-	}
-
-	if (!recreate)
-	{
-		m_uboModelData.matrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f)); // reduce sponza size
-		m_uboModel.load(&m_vk, m_uboModelData, VK_SHADER_STAGE_VERTEX_BIT);
 	}
 
 	{
@@ -376,7 +372,10 @@ void System::createPasses(bool recreate)
 		PipelineShaders pbrNoShadowTextured;
 		pbrNoShadowTextured.vertexShader = "Shaders/pbr_no_shadow_textured/vert.spv";
 		pbrNoShadowTextured.fragmentShader = "Shaders/pbr_no_shadow_textured/frag.spv";
-		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboDirLight }, nullptr, { {} } } },
+		MeshRender sponzaMeshes;
+		sponzaMeshes.meshes = m_sponza.getMeshes();
+		sponzaMeshes.ubos = { &m_uboVP, &m_uboModel, &m_uboDirLight };
+		m_swapChainRenderPass.addMesh(&m_vk, { sponzaMeshes },
 			pbrNoShadowTextured, 5);
 	}
 	else if (m_usedEffects == EFFECT_TYPE_RSM)
@@ -522,6 +521,9 @@ void System::createUniformBufferObjects()
 {
 	/* In all types */
 	{
+		m_uboModelData.matrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f)); // reduce sponza size
+		m_uboModel.load(&m_vk, m_uboModelData, VK_SHADER_STAGE_VERTEX_BIT);
+
 		m_uboDirLightData.camPos = glm::vec4(m_camera.getPosition(), 1.0f);
 		m_uboDirLightData.colorLight = glm::vec4(10.0f);
 		m_uboDirLightData.dirLight = glm::vec4(m_lightDir, 0.0f);

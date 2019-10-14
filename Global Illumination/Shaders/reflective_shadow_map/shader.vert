@@ -20,28 +20,24 @@ layout(location = 3) in vec2 inTexCoord;
 
 layout(location = 0) out vec3 worldPos;
 layout(location = 1) out vec2 fragTexCoord;
-layout(location = 2) out mat3 tbn;
+layout(location = 2) out vec3 normal;
 
 out gl_PerVertex
 {
     vec4 gl_Position;
 };
 
-const mat4 biasMat = mat4( 
-	0.5, 0.0, 0.0, 0.0,
-	0.0, 0.5, 0.0, 0.0,
-	0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 1.0 );
-
 void main() {
     gl_Position = uboVP.proj * uboVP.view * uboModel.model * vec4(inPosition, 1.0);
 
-	mat3 usedModelMatrix = transpose(inverse(mat3(uboModel.model)));
+	/*mat3 usedModelMatrix = transpose(inverse(mat3(uboModel.model)));
     vec3 n = normalize(usedModelMatrix * inNormal);
 	vec3 t = normalize(usedModelMatrix * inTangent);
 	//t = normalize(t - dot(t, n) * n);
 	vec3 b = normalize(cross(t, n));
-	tbn = inverse(mat3(t, b, n));
+	tbn = inverse(mat3(t, b, n));*/
+    mat3 usedModelMatrix = transpose(inverse(mat3(uboModel.model)));
+    normal = normalize(usedModelMatrix * inNormal);
 
 	worldPos = vec3(uboModel.model * vec4(inPosition, 1.0));
     fragTexCoord = inTexCoord;

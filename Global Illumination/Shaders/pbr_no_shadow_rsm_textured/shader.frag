@@ -154,25 +154,27 @@ void main()
 	color = vec3(0.0);
 
 	vec4 projCoords = posLightSpace / posLightSpace.w; 
-	for(int i = 0; i < 64; i++)
+	for(int i = 0; i < 32; i++)
 	{
 		int index = int(float(64)*random(worldPos.xyz, i))%64;
-		vec4 randomProjCoords = projCoords + vec4(poissonDisk[i] / 30.0, 0.0, 0.0);
+		vec4 randomProjCoords = projCoords + vec4(poissonDisk[i] * 0.09, 0.0, 0.0);
 
 		vec3 indirectLightPos = texture(rsmPosition, randomProjCoords.xy).rgb;
 		vec3 indirectLightNorm = texture(rsmNormal, randomProjCoords.xy).rgb;
 		vec3 indirectLightFlux = texture(rsmFlux, randomProjCoords.xy).rgb;
-		if(indirectLightFlux.b > 2.0 * indirectLightFlux.r){
-		float dist = length(worldPos - indirectLightPos);
 		
-		color += indirectLightFlux;/* * 
-			(max(dot(indirectLightNorm, worldPos - indirectLightPos), 0.0) * 
-			max(dot(N, indirectLightPos - worldPos), 0.0);*/ 
-		color = vec3(0.0, 0.0, 1.0);}
+		vec3 r = worldPos - indirectLightPos;
+		float d2 = dot( r, r );	
+
+		if(d2 < 25.0){
+		vec3 E_p = indirectLightFlux * ( max( 0.0, dot( indirectLightNorm, r ) ) * max( 0.0, dot( N, -r ) ) );
+		E_p *= poissonDisk[i].x * poissonDisk[i].x / ( d2 * d2 );		
+
+		color += E_p;	}
 	}
 	
-    /*color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0/2.2));*/
+    color = color / (color + vec3(1.0));
+    color = pow(color, vec3(1.0/2.2));
 
     outColor = vec4(color, texture(texAlbedo, fragTexCoord).a);
 }

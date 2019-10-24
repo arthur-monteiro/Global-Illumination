@@ -48,6 +48,24 @@ struct UniformBufferObjectArrayMat
 	}
 };
 
+struct UniformBufferObjectArrayFloat
+{
+	std::vector<glm::vec4> values;
+
+	VkDeviceSize getSize()
+	{
+		return values.size() * sizeof(glm::vec4);
+	}
+
+	void* getData()
+	{
+		void* r = malloc(getSize());
+		memcpy(r, values.data(), getSize());
+
+		return r;
+	}
+};
+
 const int MAX_POINTLIGHTS = 32;
 const int MAX_DIRLIGHTS = 1;
 
@@ -163,6 +181,9 @@ public:
 
 	void load(Vulkan* vk, void* data, VkDeviceSize size, VkShaderStageFlags accessibility)
 	{
+		if (m_isInitialized)
+			return;
+
 		vk->createBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffer, m_uniformBufferMemory);
 
@@ -175,6 +196,8 @@ public:
 		vkUnmapMemory(vk->getDevice(), m_uniformBufferMemory);
 
 		free(data);
+
+		m_isInitialized = true;
 	}
 
 	void update(Vulkan* vk, T data)

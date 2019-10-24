@@ -57,30 +57,7 @@ void Image::transitionImageLayout(Vulkan* vk, VkImageLayout finalLayout)
 
 void Image::createTextureSampler(Vulkan* vk, VkSamplerAddressMode addressMode)
 {
-	VkSamplerCreateInfo samplerInfo = {};
-	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	samplerInfo.magFilter = VK_FILTER_LINEAR;
-	samplerInfo.minFilter = VK_FILTER_LINEAR;
-
-	samplerInfo.addressModeU = addressMode;
-	samplerInfo.addressModeV = addressMode;
-	samplerInfo.addressModeW = addressMode;
-
-	samplerInfo.anisotropyEnable = VK_FALSE;
-	samplerInfo.maxAnisotropy = 16;
-
-	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-	samplerInfo.unnormalizedCoordinates = VK_FALSE;
-	samplerInfo.compareEnable = VK_FALSE;
-	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-	samplerInfo.mipLodBias = 0.0f;
-	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = static_cast<float>(m_mipLevels);
-
-	if (vkCreateSampler(vk->getDevice(), &samplerInfo, nullptr, &m_textureSampler) != VK_SUCCESS)
-		throw std::runtime_error("Error : texture sampler creation");
+	m_textureSampler.create(vk, addressMode, static_cast<float>(m_mipLevels), VK_FILTER_LINEAR);
 }
 
 void Image::cleanup(VkDevice device)
@@ -89,5 +66,5 @@ void Image::cleanup(VkDevice device)
 	vkDestroyImage(device, m_image, nullptr);
 	vkFreeMemory(device, m_imageMemory, nullptr);
 
-	vkDestroySampler(device, m_textureSampler, nullptr);
+	m_textureSampler.cleanup(device);
 }

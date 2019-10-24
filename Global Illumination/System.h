@@ -19,9 +19,12 @@
 #include "Camera.h"
 #include "Instance.h"
 #include "Model.h"
+#include "Sampler.h"
 
 const uint32_t EFFECT_TYPE_CASCADED_SHADOW_MAPPING = 0x1;
 const uint32_t EFFECT_TYPE_RSM = (0x1 << 1);
+const uint32_t EFFECT_TYPE_SSAO = (0x1 << 2);
+const uint32_t EFFECT_TYPE_RADIOSITY_PROBES = (0x1 << 3);
 
 class System
 {
@@ -94,6 +97,8 @@ private:
 	Model m_sponza;
 	Text m_text;
 	Menu m_menu;
+	Sampler m_linearSamplerNoMipMap;
+	Sampler m_nearestSamplerNoMipMap;
 
 	/* Shadow Mapping */
 	MeshPBR m_quad;
@@ -101,9 +106,12 @@ private:
 	/* CSM */
 	Mesh2DTextured m_csmBlurSquare;
 
+	/* Radiosity Probes */
+	MeshPBR m_sphere;
+	Instance m_sphereInstance;
+
 	/* Unused */
 	MeshPBR m_skybox;
-
 
 	int m_fpsCounterTextID = -1;
 	int m_fpsCount = 0;
@@ -148,6 +156,10 @@ private:
 	UniformBufferObjectVP m_uboVPRSMData;
 	UniformBufferObject<UniformBufferObjectSingleMat> m_uboProjRSM;
 	UniformBufferObjectSingleMat m_uboProjRSMData;
+
+	/* Radiosity Probes */
+	UniformBufferObject<UniformBufferObjectArrayFloat> m_uboRadiosityProbes;
+	UniformBufferObjectArrayFloat m_uboRadiosityProbesData;
 
 	/* Unused*/
 	UniformBufferObject<UniformBufferObjectVP> m_uboVPSkybox;

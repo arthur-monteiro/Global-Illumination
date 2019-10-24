@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vulkan.h"
+#include "Sampler.h"
 
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
@@ -19,7 +20,7 @@ public:
 	VkImage getImage() { return m_image; }
 	VkDeviceMemory getImageMemory() { return m_imageMemory; }
 	VkImageView getImageView() { return m_imageView; }
-	VkSampler getSampler() { return m_textureSampler; }
+	VkSampler getSampler() { return m_textureSampler.getSampler(); }
 
 private:
 	VkImage m_image;
@@ -31,6 +32,6 @@ private:
 
 	uint32_t m_mipLevels;
 
-	VkSampler m_textureSampler = NULL;
+	Sampler m_textureSampler;
 };
 

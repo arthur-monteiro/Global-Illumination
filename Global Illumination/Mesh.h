@@ -46,6 +46,7 @@ public:
 	VkSampler getSampler() { return m_textureSampler; }
 	VkBuffer getIndexBuffer() { return m_indexBuffer; }
 	uint32_t getNumIndices() { return static_cast<uint32_t>(m_indices.size()); }
+	std::vector<uint32_t> getIndices() { return m_indices; }
 	VkBuffer getVertexBuffer() { return m_vertexBuffer; }
 
 	void setImageView(int index, VkImageView imageView) { m_images[index].imageView = imageView; }
@@ -82,6 +83,8 @@ public:
 	void translate(glm::vec3 translation);
 
 	void cleanup(VkDevice device);
+
+	std::vector<VertexPBR> getVertices() { return m_vertices; }
 
 private:
 	void createVertexBuffer(Vulkan* vk);

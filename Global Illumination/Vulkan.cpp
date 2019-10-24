@@ -993,6 +993,7 @@ void Vulkan::fillCommandBuffer(VkRenderPass renderPass, std::vector<MeshPipeline
 {
 	if (m_commandBuffersSwapChain.size() > 0)
 	{
+		vkDeviceWaitIdle(m_device);
 		vkFreeCommandBuffers(m_device, m_commandPool, static_cast<uint32_t>(m_commandBuffersSwapChain.size()), m_commandBuffersSwapChain.data());
 	}
 	
@@ -1052,7 +1053,7 @@ void Vulkan::fillCommandBuffer(VkRenderPass renderPass, std::vector<MeshPipeline
 						vkCmdBindDescriptorSets(m_commandBuffersSwapChain[i], VK_PIPELINE_BIND_POINT_GRAPHICS, 
 							meshes[j].pipelineLayout, 0, 1, &meshes[j].descriptorSet[k], 0, nullptr);
 
-						vkCmdDrawIndexed(m_commandBuffersSwapChain[i], meshes[j].nbIndices[k], meshes[j].instanceBuffer.size() == 0 ? 1 : 100, 0, 0, 0);
+						vkCmdDrawIndexed(m_commandBuffersSwapChain[i], meshes[j].nbIndices[k], meshes[j].instanceBuffer.size() == 0 ? 1 : 1000, 0, 0, 0);
 					}
 				}
 

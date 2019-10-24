@@ -56,6 +56,7 @@ struct MeshPipeline
 			//vkDestroyPipeline(device, pipeline, nullptr);
 			//vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 		}
+		vkDeviceWaitIdle(device);
 		vkFreeDescriptorSets(device, descriptorPool, descriptorSet.size(), descriptorSet.data());
 		vertexBuffer.clear();
 		indexBuffer.clear();

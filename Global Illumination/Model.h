@@ -2,6 +2,9 @@
 
 #include "Mesh.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/intersect.hpp>
+
 class Model
 {
 public:
@@ -24,6 +27,7 @@ public:
 		
 		return r;
 	}
+	bool checkIntersection(glm::vec3 point1, glm::vec3 point2);
 
 private:
 	std::string getTexName(std::string texName, std::string folder)

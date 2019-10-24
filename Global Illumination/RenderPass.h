@@ -17,6 +17,7 @@ struct MeshRender
 	std::vector<UboBase*> ubos;
 	Instance* instance = nullptr;
 	std::vector<std::pair<VkImageView, VkImageLayout>> images; // added after the mesh image views
+	std::vector<VkSampler> samplers;
 };
 
 struct Semaphore
@@ -106,7 +107,7 @@ private:
 	VkDescriptorSetLayout createDescriptorSetLayout(VkDevice device, std::vector<UboBase*> uniformBuffers, int nbTexture);
 	void createDescriptorPool(VkDevice device);
 	VkDescriptorSet createDescriptorSet(VkDevice device, VkDescriptorSetLayout decriptorSetLayout, std::vector<VkImageView> imageView,
-		VkSampler sampler, std::vector<UboBase*> uniformBuffers, int nbTexture, std::vector<VkImageLayout> imageLayouts);
+		std::vector<VkSampler> samplers, std::vector<UboBase*> uniformBuffers, int nbTexture, std::vector<VkImageLayout> imageLayouts);
 	void fillCommandBuffer(Vulkan * vk, std::vector<Operation> operations);
 	void drawFrame(Vulkan * vk);
 

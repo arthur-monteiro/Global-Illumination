@@ -16,9 +16,7 @@
 struct ModelInstance
 {
 	glm::mat4 model;
-	glm::vec3 albedo;
-	glm::float32 roughness; 
-	glm::float32 metallic;
+	int id;
 
 	static VkVertexInputBindingDescription getBindingDescription(uint32_t binding)
 	{
@@ -32,7 +30,7 @@ struct ModelInstance
 
 	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions(uint32_t binding, uint32_t startLocation)
 	{
-		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(7);
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(5);
 
 		attributeDescriptions[0].binding = binding;
 		attributeDescriptions[0].location = startLocation;
@@ -56,18 +54,8 @@ struct ModelInstance
 
 		attributeDescriptions[4].binding = binding;
 		attributeDescriptions[4].location = startLocation + 4;
-		attributeDescriptions[4].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[4].offset = offsetof(ModelInstance, albedo);
-
-		attributeDescriptions[5].binding = binding;
-		attributeDescriptions[5].location = startLocation + 5;
-		attributeDescriptions[5].format = VK_FORMAT_R32_SFLOAT;
-		attributeDescriptions[5].offset = offsetof(ModelInstance, roughness);
-
-		attributeDescriptions[6].binding = binding;
-		attributeDescriptions[6].location = startLocation + 6;
-		attributeDescriptions[6].format = VK_FORMAT_R32_SFLOAT;
-		attributeDescriptions[6].offset = offsetof(ModelInstance, metallic);
+		attributeDescriptions[4].format = VK_FORMAT_R32_SINT;
+		attributeDescriptions[4].offset = offsetof(ModelInstance, id);
 
 		return attributeDescriptions;
 	}

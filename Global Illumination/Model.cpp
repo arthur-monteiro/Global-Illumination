@@ -137,9 +137,60 @@ bool Model::checkIntersection(glm::vec3 point1, glm::vec3 point2)
 
 			glm::vec3 bary;
 			bool intersect = glm::intersectRayTriangle(point1, point2 - point1, p1, p2, p3, bary);
+			/*if (intersect && (bary.x > 1.0f || bary.y > 1.0f || bary.z > 1.0f))
+				intersect = false;*/
+			glm::vec3 intersectPosition = point1 + (point2 - point1) * bary.z;
 
-			if (intersect)
+			if(intersect && glm::dot(point2 - point1, intersectPosition - point1) < glm::dot(point2 - point1, point2 - point1))
 				return true;
+
+			/*glm::vec3 e1 = p2 - p1;
+			glm::vec3 e2 = p3 - p1;
+			glm::vec3 n = vertices[indices[j]].normal;
+			glm::vec3 d = point2 - point1;
+			float det = glm::dot(n, d);
+
+			float epsilon = 0.1f;
+			if (det > -epsilon && det < epsilon)
+				continue;
+
+			float t_param = glm::dot(n, p1 - point1) / det;
+			if (t_param < -1.0f || t_param > 1.0)
+				continue;
+
+			glm::vec3 a = p2 - point2;
+			glm::vec3 b = p1 - point2;
+			glm::vec3 w1 = a * d;
+			float s = glm::dot(-b, w1);
+
+			if (det > 0.0f)
+			{
+				if (s < 0.0f)
+					continue;
+				glm::vec3 c = p3 - point2;
+				float t = glm::dot(c, w1);
+				if (t < 0.0f)
+					continue;
+				glm::vec3 w2 = c * d;
+				float u = glm::dot(b, w2);
+				if (u < 0.0f)
+					continue;
+			}
+			else
+			{
+				if (s > 0.0f)
+					continue;
+				glm::vec3 c = p3 - point2;
+				float t = glm::dot(c, w1);
+				if (t > 0.0f)
+					continue;
+				glm::vec3 w2 = c * d;
+				float u = glm::dot(b, w2);
+				if (u > 0.0f)
+					continue;
+			}
+
+			return true;*/
 		}
 	}
 

@@ -66,7 +66,7 @@ bool System::mainLoop()
 		m_uboDirLightData.camPos = glm::vec4(m_camera.getPosition(), 1.0f);
 		m_uboDirLight.update(&m_vk, m_uboDirLightData);
 
-		if (m_usedEffects == EFFECT_TYPE_CASCADED_SHADOW_MAPPING) // the only effect activated is CSM
+		if (m_usedEffects & EFFECT_TYPE_CASCADED_SHADOW_MAPPING) 
 		{
 			updateCSM();
 			m_offscreenCascadedShadowMap.drawCall(&m_vk);
@@ -77,11 +77,11 @@ bool System::mainLoop()
 				m_offscreenShadowBlurVertical[i].drawCall(&m_vk);
 			}
 		}
-		else if (m_usedEffects == EFFECT_TYPE_RSM)
+		if (m_usedEffects & EFFECT_TYPE_RSM)
 		{
 			m_offscreenRSM.drawCall(&m_vk);
 		}
-		else if (m_usedEffects == (EFFECT_TYPE_CASCADED_SHADOW_MAPPING | EFFECT_TYPE_RSM))
+		/*else if (m_usedEffects == (EFFECT_TYPE_CASCADED_SHADOW_MAPPING | EFFECT_TYPE_RSM))
 		{
 			updateCSM();
 			m_offscreenCascadedShadowMap.drawCall(&m_vk);
@@ -92,7 +92,7 @@ bool System::mainLoop()
 				m_offscreenShadowBlurVertical[i].drawCall(&m_vk);
 			}
 			m_offscreenRSM.drawCall(&m_vk);
-		}
+		}*/
 		m_swapChainRenderPass.drawCall(&m_vk);
 	}
 
@@ -190,6 +190,7 @@ void System::changeGlobalIllumination(std::wstring value)
 
 	createUniformBufferObjects();
 	createPasses(true);
+	setSemaphores();
 }
 
 void System::changeMSAA(std::wstring value)
@@ -413,14 +414,162 @@ void System::createPasses(bool recreate)
 
 			m_sphereInstance.load(&m_vk, sizeof(perInstance[0]) * perInstance.size(), perInstance.data());
 
-			for (int i(99); i < 1000; ++i)
+			std::array<std::vector<float>, 2> probesIntensityPingPong;
+			probesIntensityPingPong[0].resize(1000);
+			probesIntensityPingPong[1].resize(1000);
+			std::cout << "Loading radiosity probes..." << std::endl;
+			for (int i(0); i < 1000; ++i)
 			{
+				if (i % 20 == 0)
+					std::cout << i / 20 << " %\n";
+
 				glm::vec3 probePos = glm::vec3(20.0f - ((int)i / 100) * 4.0f, 0.1f + (((int)i / 10) % 10) * 1.7f, -10.0f + (i % 10) * 2.5f);
 				probePos /= 0.01f;
 
-				if(!m_sponza.checkIntersection(probePos, probePos - 30.0f * m_lightDir))
-					m_uboRadiosityProbesData.values[i].x = 1.0f;
+				if(!m_sponza.checkIntersection(probePos, probePos - (30.0f * m_lightDir) / 0.01f))
+					probesIntensityPingPong[0][i] = 1.0f;
+				else
+					probesIntensityPingPong[0][i] = 0.0f;
 			}
+
+			bool useDataInFile = true;
+			struct ProbeCollision
+			{
+				bool pX;
+				bool lX;
+
+				bool pY;
+				bool lY;
+
+				bool pZ;
+				bool lZ;
+			};
+			std::vector<ProbeCollision> probeCollisions(1000);
+			if (!useDataInFile)
+			{
+				for (int i(0); i < 1000; ++i)
+				{
+					int probeI = (int)i / 100, probeJ = ((int)i / 10) % 10, probeK = i % 10;
+					glm::vec3 probePos = glm::vec3(20.0f - probeI * 4.0f, 0.1f + probeJ * 1.7f, -10.0f + probeK * 2.5f);
+					probePos /= 0.01f;
+
+					if (probeI == 0)
+						probeCollisions[i].lX = true;
+					else
+						probeCollisions[i].lX = m_sponza.checkIntersection(probePos, probePos + glm::vec3(4.0f / 0.01f, 0.0f, 0.0f));
+					if (probeI == 9)
+						probeCollisions[i].pX = true;
+					else
+						probeCollisions[i].pX = m_sponza.checkIntersection(probePos, probePos - glm::vec3(4.0f / 0.01f, 0.0f, 0.0f));
+
+					if (probeJ == 0)
+						probeCollisions[i].lY = true;
+					else
+						probeCollisions[i].lY = m_sponza.checkIntersection(probePos, probePos - glm::vec3(0.0f, 1.7f / 0.01f, 0.0f));
+					if (probeJ == 9)
+						probeCollisions[i].pY = true;
+					else
+						probeCollisions[i].pY = m_sponza.checkIntersection(probePos, probePos + glm::vec3(0.0f, 1.7f / 0.01f, 0.0f));
+
+					if (probeK == 0)
+						probeCollisions[i].lZ = true;
+					else
+						probeCollisions[i].lZ = m_sponza.checkIntersection(probePos, probePos - glm::vec3(0.0f, 0.0f, 2.5f / 0.01f));
+					if (probeK == 9)
+						probeCollisions[i].pZ = true;
+					else
+						probeCollisions[i].pZ = m_sponza.checkIntersection(probePos, probePos + glm::vec3(0.0f, 0.0f, 2.5f / 0.01f));
+				}
+
+				std::ofstream probeCollisionsFile;
+				probeCollisionsFile.open("Data/probesCollision.dat");
+				for (int i(0); i < 1000; ++i)
+				{
+					probeCollisionsFile << probeCollisions[i].lX << "," << probeCollisions[i].pX << "," << probeCollisions[i].lY << "," << 
+						probeCollisions[i].pY << "," << probeCollisions[i].lZ << "," << probeCollisions[i].pZ << "\n";
+				}
+				probeCollisionsFile.close();
+			}
+			else
+			{
+				std::ifstream probeCollisionsFile("Data/probesCollision.dat");
+				if (probeCollisionsFile.is_open())
+				{
+					std::string line; int i(0);
+					while (std::getline(probeCollisionsFile, line))
+					{
+						int valueNum = 0;
+						for (int c(0); c < line.size(); ++c)
+						{
+							if (line[c] == ',')
+								valueNum++;
+							else
+							{
+								if (valueNum == 0)
+									probeCollisions[i].lX = line[c] == '1';
+								else if(valueNum == 1)
+									probeCollisions[i].pX = line[c] == '1';
+								else if (valueNum == 2)
+									probeCollisions[i].lY = line[c] == '1';
+								else if (valueNum == 3)
+									probeCollisions[i].pY = line[c] == '1';
+								else if (valueNum == 4)
+									probeCollisions[i].lZ = line[c] == '1';
+								else if (valueNum == 5)
+									probeCollisions[i].pZ = line[c] == '1';
+							}
+						}
+
+						i++;
+					}
+					probeCollisionsFile.close();
+				}
+			}
+
+			float probeIntensityCoeffs[] = { 0.4f, 0.25f, 0.15f };
+			for (int probePassCalculation(0); probePassCalculation < 3; ++probePassCalculation)
+			{
+				for (int i(0); i < 1000; ++i)
+				{
+					if (i % 20 == 0)
+						std::cout << 50 + i / 20 << " %\n";
+
+					probesIntensityPingPong[(probePassCalculation + 1)% 2][i] = probesIntensityPingPong[probePassCalculation % 2][i];
+
+					if (probesIntensityPingPong[probePassCalculation % 2][i] > 0.0f)
+						continue;
+
+					int probeI = (int)i / 100, probeJ = ((int)i / 10) % 10, probeK = i % 10;
+					glm::vec3 probePos = glm::vec3(20.0f - probeI * 4.0f, 0.1f + probeJ * 1.7f, -10.0f + probeK * 2.5f);
+
+					// X
+					if (!probeCollisions[i].lX)
+						probesIntensityPingPong[(probePassCalculation + 1) % 2][i] += 
+							probesIntensityPingPong[probePassCalculation % 2][100 * (probeI - 1) + 10 * probeJ + probeK] * probeIntensityCoeffs[probePassCalculation];
+					if (!probeCollisions[i].pX)
+						probesIntensityPingPong[(probePassCalculation + 1) % 2][i] += 
+							probesIntensityPingPong[probePassCalculation % 2][100 * (probeI + 1) + 10 * probeJ + probeK] * probeIntensityCoeffs[probePassCalculation];
+
+					// Y
+					if (!probeCollisions[i].lY)
+						probesIntensityPingPong[(probePassCalculation + 1) % 2][i] += 
+							probesIntensityPingPong[probePassCalculation % 2][100 * probeI + 10 * (probeJ - 1) + probeK] * probeIntensityCoeffs[probePassCalculation];
+					if (!probeCollisions[i].pY)
+						probesIntensityPingPong[(probePassCalculation + 1) % 2][i] += 
+							probesIntensityPingPong[probePassCalculation % 2][100 * probeI + 10 * (probeJ + 1) + probeK] * probeIntensityCoeffs[probePassCalculation];
+
+					// Z
+					if (!probeCollisions[i].lZ)
+						probesIntensityPingPong[(probePassCalculation + 1) % 2][i] += 
+							probesIntensityPingPong[probePassCalculation % 2][100 * probeI + 10 * probeJ + probeK - 1] * probeIntensityCoeffs[probePassCalculation];
+					if (!probeCollisions[i].pZ)
+						probesIntensityPingPong[(probePassCalculation + 1) % 2][i] += 
+							probesIntensityPingPong[probePassCalculation % 2][100 * probeI + 10 * probeJ + probeK + 1] * probeIntensityCoeffs[probePassCalculation];
+				}
+			}
+
+			for (int i(0); i < 1000; ++i)
+				m_uboRadiosityProbesData.values[i].x = probesIntensityPingPong[1][i];
 			m_uboRadiosityProbes.update(&m_vk, m_uboRadiosityProbesData.getData(), m_uboRadiosityProbesData.getSize());
 		}
 	}
@@ -521,6 +670,22 @@ void System::createPasses(bool recreate)
 		sphereInstancedMeshes.ubos = { &m_uboVP, &m_uboDirLight, &m_uboRadiosityProbes };
 		sphereInstancedMeshes.instance = &m_sphereInstance;
 		m_swapChainRenderPass.addMeshInstanced(&m_vk, { sphereInstancedMeshes }, "Shaders/radiosity_probes/sphere/vert.spv", "Shaders/radiosity_probes/sphere/frag.spv", 0);
+	}
+
+	else if (m_usedEffects == (EFFECT_TYPE_CASCADED_SHADOW_MAPPING | EFFECT_TYPE_RADIOSITY_PROBES))
+	{
+		PipelineShaders pbrCsmTextured;
+		pbrCsmTextured.vertexShader = "Shaders/pbr_csm_radiosity_probes/vert.spv";
+		pbrCsmTextured.fragmentShader = "Shaders/pbr_csm_radiosity_probes/frag.spv";
+
+		std::vector<VkSampler> samplers;
+		for (int i(0); i < 5; ++i)
+			samplers.push_back(m_sponza.getMeshes()[0]->getSampler());
+		samplers.push_back(m_linearSamplerNoMipMap.getSampler()); // shadow mask
+
+		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboDirLightCSM, &m_uboRadiosityProbes }, nullptr,
+			{ { m_offscreenShadowBlurVertical[m_blurAmount - 1].getImageView(), VK_IMAGE_LAYOUT_GENERAL } }, samplers } },
+			pbrCsmTextured, 6, true);
 	}
 
 	m_swapChainRenderPass.addMenu(&m_vk, &m_menu);
@@ -715,7 +880,7 @@ void System::setSemaphores()
 {
 	if (m_usedEffects == 0)
 		m_vk.setRenderFinishedLastRenderPassSemaphore(VK_NULL_HANDLE);
-	else if (m_usedEffects == EFFECT_TYPE_CASCADED_SHADOW_MAPPING)
+	else if (m_usedEffects == EFFECT_TYPE_CASCADED_SHADOW_MAPPING || m_usedEffects == (EFFECT_TYPE_CASCADED_SHADOW_MAPPING | EFFECT_TYPE_RADIOSITY_PROBES))
 	{
 		m_offscreenShadowCalculation.setSemaphoreToWait(m_vk.getDevice(), {
 			{ m_offscreenCascadedShadowMap.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_VERTEX_SHADER_BIT }

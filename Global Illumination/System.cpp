@@ -394,7 +394,7 @@ void System::createPasses(bool recreate)
 		}
 
 		/* Radiosity probes */
-		if (m_usedEffects & EFFECT_TYPE_RADIOSITY_PROBES)
+		if (m_usedEffects & EFFECT_TYPE_RADIOSITY_PROBES && !(m_loadedEffects & EFFECT_TYPE_RADIOSITY_PROBES))
 		{
 			std::vector <ModelInstance> perInstance;
 			for (int i(0); i < 10; ++i)
@@ -417,20 +417,42 @@ void System::createPasses(bool recreate)
 			std::array<std::vector<float>, 2> probesIntensityPingPong;
 			probesIntensityPingPong[0].resize(1000);
 			probesIntensityPingPong[1].resize(1000);
-			std::cout << "Loading radiosity probes..." << std::endl;
-			for (int i(0); i < 1000; ++i)
+
+			bool useDataInFileShadow = true;
+			if(!useDataInFileShadow)
 			{
-				if (i % 20 == 0)
-					std::cout << i / 20 << " %\n";
+                for (int i(0); i < 1000; ++i)
+                {
+                    glm::vec3 probePos = glm::vec3(20.0f - ((int)i / 100) * 4.0f, 0.1f + (((int)i / 10) % 10) * 1.7f, -10.0f + (i % 10) * 2.5f);
+                    probePos /= 0.01f;
 
-				glm::vec3 probePos = glm::vec3(20.0f - ((int)i / 100) * 4.0f, 0.1f + (((int)i / 10) % 10) * 1.7f, -10.0f + (i % 10) * 2.5f);
-				probePos /= 0.01f;
+                    if(!m_sponza.checkIntersection(probePos, probePos - (30.0f * m_lightDir) / 0.01f))
+                        probesIntensityPingPong[0][i] = 1.0f;
+                    else
+                        probesIntensityPingPong[0][i] = 0.0f;
+                }
 
-				if(!m_sponza.checkIntersection(probePos, probePos - (30.0f * m_lightDir) / 0.01f))
-					probesIntensityPingPong[0][i] = 1.0f;
-				else
-					probesIntensityPingPong[0][i] = 0.0f;
+                std::ofstream probeDirectLightFile;
+                probeDirectLightFile.open("Data/probesDirectLight.dat");
+                for (int i(0); i < 1000; ++i)
+                {
+                    probeDirectLightFile << (probesIntensityPingPong[0][i] == 1.0f) << "\n";
+                }
+                probeDirectLightFile.close();
 			}
+			else
+            {
+                std::ifstream probeDirectLightFile("Data/probesDirectLight.dat");
+                if (probeDirectLightFile.is_open())
+                {
+                    std::string line; int i(0);
+                    while (std::getline(probeDirectLightFile, line))
+                    {
+                        probesIntensityPingPong[0][i] = line[0] == '1' ? 1.0f : 0.0f;
+                        i++;
+                    }
+                }
+            }
 
 			bool useDataInFile = true;
 			struct ProbeCollision
@@ -530,10 +552,7 @@ void System::createPasses(bool recreate)
 			for (int probePassCalculation(0); probePassCalculation < 3; ++probePassCalculation)
 			{
 				for (int i(0); i < 1000; ++i)
-				{
-					if (i % 20 == 0)
-						std::cout << 50 + i / 20 << " %\n";
-
+                {
 					probesIntensityPingPong[(probePassCalculation + 1)% 2][i] = probesIntensityPingPong[probePassCalculation % 2][i];
 
 					if (probesIntensityPingPong[probePassCalculation % 2][i] > 0.0f)
@@ -571,7 +590,9 @@ void System::createPasses(bool recreate)
 			for (int i(0); i < 1000; ++i)
 				m_uboRadiosityProbesData.values[i].x = probesIntensityPingPong[1][i];
 			m_uboRadiosityProbes.update(&m_vk, m_uboRadiosityProbesData.getData(), m_uboRadiosityProbesData.getSize());
-		}
+
+            m_loadedEffects |= EFFECT_TYPE_RADIOSITY_PROBES;
+		} // end load radiosity probes
 	}
 
 	// Set on screen render pass shaders / meshes
@@ -803,6 +824,7 @@ void System::updateCSM()
 void System::createUniformBufferObjects()
 {
 	/* In all types */
+	if(!(m_loadedEffects & EFFECT_TYPE_PBR))
 	{
 		m_uboModelData.matrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f)); // reduce sponza size
 		m_uboModel.load(&m_vk, m_uboModelData, VK_SHADER_STAGE_VERTEX_BIT);
@@ -824,6 +846,8 @@ void System::createUniformBufferObjects()
 		m_uboVPData.proj = m_camera.getProjection();
 		m_uboVPData.view = m_camera.getViewMatrix();
 		m_uboVP.load(&m_vk, m_uboVPData, VK_SHADER_STAGE_VERTEX_BIT);
+
+        m_loadedEffects |= EFFECT_TYPE_PBR;
 	}
 
 	if (m_usedEffects & EFFECT_TYPE_CASCADED_SHADOW_MAPPING)

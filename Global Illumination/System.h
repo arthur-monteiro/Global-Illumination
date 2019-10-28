@@ -25,6 +25,7 @@ const uint32_t EFFECT_TYPE_CASCADED_SHADOW_MAPPING = 0x1;
 const uint32_t EFFECT_TYPE_RSM = (0x1 << 1);
 const uint32_t EFFECT_TYPE_SSAO = (0x1 << 2);
 const uint32_t EFFECT_TYPE_RADIOSITY_PROBES = (0x1 << 3);
+const uint32_t EFFECT_TYPE_PBR = (0x1 << 4);
 
 class System
 {
@@ -69,6 +70,7 @@ private:
 
 	/* ----- Render Pass ------ */
 	uint32_t m_usedEffects = 0x0;
+	uint32_t m_loadedEffects = 0x0;
 
 	/* Final Pass */
 	RenderPass m_swapChainRenderPass;

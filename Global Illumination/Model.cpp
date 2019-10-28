@@ -135,13 +135,25 @@ bool Model::checkIntersection(glm::vec3 point1, glm::vec3 point2)
 			glm::vec3 p2 = vertices[indices[j + 1]].pos;
 			glm::vec3 p3 = vertices[indices[j + 2]].pos;
 
+			glm::vec3 unormalizedDirection = point2 - point1;
+
 			glm::vec3 bary;
-			bool intersect = glm::intersectRayTriangle(point1, point2 - point1, p1, p2, p3, bary);
+#ifdef GLM_PLATFORM_LINUX
+			float tDist;
+			glm::vec2 baryPos;
+			bool intersect = glm::intersectRayTriangle(point1, unormalizedDirection, p1, p2, p3, baryPos, tDist);
+
+			bary.x = baryPos.x;
+			bary.y = baryPos.y;
+			bary.z = tDist;
+#else
+            bool intersect = glm::intersectRayTriangle(point1, unormalizedDirection, p1, p2, p3, bary);
+#endif
 			/*if (intersect && (bary.x > 1.0f || bary.y > 1.0f || bary.z > 1.0f))
 				intersect = false;*/
-			glm::vec3 intersectPosition = point1 + (point2 - point1) * bary.z;
+			glm::vec3 intersectPosition = point1 + unormalizedDirection * bary.z;
 
-			if(intersect && glm::dot(point2 - point1, intersectPosition - point1) < glm::dot(point2 - point1, point2 - point1))
+			if(intersect && glm::dot(unormalizedDirection, intersectPosition - point1) < glm::dot(unormalizedDirection, unormalizedDirection))
 				return true;
 
 			/*glm::vec3 e1 = p2 - p1;

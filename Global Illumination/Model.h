@@ -3,7 +3,8 @@
 #include "Mesh.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/intersect.hpp>
+//#include <glm/gtx/intersect.hpp>
+#include <glm/gtx/intersect.inl>
 
 class Model
 {

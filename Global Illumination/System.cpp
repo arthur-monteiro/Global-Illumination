@@ -418,7 +418,7 @@ void System::createPasses(bool recreate)
 			probesIntensityPingPong[0].resize(1000);
 			probesIntensityPingPong[1].resize(1000);
 
-			bool useDataInFileShadow = true;
+			bool useDataInFileShadow = false;
 			if(!useDataInFileShadow)
 			{
                 for (int i(0); i < 1000; ++i)
@@ -548,8 +548,8 @@ void System::createPasses(bool recreate)
 				}
 			}
 
-			float probeIntensityCoeffs[] = { 0.4f, 0.25f, 0.15f };
-			for (int probePassCalculation(0); probePassCalculation < 3; ++probePassCalculation)
+			float probeIntensityCoeffs[] = { 0.4f, 0.3f, 0.25f, 0.20f, 0.15f };
+			for (int probePassCalculation(0); probePassCalculation < 5; ++probePassCalculation)
 			{
 				for (int i(0); i < 1000; ++i)
                 {

@@ -138,7 +138,7 @@ bool Model::checkIntersection(glm::vec3 point1, glm::vec3 point2)
 			glm::vec3 unormalizedDirection = point2 - point1;
 
 			glm::vec3 bary;
-#ifdef GLM_PLATFORM_LINUX
+#ifdef  __linux__ 
 			float tDist;
 			glm::vec2 baryPos;
 			bool intersect = glm::intersectRayTriangle(point1, unormalizedDirection, p1, p2, p3, baryPos, tDist);

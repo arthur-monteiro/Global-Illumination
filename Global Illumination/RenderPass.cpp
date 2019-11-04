@@ -457,6 +457,10 @@ void RenderPass::cleanup(Vulkan * vk)
 	vkDestroyRenderPass(vk->getDevice(), m_renderPass, nullptr);
 	m_renderPass = VK_NULL_HANDLE;
 
+	vkFreeCommandBuffers(vk->getDevice(), m_commandPool, static_cast<uint32_t>(m_commandBuffer.size()), m_commandBuffer.data());
+	m_commandBuffer.clear();
+	vkDestroyCommandPool(vk->getDevice(), m_commandPool, nullptr);
+
 	m_isInitialized = false;
 }
 

@@ -115,7 +115,7 @@ void System::cleanup()
 	m_swapChainRenderPass.cleanup(&m_vk);
 	m_offscreenCascadedShadowMap.cleanup(&m_vk);
 	m_offscreenShadowCalculation.cleanup(&m_vk);
-	for (int i(0); i < m_offscreenShadowBlurHorizontal.size() /* don't clean if vector empty */; ++i)
+	for (int i(0); i < m_offscreenShadowBlurHorizontal.size(); ++i)
 	{
 		m_offscreenShadowBlurHorizontal[i].cleanup(m_vk.getDevice());
 		m_offscreenShadowBlurVertical[i].cleanup(m_vk.getDevice());
@@ -204,7 +204,7 @@ void System::changeMSAA(std::wstring value)
 	else if (value == L"8x")
 		m_msaaSamples = VK_SAMPLE_COUNT_8_BIT;
 
-	create(true);
+	createPasses(true);
 }
 
 void System::changeReflectiveShadowMap(bool status)
@@ -418,7 +418,7 @@ void System::createPasses(bool recreate)
 			probesIntensityPingPong[0].resize(1000);
 			probesIntensityPingPong[1].resize(1000);
 
-			bool useDataInFileShadow = false;
+			bool useDataInFileShadow = true;
 			if(!useDataInFileShadow)
 			{
                 for (int i(0); i < 1000; ++i)
@@ -548,7 +548,7 @@ void System::createPasses(bool recreate)
 				}
 			}
 
-			float probeIntensityCoeffs[] = { 0.4f, 0.3f, 0.25f, 0.20f, 0.15f };
+			float probeIntensityCoeffs[] = { 0.25f, 0.25f, 0.25f, 0.25f, 0.25f };
 			for (int probePassCalculation(0); probePassCalculation < 5; ++probePassCalculation)
 			{
 				for (int i(0); i < 1000; ++i)
@@ -707,6 +707,31 @@ void System::createPasses(bool recreate)
 		m_swapChainRenderPass.addMesh(&m_vk, { { m_sponza.getMeshes(), { &m_uboVP, &m_uboModel, &m_uboDirLightCSM, &m_uboRadiosityProbes }, nullptr,
 			{ { m_offscreenShadowBlurVertical[m_blurAmount - 1].getImageView(), VK_IMAGE_LAYOUT_GENERAL } }, samplers } },
 			pbrCsmTextured, 6, true);
+	}
+
+	else if (m_usedEffects == (EFFECT_TYPE_CASCADED_SHADOW_MAPPING | EFFECT_TYPE_RADIOSITY_PROBES | EFFECT_TYPE_RSM))
+	{
+		PipelineShaders pbrCsmTextured;
+		pbrCsmTextured.vertexShader = "Shaders/pbr_csm_radiosity_probes_rsm/vert.spv";
+		pbrCsmTextured.fragmentShader = "Shaders/pbr_csm_radiosity_probes_rsm/frag.spv";
+
+		MeshRender meshesRender;
+		meshesRender.meshes = m_sponza.getMeshes();
+		meshesRender.ubos = { &m_uboVP, &m_uboModel, &m_uboProjRSM , &m_uboDirLightCSM, &m_uboRadiosityProbes };
+		meshesRender.instance = nullptr;
+		meshesRender.images = {
+			{ m_offscreenRSM.getFrameBuffer(0).colorImages[0].getImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
+			{ m_offscreenRSM.getFrameBuffer(0).colorImages[1].getImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
+			{ m_offscreenRSM.getFrameBuffer(0).colorImages[2].getImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
+			{ m_offscreenShadowBlurVertical[m_blurAmount - 1].getImageView(), VK_IMAGE_LAYOUT_GENERAL }
+		};
+		for (int i(0); i < 5; ++i)
+			meshesRender.samplers.push_back(m_sponza.getMeshes()[0]->getSampler());
+		for (int i(0); i < 3; ++i)
+			meshesRender.samplers.push_back(m_nearestSamplerNoMipMap.getSampler());
+		meshesRender.samplers.push_back(m_linearSamplerNoMipMap.getSampler()); // shadow mask
+
+		m_swapChainRenderPass.addMesh(&m_vk, { meshesRender }, pbrCsmTextured, 9, true);
 	}
 
 	m_swapChainRenderPass.addMenu(&m_vk, &m_menu);
@@ -931,7 +956,7 @@ void System::setSemaphores()
 	{
 		m_vk.setRenderFinishedLastRenderPassSemaphore(m_offscreenRSM.getRenderFinishedSemaphore());
 	}
-	else if (m_usedEffects == (EFFECT_TYPE_CASCADED_SHADOW_MAPPING | EFFECT_TYPE_RSM))
+	else if (m_usedEffects == (EFFECT_TYPE_CASCADED_SHADOW_MAPPING | EFFECT_TYPE_RSM) || m_usedEffects == (EFFECT_TYPE_CASCADED_SHADOW_MAPPING | EFFECT_TYPE_RSM | EFFECT_TYPE_RADIOSITY_PROBES))
 	{
 		m_offscreenShadowCalculation.setSemaphoreToWait(m_vk.getDevice(), {
 			{ m_offscreenCascadedShadowMap.getRenderFinishedSemaphore(), VK_PIPELINE_STAGE_VERTEX_SHADER_BIT }

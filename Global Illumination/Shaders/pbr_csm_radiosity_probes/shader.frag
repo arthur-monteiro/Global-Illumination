@@ -40,10 +40,14 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 const float PI = 3.14159265359;
 
-float getRadiosity(int i, int j, int k)
+float getRadiosity(int i, int j, int k, vec3 n)
 {
+	vec3 probePos = vec3(20.0 - i * 4.0, 0.1 + j * 1.7, -10.0 + k * 2.5);
+	if(dot(n, probePos - worldPos) <= 0)
+		return 0.0;
+
 	if(i >= 0 && j >= 0 && j >= 0 && i <= 9 && j <= 9 && k <= 9)
-		return uboRadiosityProbes.radiosity[100 * i + 10 * j + k].x;
+		return uboRadiosityProbes.radiosity[100 * i + 10 * j + k].x * max(dot(n, normalize(probePos - worldPos)), 0.0);
 
 	return 0.0;
 }
@@ -52,6 +56,19 @@ void main()
 {
 	vec2 coordShadow = ((screenPos.xy / screenPos.w) + 1.0) / 2.0;
 	float shadow = texture(screenShadows, coordShadow).x;
+
+	vec3 albedo = pow(texture(texAlbedo, fragTexCoord).xyz, vec3(2.2));
+	if(shadow == 0.0)
+		outColor = vec4(vec3(uboLights.ambient) * albedo, texture(texAlbedo, fragTexCoord).a);
+		
+	float roughness = texture(texRoughness, fragTexCoord).x;
+	float metallic = texture(texMetal, fragTexCoord).x;
+	float ao = texture(texAO, fragTexCoord).x;
+	vec3 normal = (texture(texNormal, fragTexCoord).xyz * 2.0 - vec3(1.0)) * tbn;
+
+	vec3 N = normalize(normal); 
+    vec3 V = normalize(uboLights.camPos.xyz - worldPos);
+	vec3 R = reflect(-V, N);  
 
 	float probeI = (worldPos.x - 20.0) / -4.0;
 	float probeJ = (worldPos.y - 0.1) / 1.7;
@@ -70,28 +87,15 @@ void main()
 	float dProbK = fract(probeK);
 
 	float ambient = 0.0;
-	ambient += getRadiosity(probeI0, probeJ0, probeK0) * (1.0 - dProbI) * (1.0 - dProbJ) * (1.0 - dProbK);
-	ambient += getRadiosity(probeI0, probeJ0, probeK1) * (1.0 - dProbI) * (1.0 - dProbJ) * dProbK;
-	ambient += getRadiosity(probeI0, probeJ1, probeK0) * (1.0 - dProbI) * dProbJ * (1.0 - dProbK);
-	ambient += getRadiosity(probeI0, probeJ1, probeK1) * (1.0 - dProbI) * dProbJ * dProbK;
-	ambient += getRadiosity(probeI1, probeJ0, probeK0) * dProbI * (1.0 - dProbJ) * (1.0 - dProbK);
-	ambient += getRadiosity(probeI1, probeJ0, probeK1) * dProbI * (1.0 - dProbJ) * dProbK;
-	ambient += getRadiosity(probeI1, probeJ1, probeK0) * dProbI * dProbJ * (1.0 - dProbK);
-	ambient += getRadiosity(probeI1, probeJ1, probeK1) * dProbI * dProbJ * dProbK;
-	ambient /= 8.0;
-
-	vec3 albedo = pow(texture(texAlbedo, fragTexCoord).xyz, vec3(2.2));
-	if(shadow == 0.0)
-		outColor = vec4(vec3(uboLights.ambient) * albedo, texture(texAlbedo, fragTexCoord).a);
-		
-	float roughness = texture(texRoughness, fragTexCoord).x;
-	float metallic = texture(texMetal, fragTexCoord).x;
-	float ao = texture(texAO, fragTexCoord).x;
-	vec3 normal = (texture(texNormal, fragTexCoord).xyz * 2.0 - vec3(1.0)) * tbn;
-
-	vec3 N = normalize(normal); 
-    vec3 V = normalize(uboLights.camPos.xyz - worldPos);
-	vec3 R = reflect(-V, N);  
+	ambient += getRadiosity(probeI0, probeJ0, probeK0, N) * (1.0 - dProbI) * (1.0 - dProbJ) * (1.0 - dProbK);
+	ambient += getRadiosity(probeI0, probeJ0, probeK1, N) * (1.0 - dProbI) * (1.0 - dProbJ) * dProbK;
+	ambient += getRadiosity(probeI0, probeJ1, probeK0, N) * (1.0 - dProbI) * dProbJ * (1.0 - dProbK);
+	ambient += getRadiosity(probeI0, probeJ1, probeK1, N) * (1.0 - dProbI) * dProbJ * dProbK;
+	ambient += getRadiosity(probeI1, probeJ0, probeK0, N) * dProbI * (1.0 - dProbJ) * (1.0 - dProbK);
+	ambient += getRadiosity(probeI1, probeJ0, probeK1, N) * dProbI * (1.0 - dProbJ) * dProbK;
+	ambient += getRadiosity(probeI1, probeJ1, probeK0, N) * dProbI * dProbJ * (1.0 - dProbK);
+	ambient += getRadiosity(probeI1, probeJ1, probeK1, N) * dProbI * dProbJ * dProbK;
+	ambient /= 6.0;
 
 	vec3 F0 = vec3(0.04); 
     F0 = mix(F0,albedo, metallic);
@@ -122,7 +126,7 @@ void main()
 
 	//vec3 ambient = vec3(uboLights.ambient) * albedo;
 
-    vec3 color = ambient * albedo * (1.0 - shadow) + Lo * shadow;
+    vec3 color = max(ambient, 0.01) * albedo * (1.0 - shadow) + Lo * shadow;
 	
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));

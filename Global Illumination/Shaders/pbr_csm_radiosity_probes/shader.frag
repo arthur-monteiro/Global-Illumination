@@ -42,12 +42,12 @@ const float PI = 3.14159265359;
 
 float getRadiosity(int i, int j, int k, vec3 n)
 {
-	vec3 probePos = vec3(20.0 - i * 4.0, 0.1 + j * 1.7, -10.0 + k * 2.5);
+	/*vec3 probePos = vec3(20.0 - i * 4.0, 0.1 + j * 1.7, -10.0 + k * 2.5);
 	if(dot(n, probePos - worldPos) <= 0)
-		return 0.0;
+		return 0.0;*/
 
 	if(i >= 0 && j >= 0 && j >= 0 && i <= 9 && j <= 9 && k <= 9)
-		return uboRadiosityProbes.radiosity[100 * i + 10 * j + k].x * max(dot(n, normalize(probePos - worldPos)), 0.0);
+		return uboRadiosityProbes.radiosity[100 * i + 10 * j + k].x;// * min(max(dot(n, normalize(probePos - worldPos)), 0.0), 0.5);
 
 	return 0.0;
 }
@@ -57,7 +57,7 @@ void main()
 	vec2 coordShadow = ((screenPos.xy / screenPos.w) + 1.0) / 2.0;
 	float shadow = texture(screenShadows, coordShadow).x;
 
-	vec3 albedo = pow(texture(texAlbedo, fragTexCoord).xyz, vec3(2.2));
+	vec3 albedo = texture(texAlbedo, fragTexCoord).xyz;
 	if(shadow == 0.0)
 		outColor = vec4(vec3(uboLights.ambient) * albedo, texture(texAlbedo, fragTexCoord).a);
 		
@@ -95,7 +95,7 @@ void main()
 	ambient += getRadiosity(probeI1, probeJ0, probeK1, N) * dProbI * (1.0 - dProbJ) * dProbK;
 	ambient += getRadiosity(probeI1, probeJ1, probeK0, N) * dProbI * dProbJ * (1.0 - dProbK);
 	ambient += getRadiosity(probeI1, probeJ1, probeK1, N) * dProbI * dProbJ * dProbK;
-	ambient /= 6.0;
+	ambient /= 8.0;
 
 	vec3 F0 = vec3(0.04); 
     F0 = mix(F0,albedo, metallic);
@@ -128,8 +128,9 @@ void main()
 
     vec3 color = max(ambient, 0.01) * albedo * (1.0 - shadow) + Lo * shadow;
 	
-    color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0/2.2));
+	float exposure = 0.5;
+    color = vec3(1.0) - exp(-color * exposure);
+	color = pow(color, vec3(1.0 / 2.2));
 
     outColor = vec4(color, texture(texAlbedo, fragTexCoord).a);
 }

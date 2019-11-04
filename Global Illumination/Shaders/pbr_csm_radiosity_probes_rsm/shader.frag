@@ -216,7 +216,7 @@ void main()
 	vec2 coordShadow = ((screenPos.xy / screenPos.w) + 1.0) / 2.0;
 	float shadow = texture(screenShadows, coordShadow).x;
 
-	vec3 albedo = pow(texture(texAlbedo, fragTexCoord).xyz, vec3(2.2));
+	vec3 albedo = texture(texAlbedo, fragTexCoord).xyz;
 	if(shadow == 0.0)
 		outColor = vec4(vec3(uboLights.ambient) * albedo, texture(texAlbedo, fragTexCoord).a);
 		
@@ -313,8 +313,9 @@ void main()
 	indirectRSM *= 0.005;
 	color += indirectRSM;
 	
-    color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0/2.2));
+    float exposure = 0.5;
+    color = vec3(1.0) - exp(-color * exposure);
+	color = pow(color, vec3(1.0 / 2.2));
 
     outColor = vec4(color, texture(texAlbedo, fragTexCoord).a);
 }

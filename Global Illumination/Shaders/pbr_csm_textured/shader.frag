@@ -44,7 +44,7 @@ void main()
 	//outColor = vec4(texture(screenShadows, coordShadow).rrr, 1.0);
 	//return;
 
-	vec3 albedo = pow(texture(texAlbedo, fragTexCoord).xyz, vec3(2.2));
+	vec3 albedo = texture(texAlbedo, fragTexCoord).xyz;
 	if(shadow == 0.0)
 		outColor = vec4(vec3(uboLights.ambient) * albedo, texture(texAlbedo, fragTexCoord).a);
 		
@@ -88,8 +88,9 @@ void main()
 
     vec3 color = ambient * (1.0 - shadow) + Lo * shadow;
 	
-    color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0/2.2));
+    float exposure = 0.5;
+    color = vec3(1.0) - exp(-color * exposure);
+	color = pow(color, vec3(1.0 / 2.2));
 
     outColor = vec4(color, texture(texAlbedo, fragTexCoord).a);
 }

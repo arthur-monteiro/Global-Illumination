@@ -33,7 +33,7 @@ const float PI = 3.14159265359;
 
 void main() 
 {
-	vec3 albedo = pow(texture(texAlbedo, fragTexCoord).xyz, vec3(2.2));
+	vec3 albedo = texture(texAlbedo, fragTexCoord).xyz;
 	float roughness = texture(texRoughness, fragTexCoord).x;
 	float metallic = texture(texMetal, fragTexCoord).x;
 	float ao = texture(texAO, fragTexCoord).x;
@@ -74,8 +74,9 @@ void main()
 
     vec3 color = ambient + Lo;
 	
-    color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0/2.2));
+    float exposure = 0.5;
+    color = vec3(1.0) - exp(-color * exposure);
+	color = pow(color, vec3(1.0 / 2.2));
 
     outColor = vec4(color, texture(texAlbedo, fragTexCoord).a);
 }

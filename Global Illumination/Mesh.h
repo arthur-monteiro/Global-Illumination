@@ -18,7 +18,7 @@ class MeshBase
 public:
 	virtual ~MeshBase() 
 	{
-		if (!m_isDestroyed)
+		if (!m_isInitialized)
 			std::cout << "Mesh not destroyed !" << std::endl;
 	}
 
@@ -46,6 +46,7 @@ public:
 	VkSampler getSampler() { return m_textureSampler; }
 	VkBuffer getIndexBuffer() { return m_indexBuffer; }
 	uint32_t getNumIndices() { return static_cast<uint32_t>(m_indices.size()); }
+	std::vector<uint32_t> getIndices() { return m_indices; }
 	VkBuffer getVertexBuffer() { return m_vertexBuffer; }
 
 	void setImageView(int index, VkImageView imageView) { m_images[index].imageView = imageView; }
@@ -57,7 +58,7 @@ protected:
 	void createTextureImageView(Vulkan* vk, VkFormat format);
 
 protected:
-	bool m_isDestroyed = false;
+	bool m_isInitialized = false;
 
 	std::vector<uint32_t> m_indices;
 	VkBuffer m_vertexBuffer;
@@ -74,6 +75,7 @@ class MeshPBR : public MeshBase
 {
 public:
 	void loadObj(Vulkan * vk, std::string path, glm::vec3 forceNormal = glm::vec3(-1.0f));
+	void loadVertices(Vulkan* vk, std::vector< VertexPBR> vertices, std::vector<uint32_t> indices);
 
 	void restoreTransformations() { m_modelMatrix = glm::mat4(1.0); }
 	void rotate(float angle, glm::vec3 dir);
@@ -81,6 +83,8 @@ public:
 	void translate(glm::vec3 translation);
 
 	void cleanup(VkDevice device);
+
+	std::vector<VertexPBR> getVertices() { return m_vertices; }
 
 private:
 	void createVertexBuffer(Vulkan* vk);

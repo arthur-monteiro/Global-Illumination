@@ -1,12 +1,13 @@
 #include "Camera.h"
 
-void Camera::initialize(glm::vec3 position, glm::vec3 target, glm::vec3 verticalAxis, float sensibility, float speed)
+void Camera::initialize(glm::vec3 position, glm::vec3 target, glm::vec3 verticalAxis, float sensibility, float speed, float aspect)
 {
 	m_position = position;
 	m_target = target;
 	m_verticalAxis = verticalAxis;
 	m_sensibility = sensibility;
 	m_speed = speed;
+	m_aspect = aspect;
 
 	setTarget(m_target);
 }
@@ -55,14 +56,25 @@ void Camera::update(GLFWwindow* window)
 	}
 }
 
-glm::mat4 Camera::getViewMatrix()
+glm::mat4 Camera::getViewMatrix(glm::vec3 forceOrientation)
 {
-	return glm::lookAt(m_position, m_target, m_verticalAxis);
+	if(forceOrientation.x == -1.0f)
+		return glm::lookAt(m_position, m_target, m_verticalAxis);
+	else 
+		return glm::lookAt(m_position, glm::normalize(m_position + forceOrientation), m_verticalAxis);
 }
 
 glm::vec3 Camera::getPosition()
 {
 	return m_position;
+}
+
+glm::mat4 Camera::getProjection()
+{
+	glm::mat4 r = glm::perspective(m_radFOV, m_aspect, m_near, m_far);
+	r[1][1] *= -1;
+
+	return r;
 }
 
 void Camera::setPosition(glm::vec3 position)

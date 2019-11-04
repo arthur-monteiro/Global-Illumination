@@ -30,6 +30,42 @@ struct UniformBufferObjectSingleMat
 	glm::mat4 matrix;
 };
 
+struct UniformBufferObjectArrayMat
+{
+	std::vector<glm::mat4> matrices;
+
+	VkDeviceSize getSize()
+	{
+		return matrices.size() * sizeof(glm::mat4);
+	}
+
+	void* getData()
+	{
+		void* r = malloc(getSize());
+		memcpy(r, matrices.data(), getSize());
+
+		return r;
+	}
+};
+
+struct UniformBufferObjectArrayFloat
+{
+	std::vector<glm::vec4> values;
+
+	VkDeviceSize getSize()
+	{
+		return values.size() * sizeof(glm::vec4);
+	}
+
+	void* getData()
+	{
+		void* r = malloc(getSize());
+		memcpy(r, values.data(), getSize());
+
+		return r;
+	}
+};
+
 const int MAX_POINTLIGHTS = 32;
 const int MAX_DIRLIGHTS = 1;
 
@@ -53,10 +89,36 @@ struct UniformBufferObjectDirLight
 	glm::vec4 dirLight;
 	glm::vec4 colorLight;
 
-	glm::vec4 materialAlbedo;
-	float materialRoughness;
-	float materialMetallic;
 	float usePCF;
+	float ambient;
+};
+
+struct UniformBufferObjectDirLightCSM
+{
+	glm::vec4 camPos;
+
+	glm::vec4 dirLight;
+	glm::vec4 colorLight;
+
+	float ambient;
+};
+
+struct UniformBufferObjectCSM
+{
+	std::vector<glm::vec4> cascadeSplits;
+
+	VkDeviceSize getSize()
+	{
+		return cascadeSplits.size() * sizeof(glm::vec4);
+	}
+
+	void* getData()
+	{
+		void* r = malloc(getSize());
+		memcpy(r, cascadeSplits.data(), getSize());
+
+		return r;
+	}
 };
 
 struct UniformBufferObjectItemQuad
@@ -76,6 +138,8 @@ public:
 	VkShaderStageFlags getAccessibility() { return m_accessibility; }
 
 protected:
+	bool m_isInitialized = false;
+
 	VkBuffer m_uniformBuffer;
 	VkDeviceMemory m_uniformBufferMemory;
 
@@ -89,9 +153,17 @@ class UniformBufferObject : public UboBase
 {
 public:
 	UniformBufferObject() {}
+	~UniformBufferObject()
+	{
+		//if (m_isInitialized)
+		//	std::cout << "UBO not destroyed !" << std::endl;
+	}
 
 	void load(Vulkan* vk, T data, VkShaderStageFlags accessibility)
 	{
+		if (m_isInitialized)
+			return;
+
 		VkDeviceSize bufferSize = sizeof(T);
 		vk->createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffer, m_uniformBufferMemory);
@@ -103,6 +175,29 @@ public:
 		vkMapMemory(vk->getDevice(), m_uniformBufferMemory, 0, m_size, 0, &pData);
 			memcpy(pData, &data, m_size);
 		vkUnmapMemory(vk->getDevice(), m_uniformBufferMemory);
+
+		m_isInitialized = true;
+	}
+
+	void load(Vulkan* vk, void* data, VkDeviceSize size, VkShaderStageFlags accessibility)
+	{
+		if (m_isInitialized)
+			return;
+
+		vk->createBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffer, m_uniformBufferMemory);
+
+		m_size = size;
+		m_accessibility = accessibility;
+
+		void* pData;
+		vkMapMemory(vk->getDevice(), m_uniformBufferMemory, 0, m_size, 0, &pData);
+			memcpy(pData, data, m_size);
+		vkUnmapMemory(vk->getDevice(), m_uniformBufferMemory);
+
+		free(data);
+
+		m_isInitialized = true;
 	}
 
 	void update(Vulkan* vk, T data)
@@ -113,10 +208,20 @@ public:
 		vkUnmapMemory(vk->getDevice(), m_uniformBufferMemory);
 	}
 
+	void update(Vulkan* vk, void* data, VkDeviceSize size)
+	{
+		void* pData;
+		vkMapMemory(vk->getDevice(), m_uniformBufferMemory, 0, m_size, 0, &pData);
+			memcpy(pData, data, size);
+		vkUnmapMemory(vk->getDevice(), m_uniformBufferMemory);
+	}
+
 	void cleanup(VkDevice device)
 	{
 		vkDestroyBuffer(device, m_uniformBuffer, nullptr);
 		vkFreeMemory(device, m_uniformBufferMemory, nullptr);
+
+		m_isInitialized = false;
 	}
 
 private:

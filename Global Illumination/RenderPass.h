@@ -13,10 +13,58 @@
 
 struct MeshRender
 {
-	MeshBase* mesh;
+	std::vector<MeshBase*> meshes;
 	std::vector<UboBase*> ubos;
 	Instance* instance = nullptr;
-	std::vector<VkImageView> imageViews; // added after the mesh image views
+	std::vector<std::pair<VkImageView, VkImageLayout>> images; // added after the mesh image views
+	std::vector<VkSampler> samplers;
+};
+
+struct Semaphore
+{
+    VkSemaphore semaphore;
+    VkPipelineStageFlags stage;
+};
+
+struct Operation
+{
+#define OPERATION_TYPE_UNDEFINED -1
+#define OPERATION_TYPE_BLIT 0
+#define OPERATION_TYPE_COPY 1
+#define OPERATION_TYPE_COPY_DEPTH_TO_BUFFER 2
+#define OPERATION_TYPE_COPY_BUFFER_TO_IMAGE 3
+
+	int type = OPERATION_TYPE_UNDEFINED;
+
+	// Blit or copy or copy buffer to image
+	std::vector<VkImage> dstImages;
+	std::vector<VkImage> srcImages;
+	// Blit
+	std::vector<VkExtent2D> dstBlitExtent;
+
+	// Copy image to buffer
+	std::vector<VkBuffer> dstBuffers;
+
+	// Copy buffer to image
+	std::vector<VkBuffer> srcBuffers;
+};
+
+struct FrameBuffer
+{
+	std::vector<Image> colorImages;
+	Image depthImage;
+	std::vector<Image> resolveImages;
+
+	VkFramebuffer framebuffer;
+
+	void free(VkDevice device)
+	{
+		vkDestroyFramebuffer(device, framebuffer, nullptr);
+
+		for (int i(0); i < colorImages.size(); ++i)
+			colorImages[i].cleanup(device);
+		depthImage.cleanup(device);
+	}
 };
 
 class RenderPass
@@ -24,17 +72,16 @@ class RenderPass
 public:
 	~RenderPass();
 
-	void initialize(Vulkan* vk, bool createFrameBuffer = false, VkExtent2D extent = { 0, 0 }, bool present = true, VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT, int nbFramebuffer = 1, 
-		bool colorAttachment = true, bool depthAttachment = true);
+	void initialize(Vulkan* vk, std::vector<VkExtent2D> extent, bool present, VkSampleCountFlagBits msaaSamples, std::vector<VkFormat> colorFormats, VkFormat depthFormat,
+		VkImageLayout finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-	int addMesh(Vulkan * vk, std::vector<MeshRender> mesh, std::string vertPath, std::string fragPath, int nbTexture, bool alphaBlending = false, int frameBufferID = 0);
+	int addMesh(Vulkan * vk, std::vector<MeshRender> mesh, PipelineShaders pipelineShaders, int nbTexture, bool alphaBlending = false, int frameBufferID = 0);
 	int addMeshInstanced(Vulkan* vk, std::vector<MeshRender> meshes, std::string vertPath, std::string fragPath, int nbTexture);
 	int addText(Vulkan * vk, Text * text);
 	void addMenu(Vulkan* vk, Menu * menu);
-
 	void updateImageViewMenuItemOption(Vulkan* vk, VkImageView imageView);
-
-	void recordDraw(Vulkan * vk);
+	void clearMeshes(VkDevice device);
+	void recordDraw(Vulkan* vk, std::vector<Operation> operations = {});
 
 	void drawCall(Vulkan * vk);
 
@@ -50,28 +97,31 @@ public:
 		m_drawText = draw;
 		recordDraw(vk);
 	}
+	void setSemaphoreToWait(VkDevice device, std::vector<Semaphore> semaphores);
 	bool getDrawMenu() { return m_drawMenu; }
 
 private:
-	void createRenderPass(VkDevice device, VkImageLayout finalLayout, bool colorAttachment, bool depthAttachment);
+	void createRenderPass(VkDevice device, VkImageLayout finalLayout);
+	FrameBuffer createFrameBuffer(Vulkan* vk, VkExtent2D extent, VkRenderPass renderPass, VkSampleCountFlagBits msaaSamples, VkFormat depthFormat, std::vector<VkFormat> imageFormats);
 	void createColorResources(Vulkan * vk, VkExtent2D extent);
 	VkDescriptorSetLayout createDescriptorSetLayout(VkDevice device, std::vector<UboBase*> uniformBuffers, int nbTexture);
 	void createDescriptorPool(VkDevice device);
 	VkDescriptorSet createDescriptorSet(VkDevice device, VkDescriptorSetLayout decriptorSetLayout, std::vector<VkImageView> imageView,
-		VkSampler sampler, std::vector<UboBase*> uniformBuffers, int nbTexture, VkImageLayout imageLayout);
-	void fillCommandBuffer(Vulkan * vk);
+		std::vector<VkSampler> samplers, std::vector<UboBase*> uniformBuffers, int nbTexture, std::vector<VkImageLayout> imageLayouts);
+	void fillCommandBuffer(Vulkan * vk, std::vector<Operation> operations);
 	void drawFrame(Vulkan * vk);
 
 public:
 	VkRenderPass getRenderPass() { return m_renderPass; }
 	FrameBuffer getFrameBuffer(int index) { return m_frameBuffers[index]; }
 	VkSemaphore getRenderFinishedSemaphore() { return m_renderCompleteSemaphore; }
+	bool getIsInitialized() { return m_isInitialized; }
 
 private:
-	bool m_isDestroyed = false;
+	bool m_isInitialized = false;
 
-	VkFormat m_format;
-	VkFormat m_depthFormat;
+	std::vector<VkFormat> m_colorAttachmentFormats;
+	VkFormat m_depthAttachmentFormat;
 
 	VkRenderPass m_renderPass;
 	VkDescriptorPool m_descriptorPool;
@@ -98,8 +148,10 @@ private:
 	bool m_useSwapChain = true;
 	bool m_firstDraw = true;
 	std::vector<FrameBuffer> m_frameBuffers;
-	VkExtent2D m_extent;
+	std::vector<VkExtent2D> m_extent;
 	std::vector <VkCommandBuffer> m_commandBuffer;
+	std::vector<VkSemaphore> m_needToWaitSemaphores;
+	std::vector<VkPipelineStageFlags> m_needToWaitStages;
 	VkSemaphore m_renderCompleteSemaphore;
 	VkCommandPool m_commandPool;
 

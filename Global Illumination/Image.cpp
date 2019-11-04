@@ -23,7 +23,7 @@ void Image::loadTextureFromFile(Vulkan* vk, std::string path)
 	stbi_image_free(pixels);
 
 	vk->createImage(texWidth, texHeight, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0,
+		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0, VK_IMAGE_LAYOUT_PREINITIALIZED,
 		m_image, m_imageMemory);
 
 	vk->transitionImageLayout(m_image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 1);
@@ -36,4 +36,35 @@ void Image::loadTextureFromFile(Vulkan* vk, std::string path)
 	vkFreeMemory(vk->getDevice(), stagingBufferMemory, nullptr);
 
 	m_imageView = vk->createImageView(m_image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_mipLevels, VK_IMAGE_VIEW_TYPE_2D);
+}
+
+void Image::create(Vulkan* vk, VkExtent2D extent, VkImageUsageFlags usage, VkFormat format, VkSampleCountFlagBits sampleCount, VkImageAspectFlags aspect)
+{
+	m_imageFormat = format;
+
+	vk->createImage(extent.width, extent.height, 1, sampleCount, format, VK_IMAGE_TILING_OPTIMAL,
+		usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0, VK_IMAGE_LAYOUT_UNDEFINED,
+		m_image, m_imageMemory);
+	m_imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	
+	m_imageView = vk->createImageView(m_image, format, aspect, 1, VK_IMAGE_VIEW_TYPE_2D);
+}
+
+void Image::transitionImageLayout(Vulkan* vk, VkImageLayout finalLayout)
+{
+	vk->transitionImageLayout(m_image, m_imageFormat, m_imageLayout, finalLayout, 1, 1);
+}
+
+void Image::createTextureSampler(Vulkan* vk, VkSamplerAddressMode addressMode)
+{
+	m_textureSampler.create(vk, addressMode, static_cast<float>(m_mipLevels), VK_FILTER_LINEAR);
+}
+
+void Image::cleanup(VkDevice device)
+{
+	vkDestroyImageView(device, m_imageView, nullptr);
+	vkDestroyImage(device, m_image, nullptr);
+	vkFreeMemory(device, m_imageMemory, nullptr);
+
+	m_textureSampler.cleanup(device);
 }

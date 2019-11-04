@@ -20,7 +20,6 @@ void MeshPBR::loadObj(Vulkan * vk, std::string path, glm::vec3 forceNormal)
 		std::cout << "[Chargement objet]  Attention : " << warn << " pour " << path << " !" << std::endl;
 #endif // !NDEBUG
 
-
 	std::unordered_map<VertexPBR, uint32_t> uniqueVertices = {};
 
 	for (const auto& shape : shapes)
@@ -97,6 +96,19 @@ void MeshPBR::loadObj(Vulkan * vk, std::string path, glm::vec3 forceNormal)
 
 	createVertexBuffer(vk);
 	createIndexBuffer(vk);
+
+	m_isInitialized = true;
+}
+
+void MeshPBR::loadVertices(Vulkan* vk, std::vector<VertexPBR> vertices, std::vector<uint32_t> indices)
+{
+	m_vertices = vertices;
+	m_indices = indices;
+
+	createVertexBuffer(vk);
+	createIndexBuffer(vk);
+
+	m_isInitialized = true;
 }
 
 int MeshBase::createTexture(Vulkan* vk, uint32_t height, uint32_t width, int mipLevels, int nLayers)
@@ -106,7 +118,7 @@ int MeshBase::createTexture(Vulkan* vk, uint32_t height, uint32_t width, int mip
 	m_mipLevels = mipLevels;
 	vk->createImage(width, height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
-		m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
+		VK_IMAGE_LAYOUT_PREINITIALIZED,	m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
 	vk->transitionImageLayout(m_images[m_images.size() - 1].image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, nLayers);
 
 	return m_images.size() - 1;
@@ -131,7 +143,7 @@ void MeshBase::loadTextureFromImages(Vulkan* vk, std::vector<VkImage> images, ui
 
 		vk->createImage(width, height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
-			m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
+			VK_IMAGE_LAYOUT_PREINITIALIZED,	m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
 		vk->transitionImageLayout(m_images[m_images.size() - 1].image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 1);
 
 		vk->transitionImageLayout(images[i], VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 1, 1);
@@ -173,7 +185,7 @@ void MeshBase::loadCubemapFromFile(Vulkan* vk, std::vector<std::string> path)
 		{
 			vk->createImage(texWidth, texHeight, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
 				VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, path.size(), VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
-				m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
+				VK_IMAGE_LAYOUT_PREINITIALIZED,	m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
 			vk->transitionImageLayout(m_images[m_images.size() - 1].image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, path.size());
 		}
 
@@ -197,7 +209,7 @@ void MeshBase::loadCubemapFromImages(Vulkan* vk, std::array<VkImage, 6> images, 
 
 	vk->createImage(width, height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
-		m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
+		VK_IMAGE_LAYOUT_PREINITIALIZED,	m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
 	vk->transitionImageLayout(m_images[m_images.size() - 1].image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 6);
 
 	for (int i = 0; i < images.size(); ++i)
@@ -254,7 +266,7 @@ void MeshBase::loadHDRTexture(Vulkan* vk, std::vector<std::string> path)
 
 		vk->createImage(texWidth, texHeight, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0,
-			m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
+			VK_IMAGE_LAYOUT_PREINITIALIZED,	m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
 
 		vk->transitionImageLayout(m_images[m_images.size() - 1].image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 1);
 		vk->copyBufferToImage(stagingBuffer, m_images[m_images.size() - 1].image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 0);
@@ -306,6 +318,9 @@ void MeshBase::clearImages(VkDevice device)
 
 void MeshPBR::cleanup(VkDevice device)
 {
+	if (!m_isInitialized)
+		return;
+
 	m_vertices.clear();
 	m_indices.clear();
 
@@ -322,7 +337,7 @@ void MeshPBR::cleanup(VkDevice device)
 		vkFreeMemory(device, m_images[i].imageMemory, nullptr);
 	}
 
-	m_isDestroyed = true;
+	m_isInitialized = false;
 }
 
 void MeshPBR::createVertexBuffer(Vulkan * vk)
@@ -393,7 +408,7 @@ void MeshBase::createTextureImage(Vulkan * vk, std::string path)
 
 	vk->createImage(texWidth, texHeight, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0,
-		m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
+		VK_IMAGE_LAYOUT_PREINITIALIZED, m_images[m_images.size() - 1].image, m_images[m_images.size() - 1].imageMemory);
 
 	vk->transitionImageLayout(m_images[m_images.size() - 1].image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 1);
 	vk->copyBufferToImage(stagingBuffer, m_images[m_images.size() - 1].image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 0);
@@ -421,7 +436,7 @@ void MeshBase::createTextureSampler(Vulkan * vk, VkSamplerAddressMode addressMod
 	samplerInfo.addressModeV = addressMode;
 	samplerInfo.addressModeW = addressMode;
 
-	samplerInfo.anisotropyEnable = VK_FALSE;
+	samplerInfo.anisotropyEnable = VK_TRUE;
 	samplerInfo.maxAnisotropy = 16;
 
 	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -432,7 +447,7 @@ void MeshBase::createTextureSampler(Vulkan * vk, VkSamplerAddressMode addressMod
 	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samplerInfo.mipLodBias = 0.0f;
 	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = 1.0f;// static_cast<float>(m_mipLevels);
+	samplerInfo.maxLod = static_cast<float>(m_mipLevels);
 
 	if (vkCreateSampler(vk->getDevice(), &samplerInfo, nullptr, &m_textureSampler) != VK_SUCCESS)
 		throw std::runtime_error("Erreur : texture sampler");
@@ -465,7 +480,7 @@ void Mesh2D::cleanup(VkDevice device)
 		vkFreeMemory(device, m_images[i].imageMemory, nullptr);
 	}
 
-	m_isDestroyed = true;
+	m_isInitialized = false;
 }
 
 void Mesh2D::createVertexBuffer(Vulkan* vk)
@@ -516,7 +531,7 @@ void Mesh2DTextured::cleanup(VkDevice device)
 		vkFreeMemory(device, m_images[i].imageMemory, nullptr);
 	}
 
-	m_isDestroyed = true;
+	m_isInitialized = false;
 }
 
 void Mesh2DTextured::createVertexBuffer(Vulkan* vk)

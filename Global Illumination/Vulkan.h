@@ -17,10 +17,11 @@ struct QueueFamilyIndices
 {
 	int graphicsFamily = -1;
 	int presentFamily = -1;
+	int computeFamily = -1;
 
 	bool isComplete()
 	{
-		return graphicsFamily >= 0 && presentFamily >= 0;
+		return graphicsFamily >= 0 && presentFamily >= 0 && computeFamily >= 0;
 	}
 };
 
@@ -55,38 +56,12 @@ struct MeshPipeline
 			//vkDestroyPipeline(device, pipeline, nullptr);
 			//vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 		}
+		vkDeviceWaitIdle(device);
 		vkFreeDescriptorSets(device, descriptorPool, descriptorSet.size(), descriptorSet.data());
 		vertexBuffer.clear();
 		indexBuffer.clear();
 		nbIndices.clear();
 		descriptorSet.clear();
-	}
-};
-
-struct FrameBuffer
-{
-	VkImageView imageView = VK_NULL_HANDLE;
-	VkImage image;
-	VkDeviceMemory imageMemory;
-	VkFramebuffer framebuffer;
-
-	VkImage depthImage;
-	VkDeviceMemory depthImageMemory;
-	VkImageView depthImageView;
-
-	void free(VkDevice device)
-	{
-		if (imageView != VK_NULL_HANDLE)
-		{
-			vkDestroyImageView(device, imageView, nullptr);
-			vkDestroyImage(device, image, nullptr);
-			vkFreeMemory(device, imageMemory, nullptr);
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
-		}
-
-		vkDestroyImageView(device, depthImageView, nullptr);
-		vkDestroyImage(device, depthImage, nullptr);
-		vkFreeMemory(device, depthImageMemory, nullptr);
 	}
 };
 
@@ -117,25 +92,25 @@ public:
 	VkExtent2D getSwapChainExtend() { return m_swapChainExtent; }
 	GLFWwindow* getWindow() { return m_window; }
 	VkQueue getGraphicalQueue() { return m_graphicsQueue; }
+	VkQueue getComputeQueue() { return m_computeQueue; }
 	VkSemaphore* getRenderFinishedSemaphore() { return &m_renderFinishedSemaphore; }
 	VkSampleCountFlagBits getMaxMsaaSamples() { return m_maxMsaaSamples; }
 
 	void setRenderFinishedLastRenderPassSemaphore(VkSemaphore semaphore) { m_renderFinishedLastRenderPassSemaphore = semaphore; }
+	void createSwapChain();
 
 private:
 	void createInstance();
 	void setupDebugCallback();
 	void pickPhysicalDevice();
 	void createDevice();
-	void createSwapChain();
-
 	void cleanupSwapChain();
 
 public :
 	VkCommandPool createCommandPool();
-
+	VkCommandPool createComputeCommandPool();
 	void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
-		uint32_t arrayLayers, VkImageCreateFlags flags, VkImage& image, VkDeviceMemory& imageMemory);
+		uint32_t arrayLayers, VkImageCreateFlags flags, VkImageLayout initialLayout, VkImage& image, VkDeviceMemory& imageMemory);
 	void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels, uint32_t arrayLayers);
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	VkCommandBuffer beginSingleTimeCommands();
@@ -157,7 +132,6 @@ public :
 	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t baseArrayLayer);
 	void copyImage(VkImage source, VkImage dst, uint32_t width, uint32_t height, uint32_t baseArrayLayer, uint32_t mipLevel);
-	FrameBuffer createFrameBuffer(VkExtent2D extent, VkRenderPass renderPass, VkSampleCountFlagBits msaaSamples, VkImageView colorImageView, VkFormat depthFormat, VkFormat imageFormat);
 	void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, uint32_t baseArrayLayer);
 	VkSampleCountFlagBits getMaxUsableSampleCount();
 
@@ -213,6 +187,7 @@ protected:
 
 	VkQueue m_graphicsQueue;
 	VkQueue m_presentQueue;
+	VkQueue m_computeQueue;
 
 	VkSwapchainKHR m_swapChain;
 	VkFormat m_swapChainImageFormat;
@@ -234,6 +209,6 @@ protected:
 
 	VkSampleCountFlagBits m_maxMsaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	
-	int m_maxFPS = 60;
+	int m_maxFPS = 0;
 	std::chrono::high_resolution_clock::time_point m_lastFrameTimeCounter = std::chrono::high_resolution_clock::now();
 };

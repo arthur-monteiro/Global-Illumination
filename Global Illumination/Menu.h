@@ -64,14 +64,14 @@ private:
 	const glm::vec3 TEXT_COLOR_DEACTIVATED = glm::vec3(0.3f);
 
 	std::vector<VertexQuad> VERTEX_QUAD = {
-		{ glm::vec2(-1.0f, -1.0f) }, // top left
-		{ glm::vec2(-1.0f, 1.0f) }, // top right
-		{ glm::vec2(1.0f, -1.0f) }, // bot left
-		{ glm::vec2(1.0f, 1.0f) } // bot right
+		{ glm::vec2(-1.0f, -1.0f) }, // bot left
+		{ glm::vec2(-1.0f, 1.0f) }, // top left
+		{ glm::vec2(1.0f, -1.0f) }, // bot right
+		{ glm::vec2(1.0f, 1.0f) } // top right
 	};
 	const std::vector<uint32_t> INDICES_QUAD = {
 			0, 1, 2,
-			1, 2, 3
+			1, 3, 2
 	};
 
 	struct BooleanItem

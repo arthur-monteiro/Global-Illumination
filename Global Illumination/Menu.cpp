@@ -13,10 +13,10 @@ void Menu::initialize(Vulkan* vk, std::string fontPath, std::function<void(void*
 	m_quadFull.loadVertices(vk, VERTEX_QUAD, INDICES_QUAD);
 
 	std::vector<VertexQuadTextured> VERTEX_QUAD_TEXTURED = {
-		{ glm::vec2(0.1f, -0.6f), glm::vec2(0.0f, 0.0f) }, // top left
-		{ glm::vec2(0.9f, -0.6f), glm::vec2(1.0f, 0.0f) }, // top right
-		{ glm::vec2(0.1f, 0.1f), glm::vec2(0.0f, 1.0f) }, // bot left
-		{ glm::vec2(0.9f, 0.1f), glm::vec2(1.0f, 1.0f) } // bot right
+		{ glm::vec2(0.1f, -0.6f), glm::vec2(0.0f, 0.0f) }, // bot left
+		{ glm::vec2(0.1f, 0.1f), glm::vec2(0.0f, 1.0f) }, // top left
+		{ glm::vec2(0.9f, -0.6f), glm::vec2(1.0f, 0.0f) }, // bot right
+		{ glm::vec2(0.9f, 0.1f), glm::vec2(1.0f, 1.0f) } // top right
 	};
 	m_quadImageOption.loadVertices(vk, VERTEX_QUAD_TEXTURED, INDICES_QUAD);
 	m_quadImageOption.createTextureSampler(vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);

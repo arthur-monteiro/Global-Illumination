@@ -155,37 +155,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="ComputePass.cpp" />
+    <ClCompile Include="Attachment.cpp" />
+    <ClCompile Include="Command.cpp" />
+    <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="Image.cpp" />
-    <ClCompile Include="Instance.cpp" />
+    <ClCompile Include="LoadingManager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Menu.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Model.cpp" />
-    <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="RenderPass.cpp" />
-    <ClCompile Include="Sampler.cpp" />
-    <ClCompile Include="System.cpp" />
-    <ClCompile Include="Text.cpp" />
-    <ClCompile Include="UniformBufferObject.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="SwapChain.cpp" />
+    <ClCompile Include="SystemManager.cpp" />
     <ClCompile Include="Vulkan.cpp" />
+    <ClCompile Include="VulkanHelper.cpp" />
+    <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="ComputePass.h" />
+    <ClInclude Include="Attachment.h" />
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="Image.h" />
-    <ClInclude Include="Instance.h" />
-    <ClInclude Include="Menu.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Model.h" />
-    <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="LoadingManager.h" />
     <ClInclude Include="RenderPass.h" />
-    <ClInclude Include="Sampler.h" />
-    <ClInclude Include="System.h" />
-    <ClInclude Include="Text.h" />
-    <ClInclude Include="UniformBufferObject.h" />
+    <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="SwapChain.h" />
+    <ClInclude Include="SystemManager.h" />
     <ClInclude Include="Vulkan.h" />
+    <ClInclude Include="VulkanHelper.h" />
+    <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,26 +1,27 @@
 #pragma once
 
-#include "Vulkan.h"
-#include "Sampler.h"
-
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include <iostream>
+
+#include "VulkanHelper.h"
+
 class Image
 {
 public:
-	void loadTextureFromFile(Vulkan* vk, std::string path);
-	void create(Vulkan* vk, VkExtent2D extent, VkImageUsageFlags usage, VkFormat format, VkSampleCountFlagBits sampleCount, VkImageAspectFlags aspect);
-	void transitionImageLayout(Vulkan* vk, VkImageLayout finalLayout);
-	void createTextureSampler(Vulkan* vk, VkSamplerAddressMode addressMode);
+	void create(VkDevice device, VkPhysicalDevice physicalDevice, VkExtent2D extent, VkImageUsageFlags usage, VkFormat format, VkSampleCountFlagBits sampleCount, VkImageAspectFlags aspect);
+	void createFromImage(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspect, VkExtent2D extent);
 
 	void cleanup(VkDevice device);
 
 	VkImage getImage() { return m_image; }
 	VkDeviceMemory getImageMemory() { return m_imageMemory; }
 	VkImageView getImageView() { return m_imageView; }
-	VkSampler getSampler() { return m_textureSampler.getSampler(); }
+	VkFormat getFormat() { return m_imageFormat; }
+	VkSampleCountFlagBits getSampleCount() { return m_sampleCount; }
+	VkExtent2D getExtent() { return m_extent; }
 
 private:
 	VkImage m_image;
@@ -31,7 +32,13 @@ private:
 	VkFormat m_imageFormat;
 
 	uint32_t m_mipLevels;
+	VkExtent2D m_extent;
+	VkSampleCountFlagBits m_sampleCount;
 
-	Sampler m_textureSampler;
+private:
+	static void createImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, 
+		VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, uint32_t arrayLayers, VkImageCreateFlags flags, VkImageLayout initialLayout, 
+		VkImage& image, VkDeviceMemory& imageMemory);
+	static VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkImageViewType viewType);
+
 };
-

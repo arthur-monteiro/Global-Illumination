@@ -1,63 +1,26 @@
-#include "Image.h"
+﻿#include "Image.h"
 
-void Image::loadTextureFromFile(Vulkan* vk, std::string path)
-{
-	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	VkDeviceSize imageSize = static_cast<uint64_t>(texWidth * texHeight * 4);
-	m_mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
-
-	if (!pixels)
-		throw std::runtime_error("Erreur : chargement de l'image " + path + " !");
-
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
-	vk->createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-	uint8_t* data;
-	vkMapMemory(vk->getDevice(), stagingBufferMemory, 0, imageSize, 0, (void**)& data);
-	memcpy(data, pixels, static_cast<size_t>(imageSize));
-	vkUnmapMemory(vk->getDevice(), stagingBufferMemory);
-
-	stbi_image_free(pixels);
-
-	vk->createImage(texWidth, texHeight, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0, VK_IMAGE_LAYOUT_PREINITIALIZED,
-		m_image, m_imageMemory);
-
-	vk->transitionImageLayout(m_image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 1);
-	vk->copyBufferToImage(stagingBuffer, m_image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 0);
-	//vk->transitionImageLayout(m_textureImage[m_textureImage.size() - 1], VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_mipLevels);
-
-	vk->generateMipmaps(m_image, VK_FORMAT_R8G8B8A8_UNORM, texWidth, texHeight, m_mipLevels, 0);
-
-	vkDestroyBuffer(vk->getDevice(), stagingBuffer, nullptr);
-	vkFreeMemory(vk->getDevice(), stagingBufferMemory, nullptr);
-
-	m_imageView = vk->createImageView(m_image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_mipLevels, VK_IMAGE_VIEW_TYPE_2D);
-}
-
-void Image::create(Vulkan* vk, VkExtent2D extent, VkImageUsageFlags usage, VkFormat format, VkSampleCountFlagBits sampleCount, VkImageAspectFlags aspect)
+void Image::create(VkDevice device, VkPhysicalDevice physicalDevice, VkExtent2D extent, VkImageUsageFlags usage, VkFormat format, VkSampleCountFlagBits sampleCount, VkImageAspectFlags aspect)
 {
 	m_imageFormat = format;
+	m_extent = extent;
+	m_sampleCount = sampleCount;
 
-	vk->createImage(extent.width, extent.height, 1, sampleCount, format, VK_IMAGE_TILING_OPTIMAL,
+	createImage(device, physicalDevice, extent.width, extent.height, 1, sampleCount, format, VK_IMAGE_TILING_OPTIMAL,
 		usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 0, VK_IMAGE_LAYOUT_UNDEFINED,
 		m_image, m_imageMemory);
 	m_imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	
-	m_imageView = vk->createImageView(m_image, format, aspect, 1, VK_IMAGE_VIEW_TYPE_2D);
+
+	m_imageView = createImageView(device, m_image, format, aspect, 1, VK_IMAGE_VIEW_TYPE_2D);
 }
 
-void Image::transitionImageLayout(Vulkan* vk, VkImageLayout finalLayout)
+void Image::createFromImage(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspect, VkExtent2D extent)
 {
-	vk->transitionImageLayout(m_image, m_imageFormat, m_imageLayout, finalLayout, 1, 1);
-}
-
-void Image::createTextureSampler(Vulkan* vk, VkSamplerAddressMode addressMode)
-{
-	m_textureSampler.create(vk, addressMode, static_cast<float>(m_mipLevels), VK_FILTER_LINEAR);
+	m_image = image;
+	m_imageMemory = VK_NULL_HANDLE;
+	m_imageFormat = format;
+	m_imageView = createImageView(device, m_image, format, aspect, 1, VK_IMAGE_VIEW_TYPE_2D);
+	m_extent = extent;
 }
 
 void Image::cleanup(VkDevice device)
@@ -65,6 +28,63 @@ void Image::cleanup(VkDevice device)
 	vkDestroyImageView(device, m_imageView, nullptr);
 	vkDestroyImage(device, m_image, nullptr);
 	vkFreeMemory(device, m_imageMemory, nullptr);
+}
 
-	m_textureSampler.cleanup(device);
+void Image::createImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
+	VkImageUsageFlags usage, VkMemoryPropertyFlags properties, uint32_t arrayLayers, VkImageCreateFlags flags, VkImageLayout initialLayout, VkImage& image, VkDeviceMemory& imageMemory)
+{
+	VkImageCreateInfo imageInfo = {};
+	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	imageInfo.extent.width = width;
+	imageInfo.extent.height = height;
+	imageInfo.extent.depth = 1;
+	imageInfo.mipLevels = mipLevels;
+	imageInfo.arrayLayers = arrayLayers;
+	imageInfo.format = format;
+	imageInfo.tiling = tiling;
+	imageInfo.initialLayout = initialLayout;
+	imageInfo.usage = usage;
+	imageInfo.samples = numSamples;
+	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	imageInfo.flags = flags;
+
+	if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS)
+		throw std::runtime_error("Error : image creation");
+
+	VkMemoryRequirements memRequirements;
+	vkGetImageMemoryRequirements(device, image, &memRequirements);
+
+	VkMemoryAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+
+	if(allocInfo.memoryTypeIndex < 0)
+		throw std::runtime_error("Erreur : aucun type de m�moire ad�quate trouv� !");
+
+	if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
+		throw std::runtime_error("failed to allocate image memory!");
+
+	vkBindImageMemory(device, image, imageMemory, 0);
+}
+
+VkImageView Image::createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkImageViewType viewType)
+{
+	VkImageViewCreateInfo viewInfo = {};
+	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	viewInfo.image = image;
+	viewInfo.viewType = viewType;
+	viewInfo.format = format;
+	viewInfo.subresourceRange.aspectMask = aspectFlags;
+	viewInfo.subresourceRange.baseMipLevel = 0;
+	viewInfo.subresourceRange.levelCount = mipLevels;
+	viewInfo.subresourceRange.baseArrayLayer = 0;
+	viewInfo.subresourceRange.layerCount = 1;
+
+	VkImageView imageView;
+	if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS)
+		throw std::runtime_error("Erreur : Cr�ation d'une image view");
+
+	return imageView;
 }

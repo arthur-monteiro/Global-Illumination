@@ -1,5 +1,12 @@
-﻿  System.cpp
-F:\Code\Global Illumination\Global Illumination\Vulkan.h(60,1): warning C4267:  'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
-F:\Code\Global Illumination\Global Illumination\System.cpp(814,21): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
-F:\Code\Global Illumination\Global Illumination\System.cpp(816,21): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
-  Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe
+﻿  Command.cpp
+F:\Code\Global Illumination\Global Illumination\Command.cpp(18,1): error C2511:  'VkCommandPool Command::createCommandPool(VkDevice,VkPhysicalDevice,VkSurfaceKHR)': overloaded member function not found in 'Command'
+  LoadingManager.cpp
+  main.cpp
+  RenderPass.cpp
+F:\Code\Global Illumination\Global Illumination\Command.h(7): message :  see declaration of 'Command'
+  SceneManager.cpp
+  SwapChain.cpp
+F:\Code\Global Illumination\Global Illumination\RenderPass.cpp(63,59): warning C4267:  '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+  SystemManager.cpp
+  Generating Code...
+F:\Code\Global Illumination\Global Illumination\SwapChain.cpp(58,19): warning C4018:  '<': signed/unsigned mismatch

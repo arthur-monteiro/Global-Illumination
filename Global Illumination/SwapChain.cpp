@@ -1,3 +1,4 @@
+#include <chrono>
 #include "SwapChain.h"
 
 SwapChain::~SwapChain()
@@ -58,6 +59,9 @@ bool SwapChain::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkS
 	for (int i(0); i < imageCount; ++i)
 		m_images[i].createFromImage(device, temporarySwapChainImages[i], surfaceFormat.format, VK_IMAGE_ASPECT_COLOR_BIT, extent);
 
+	m_imageAvailableSemaphore.initialize(device);
+	m_imageAvailableSemaphore.setPipelineStage(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
 	return true;
 }
 
@@ -65,6 +69,16 @@ bool SwapChain::cleanup(VkDevice device)
 {
 	return false;
 }
+
+std::vector<Image *> SwapChain::getImages()
+{
+    std::vector<Image *> r;
+    for(int i(0); i < m_images.size(); ++i)
+        r.push_back(&m_images[i]);
+
+    return r;
+}
+
 
 VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
@@ -116,4 +130,56 @@ VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilit
 
 		return actualExtent;
 	}
+}
+
+uint32_t SwapChain::getCurrentImage(VkDevice device)
+{
+    uint32_t imageIndex;
+    VkResult result = vkAcquireNextImageKHR(device, m_swapChain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore.getSemaphore(), VK_NULL_HANDLE, &imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        //recreateSwapChain();
+        //return;
+    }
+    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+    {
+        throw std::runtime_error("Error : can't acquire image");
+    }
+
+    return imageIndex;
+}
+
+void SwapChain::present(VkQueue presentQueue, VkSemaphore waitSemaphore, uint32_t imageIndex)
+{
+    VkPresentInfoKHR presentInfo = {};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = &waitSemaphore;
+
+    VkSwapchainKHR swapChains[] = { m_swapChain };
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapChains;
+    presentInfo.pImageIndices = &imageIndex;
+
+    /*if (m_maxFPS > 0)
+    {
+        long long microsecondOffset = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - m_lastFrameTimeCounter).count();
+        if (microsecondOffset < (long long)((1.0 / m_maxFPS) * 1'000'000.0))
+        {
+            std::chrono::microseconds timespan((long long)((1.0 / m_maxFPS) * 1'000'000.0) - microsecondOffset - 1000);
+            std::this_thread::sleep_for(timespan);
+        }
+    }
+     m_lastFrameTimeCounter = std::chrono::high_resolution_clock::now();*/
+
+    VkResult result = vkQueuePresentKHR(presentQueue, &presentInfo);
+
+    /*if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+        recreateSwapChain();
+    else if (result != VK_SUCCESS)
+        throw std::runtime_error("Erreur : affichage de la swapchain");*/
+
+    vkQueueWaitIdle(presentQueue);
 }

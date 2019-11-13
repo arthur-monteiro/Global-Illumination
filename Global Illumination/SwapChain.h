@@ -2,6 +2,7 @@
 
 #include "VulkanHelper.h"
 #include "Image.h"
+#include "Semaphore.h"
 
 #include <iostream>
 
@@ -12,11 +13,20 @@ public:
 	~SwapChain();
 
 	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, GLFWwindow* window);
+	uint32_t getCurrentImage(VkDevice device);
+	void present(VkQueue presentQueue, VkSemaphore waitSemaphore, uint32_t imageIndex);
 	bool cleanup(VkDevice device);
+
+// Getters
+public:
+    std::vector<Image*> getImages();
+    Semaphore getImageAvailableSemaphore() { return m_imageAvailableSemaphore; }
 
 private:
 	VkSwapchainKHR m_swapChain;
 	std::vector<Image> m_images;
+
+	Semaphore m_imageAvailableSemaphore;
 
 private:
 	static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);

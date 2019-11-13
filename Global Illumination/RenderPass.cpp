@@ -1,12 +1,14 @@
 #include "RenderPass.h"
 
+#include <utility>
+
 RenderPass::~RenderPass()
 {
 }
 
-bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, std::vector<Attachment> attachments, std::vector<VkExtent2D> extents)
+bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<Attachment>& attachments, std::vector<VkExtent2D> extents)
 {
-	if (attachments.size() == 0)
+	if (attachments.empty())
 		throw std::runtime_error("Can't create RenderPass without attachment");
 
 	m_renderPass = createRenderPass(device, attachments);
@@ -15,23 +17,55 @@ bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 	return true;
 }
 
-bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, std::vector<Attachment> attachments, std::vector<Image*> images)
+bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<Attachment>& attachments, std::vector<Image*> images)
 {
-	if (attachments.size() == 0)
+	if (attachments.empty())
 		throw std::runtime_error("Can't create RenderPass without attachment");
 
 	m_renderPass = createRenderPass(device, attachments);
 	m_command.initialize(device, physicalDevice, surface);
+	m_command.allocateCommandBuffers(device, images.size());
 
-	m_framebuffers.resize(images.size());
+    m_framebuffers.resize(images.size());
 	for (int i(0); i < images.size(); ++i)
 		m_framebuffers[i].initialize(device, physicalDevice, m_renderPass, images[i], attachments);
 
+    m_renderCompleteSemaphore.initialize(device);
+
 	return true;
 }
 
-void RenderPass::submit(VkDevice device)
+void RenderPass::fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues)
 {
+    m_command.fillCommandBuffer(device, framebufferID, m_renderPass, m_framebuffers[framebufferID].getFramebuffer(), m_framebuffers[framebufferID].getExtent(),
+            std::move(clearValues));
+}
+
+void RenderPass::submit(VkDevice device, VkQueue graphicsQueue, size_t framebufferID, std::vector<Semaphore> waitSemaphores)
+{
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    submitInfo.waitSemaphoreCount = waitSemaphores.size();
+    std::vector<VkSemaphore> semaphores;
+    std::vector<VkPipelineStageFlags> stages;
+    for(int i(0); i < waitSemaphores.size(); ++i)
+    {
+        semaphores.push_back(waitSemaphores[i].getSemaphore());
+        stages.push_back(waitSemaphores[i].getPipelineStage());
+    }
+    submitInfo.pWaitSemaphores = semaphores.data();
+    submitInfo.pWaitDstStageMask = stages.data();
+    submitInfo.commandBufferCount = 1;
+    VkCommandBuffer commandBuffer = m_command.getCommandBuffer(framebufferID);
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    VkSemaphore signalSemaphores[] = { m_renderCompleteSemaphore.getSemaphore() };
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+
+    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+        throw std::runtime_error("Error : queue submit");
 }
 
 VkRenderPass RenderPass::createRenderPass(VkDevice device, std::vector<Attachment> attachments)

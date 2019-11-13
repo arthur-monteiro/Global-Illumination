@@ -8,7 +8,12 @@ public:
 	SceneManager() {}
 	~SceneManager();
 
-	bool initialize();
+	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, std::vector<Image*> swapChainImages);
+	void submit(VkDevice device, VkQueue graphicsQueue, uint32_t swapChainImageIndex, Semaphore imageAvailableSemaphore);
+
+// Getter
+public:
+    VkSemaphore getLastRenderFinishedSemaphore();
 
 private:
 	LoadingManager m_loadingManager;

@@ -20,14 +20,16 @@ bool Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, V
 
 bool Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, Image* image, std::vector<Attachment> attachments)
 {
+    m_extent = image->getExtent();
+
 	// Find result image
 	VkImageUsageFlagBits resultType = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	int nbImage = 0;
 	for (int i(0); i < attachments.size(); ++i)
 	{
-		if (attachments[i].getUsageType() == VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT)
-			resultType = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
-		else if(attachments[i].getUsageType() == VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT && resultType != VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+		if (attachments[i].getUsageType() == (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT))
+			resultType = static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT);
+		else if(attachments[i].getUsageType() == VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT && resultType == VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 			resultType = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 	}
 	for (int i(0); i < attachments.size(); ++i)

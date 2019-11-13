@@ -22,6 +22,8 @@ public:
 	VkDevice getDevice() { return m_device; }
 	VkPhysicalDevice getPhysicalDevice() { return m_physicalDevice; }
 	VkSurfaceKHR getSurface() { return m_surface; }
+	VkQueue getGraphicsQueue() { return m_graphicsQueue; }
+	VkQueue getPresentQueue() { return m_presentQueue; }
 
 private:
 	/* Main Loading Functions */

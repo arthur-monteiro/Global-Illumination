@@ -1,0 +1,72 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Attachment.h
+VulkanHelper.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
+Image.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Image.h
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Command.h
+array
+-
+VulkanHelper.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Framebuffer.h
+VulkanHelper.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
+Attachment.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Attachment.h
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Image.h
+stb_image.h
+-
+iostream
+-
+VulkanHelper.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.cpp
+RenderPass.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.h
+utility
+-
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.h
+iostream
+-
+VulkanHelper.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
+Command.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Command.h
+Framebuffer.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Framebuffer.h
+Attachment.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Attachment.h
+Semaphore.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Semaphore.h
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Semaphore.h
+VulkanHelper.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
+GLFW/glfw3.h
+-
+vector
+-
+algorithm
+-
+set
+-
+string
+-
+iostream
+-
+

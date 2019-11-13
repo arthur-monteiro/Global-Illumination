@@ -11,7 +11,7 @@ bool Command::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSur
 	return true;
 }
 
-void Command::allocationCommandBuffers(VkDevice device, size_t size)
+void Command::allocateCommandBuffers(VkDevice device, size_t size)
 {
 	m_commandBuffers.resize(size);
 

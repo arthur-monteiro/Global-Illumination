@@ -1,0 +1,14 @@
+//
+// Created by arthur on 11/14/19.
+//
+
+#ifndef GLOBAL_ILLUMINATION_SCENEELEMENT_H
+#define GLOBAL_ILLUMINATION_SCENEELEMENT_H
+
+
+class SceneElement {
+
+};
+
+
+#endif //GLOBAL_ILLUMINATION_SCENEELEMENT_H

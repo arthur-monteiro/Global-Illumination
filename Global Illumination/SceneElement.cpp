@@ -1,5 +1,11 @@
-//
-// Created by arthur on 11/14/19.
-//
-
 #include "SceneElement.h"
+
+SceneElement::~SceneElement()
+{
+
+}
+
+bool SceneElement::initialize(VkDevice device)
+{
+    return false;
+}

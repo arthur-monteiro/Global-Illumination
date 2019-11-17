@@ -32,7 +32,7 @@ add_executable(Global_Illumination
         VulkanHelper.cpp
         VulkanHelper.h
         WindowManager.cpp
-        WindowManager.h Semaphore.cpp Semaphore.h)
+        WindowManager.h Semaphore.cpp Semaphore.h SceneElement.cpp SceneElement.h Model.cpp Model.h Mesh.cpp Mesh.h Mesh2D.cpp Mesh2D.h)
 
 target_include_directories(Global_Illumination PRIVATE /usr/include/freetype2)
 target_link_libraries(Global_Illumination Vulkan::Vulkan)

@@ -1,14 +1,24 @@
-//
-// Created by arthur on 11/14/19.
-//
+#pragma once
 
-#ifndef GLOBAL_ILLUMINATION_MESH_H
-#define GLOBAL_ILLUMINATION_MESH_H
+#include "VulkanHelper.h"
 
+#include <cstring>
 
-class Mesh {
+class MeshBase
+{
+public:
+    virtual ~MeshBase();
 
+protected:
+    // Vertex
+    VkBuffer m_vertexBuffer;
+    VkDeviceMemory m_vertexBufferMemory;
+
+    // Indices
+    std::vector<uint32_t> m_indices;
+    VkBuffer m_indexBuffer;
+    VkDeviceMemory m_indexBufferMemory;
+
+protected:
+    static void createVertexBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize size, void* data);
 };
-
-
-#endif //GLOBAL_ILLUMINATION_MESH_H

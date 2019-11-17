@@ -1,14 +1,13 @@
-//
-// Created by arthur on 11/14/19.
-//
+#pragma once
 
-#ifndef GLOBAL_ILLUMINATION_MODEL_H
-#define GLOBAL_ILLUMINATION_MODEL_H
+#include "Mesh.h"
 
+class Model
+{
+public:
+    Model() = default;
+    ~Model();
 
-class Model {
-
+private:
+    
 };
-
-
-#endif //GLOBAL_ILLUMINATION_MODEL_H

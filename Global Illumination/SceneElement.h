@@ -1,14 +1,16 @@
-//
-// Created by arthur on 11/14/19.
-//
+#pragma once
 
-#ifndef GLOBAL_ILLUMINATION_SCENEELEMENT_H
-#define GLOBAL_ILLUMINATION_SCENEELEMENT_H
+#include "VulkanHelper.h"
+#include "Model.h"
 
+class SceneElement
+{
+public:
+    SceneElement() = default;
+    ~SceneElement();
 
-class SceneElement {
+    bool initialize(VkDevice device);
+
+private:
 
 };
-
-
-#endif //GLOBAL_ILLUMINATION_SCENEELEMENT_H

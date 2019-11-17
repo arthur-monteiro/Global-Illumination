@@ -258,6 +258,87 @@ LoadingManager.cpp.s:
 	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/LoadingManager.cpp.s
 .PHONY : LoadingManager.cpp.s
 
+Mesh.o: Mesh.cpp.o
+
+.PHONY : Mesh.o
+
+# target to build an object file
+Mesh.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Mesh.cpp.o
+.PHONY : Mesh.cpp.o
+
+Mesh.i: Mesh.cpp.i
+
+.PHONY : Mesh.i
+
+# target to preprocess a source file
+Mesh.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Mesh.cpp.i
+.PHONY : Mesh.cpp.i
+
+Mesh.s: Mesh.cpp.s
+
+.PHONY : Mesh.s
+
+# target to generate assembly for a file
+Mesh.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Mesh.cpp.s
+.PHONY : Mesh.cpp.s
+
+Mesh2D.o: Mesh2D.cpp.o
+
+.PHONY : Mesh2D.o
+
+# target to build an object file
+Mesh2D.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.o
+.PHONY : Mesh2D.cpp.o
+
+Mesh2D.i: Mesh2D.cpp.i
+
+.PHONY : Mesh2D.i
+
+# target to preprocess a source file
+Mesh2D.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.i
+.PHONY : Mesh2D.cpp.i
+
+Mesh2D.s: Mesh2D.cpp.s
+
+.PHONY : Mesh2D.s
+
+# target to generate assembly for a file
+Mesh2D.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.s
+.PHONY : Mesh2D.cpp.s
+
+Model.o: Model.cpp.o
+
+.PHONY : Model.o
+
+# target to build an object file
+Model.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Model.cpp.o
+.PHONY : Model.cpp.o
+
+Model.i: Model.cpp.i
+
+.PHONY : Model.i
+
+# target to preprocess a source file
+Model.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Model.cpp.i
+.PHONY : Model.cpp.i
+
+Model.s: Model.cpp.s
+
+.PHONY : Model.s
+
+# target to generate assembly for a file
+Model.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Model.cpp.s
+.PHONY : Model.cpp.s
+
 RenderPass.o: RenderPass.cpp.o
 
 .PHONY : RenderPass.o
@@ -284,6 +365,33 @@ RenderPass.s: RenderPass.cpp.s
 RenderPass.cpp.s:
 	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/RenderPass.cpp.s
 .PHONY : RenderPass.cpp.s
+
+SceneElement.o: SceneElement.cpp.o
+
+.PHONY : SceneElement.o
+
+# target to build an object file
+SceneElement.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/SceneElement.cpp.o
+.PHONY : SceneElement.cpp.o
+
+SceneElement.i: SceneElement.cpp.i
+
+.PHONY : SceneElement.i
+
+# target to preprocess a source file
+SceneElement.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/SceneElement.cpp.i
+.PHONY : SceneElement.cpp.i
+
+SceneElement.s: SceneElement.cpp.s
+
+.PHONY : SceneElement.s
+
+# target to generate assembly for a file
+SceneElement.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/SceneElement.cpp.s
+.PHONY : SceneElement.cpp.s
 
 SceneManager.o: SceneManager.cpp.o
 
@@ -525,9 +633,21 @@ help:
 	@echo "... LoadingManager.o"
 	@echo "... LoadingManager.i"
 	@echo "... LoadingManager.s"
+	@echo "... Mesh.o"
+	@echo "... Mesh.i"
+	@echo "... Mesh.s"
+	@echo "... Mesh2D.o"
+	@echo "... Mesh2D.i"
+	@echo "... Mesh2D.s"
+	@echo "... Model.o"
+	@echo "... Model.i"
+	@echo "... Model.s"
 	@echo "... RenderPass.o"
 	@echo "... RenderPass.i"
 	@echo "... RenderPass.s"
+	@echo "... SceneElement.o"
+	@echo "... SceneElement.i"
+	@echo "... SceneElement.s"
 	@echo "... SceneManager.o"
 	@echo "... SceneManager.i"
 	@echo "... SceneManager.s"

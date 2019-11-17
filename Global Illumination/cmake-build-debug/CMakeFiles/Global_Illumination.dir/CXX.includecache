@@ -32,11 +32,13 @@ iostream
 VulkanHelper.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
 
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.cpp
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/LoadingManager.cpp
+LoadingManager.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/LoadingManager.h
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/LoadingManager.h
 RenderPass.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.h
-utility
--
 
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.h
 iostream
@@ -52,7 +54,51 @@ Attachment.h
 Semaphore.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Semaphore.h
 
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneManager.cpp
+SceneManager.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneManager.h
+utility
+-
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneManager.h
+LoadingManager.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/LoadingManager.h
+
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Semaphore.h
+VulkanHelper.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SwapChain.h
+VulkanHelper.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
+Image.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Image.h
+Semaphore.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Semaphore.h
+iostream
+-
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SystemManager.cpp
+SystemManager.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SystemManager.h
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SystemManager.h
+SceneManager.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneManager.h
+WindowManager.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/WindowManager.h
+Vulkan.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Vulkan.h
+SwapChain.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SwapChain.h
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Vulkan.h
+GLFW/glfw3.h
+-
+iostream
+-
+set
+-
 VulkanHelper.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
 
@@ -67,6 +113,20 @@ set
 -
 string
 -
+iostream
+-
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/WindowManager.h
+GLFW/glfw3.h
+-
+iostream
+-
+functional
+-
+
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/main.cpp
+SystemManager.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SystemManager.h
 iostream
 -
 

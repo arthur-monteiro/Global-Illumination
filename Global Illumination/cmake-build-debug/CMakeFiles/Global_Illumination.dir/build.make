@@ -239,6 +239,58 @@ CMakeFiles/Global_Illumination.dir/Semaphore.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Global_Illumination.dir/Semaphore.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Semaphore.cpp" -o CMakeFiles/Global_Illumination.dir/Semaphore.cpp.s
 
+CMakeFiles/Global_Illumination.dir/SceneElement.cpp.o: CMakeFiles/Global_Illumination.dir/flags.make
+CMakeFiles/Global_Illumination.dir/SceneElement.cpp.o: ../SceneElement.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/Global_Illumination.dir/SceneElement.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Global_Illumination.dir/SceneElement.cpp.o -c "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneElement.cpp"
+
+CMakeFiles/Global_Illumination.dir/SceneElement.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Global_Illumination.dir/SceneElement.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneElement.cpp" > CMakeFiles/Global_Illumination.dir/SceneElement.cpp.i
+
+CMakeFiles/Global_Illumination.dir/SceneElement.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Global_Illumination.dir/SceneElement.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneElement.cpp" -o CMakeFiles/Global_Illumination.dir/SceneElement.cpp.s
+
+CMakeFiles/Global_Illumination.dir/Model.cpp.o: CMakeFiles/Global_Illumination.dir/flags.make
+CMakeFiles/Global_Illumination.dir/Model.cpp.o: ../Model.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/Global_Illumination.dir/Model.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Global_Illumination.dir/Model.cpp.o -c "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model.cpp"
+
+CMakeFiles/Global_Illumination.dir/Model.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Global_Illumination.dir/Model.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model.cpp" > CMakeFiles/Global_Illumination.dir/Model.cpp.i
+
+CMakeFiles/Global_Illumination.dir/Model.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Global_Illumination.dir/Model.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model.cpp" -o CMakeFiles/Global_Illumination.dir/Model.cpp.s
+
+CMakeFiles/Global_Illumination.dir/Mesh.cpp.o: CMakeFiles/Global_Illumination.dir/flags.make
+CMakeFiles/Global_Illumination.dir/Mesh.cpp.o: ../Mesh.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/Global_Illumination.dir/Mesh.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Global_Illumination.dir/Mesh.cpp.o -c "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh.cpp"
+
+CMakeFiles/Global_Illumination.dir/Mesh.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Global_Illumination.dir/Mesh.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh.cpp" > CMakeFiles/Global_Illumination.dir/Mesh.cpp.i
+
+CMakeFiles/Global_Illumination.dir/Mesh.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Global_Illumination.dir/Mesh.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh.cpp" -o CMakeFiles/Global_Illumination.dir/Mesh.cpp.s
+
+CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.o: CMakeFiles/Global_Illumination.dir/flags.make
+CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.o: ../Mesh2D.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.o -c "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh2D.cpp"
+
+CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh2D.cpp" > CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.i
+
+CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh2D.cpp" -o CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.s
+
 # Object files for target Global_Illumination
 Global_Illumination_OBJECTS = \
 "CMakeFiles/Global_Illumination.dir/Attachment.cpp.o" \
@@ -254,7 +306,11 @@ Global_Illumination_OBJECTS = \
 "CMakeFiles/Global_Illumination.dir/Vulkan.cpp.o" \
 "CMakeFiles/Global_Illumination.dir/VulkanHelper.cpp.o" \
 "CMakeFiles/Global_Illumination.dir/WindowManager.cpp.o" \
-"CMakeFiles/Global_Illumination.dir/Semaphore.cpp.o"
+"CMakeFiles/Global_Illumination.dir/Semaphore.cpp.o" \
+"CMakeFiles/Global_Illumination.dir/SceneElement.cpp.o" \
+"CMakeFiles/Global_Illumination.dir/Model.cpp.o" \
+"CMakeFiles/Global_Illumination.dir/Mesh.cpp.o" \
+"CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.o"
 
 # External object files for target Global_Illumination
 Global_Illumination_EXTERNAL_OBJECTS =
@@ -273,11 +329,15 @@ Global_Illumination: CMakeFiles/Global_Illumination.dir/Vulkan.cpp.o
 Global_Illumination: CMakeFiles/Global_Illumination.dir/VulkanHelper.cpp.o
 Global_Illumination: CMakeFiles/Global_Illumination.dir/WindowManager.cpp.o
 Global_Illumination: CMakeFiles/Global_Illumination.dir/Semaphore.cpp.o
+Global_Illumination: CMakeFiles/Global_Illumination.dir/SceneElement.cpp.o
+Global_Illumination: CMakeFiles/Global_Illumination.dir/Model.cpp.o
+Global_Illumination: CMakeFiles/Global_Illumination.dir/Mesh.cpp.o
+Global_Illumination: CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.o
 Global_Illumination: CMakeFiles/Global_Illumination.dir/build.make
 Global_Illumination: /usr/lib/x86_64-linux-gnu/libvulkan.so
 Global_Illumination: /usr/lib/x86_64-linux-gnu/libglfw.so.3.2
 Global_Illumination: CMakeFiles/Global_Illumination.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_15) "Linking CXX executable Global_Illumination"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_19) "Linking CXX executable Global_Illumination"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Global_Illumination.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

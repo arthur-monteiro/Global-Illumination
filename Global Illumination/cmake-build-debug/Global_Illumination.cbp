@@ -118,10 +118,34 @@
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/LoadingManager.h">
 			<Option target="Global_Illumination"/>
 		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh2D.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh2D.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.cpp">
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneElement.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneElement.h">
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneManager.cpp">

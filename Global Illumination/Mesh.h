@@ -20,5 +20,5 @@ protected:
     VkDeviceMemory m_indexBufferMemory;
 
 protected:
-    static void createVertexBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize size, void* data);
+    void createVertexBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize size, void* data);
 };

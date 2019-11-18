@@ -161,8 +161,13 @@
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="LoadingManager.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Mesh2D.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="RenderPass.cpp" />
+    <ClCompile Include="SceneElement.cpp" />
     <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="Semaphore.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="SystemManager.cpp" />
     <ClCompile Include="Vulkan.cpp" />
@@ -175,8 +180,13 @@
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="LoadingManager.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Mesh2D.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="RenderPass.h" />
+    <ClInclude Include="SceneElement.h" />
     <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="Semaphore.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="SystemManager.h" />
     <ClInclude Include="Vulkan.h" />

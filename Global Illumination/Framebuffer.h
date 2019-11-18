@@ -9,7 +9,7 @@ public:
 	Framebuffer() {}
 	~Framebuffer();
 
-	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkExtent2D extent, std::vector<Attachment> attachments);
+	//bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkExtent2D extent, std::vector<Attachment> attachments);
 	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, Image * image, std::vector<Attachment> attachments);
 
 	VkFramebuffer getFramebuffer() { return m_framebuffer; }

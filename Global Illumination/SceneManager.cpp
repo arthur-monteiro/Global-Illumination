@@ -6,9 +6,9 @@ SceneManager::~SceneManager()
 {
 }
 
-bool SceneManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, std::vector<Image*> swapChainImages)
+bool SceneManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkQueue graphicsQueue, std::vector<Image*> swapChainImages)
 {
-	m_loadingManager.initialize(device, physicalDevice, surface, std::move(swapChainImages));
+	m_loadingManager.initialize(device, physicalDevice, surface, graphicsQueue, std::move(swapChainImages));
 
 	return true;
 }

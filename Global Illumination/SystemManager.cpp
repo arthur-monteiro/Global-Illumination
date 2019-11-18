@@ -16,7 +16,7 @@ bool SystemManager::initialize()
 
 	m_swapChain.initialize(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_vulkan.getSurface(), m_windowManager.getWindow());
 
-	m_sceneManager.initialize(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_vulkan.getSurface(), m_swapChain.getImages());
+	m_sceneManager.initialize(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_vulkan.getSurface(), m_vulkan.getGraphicsQueue(), m_swapChain.getImages());
 
 	return true;
 }

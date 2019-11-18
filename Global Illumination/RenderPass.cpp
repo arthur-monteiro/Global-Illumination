@@ -6,7 +6,7 @@ RenderPass::~RenderPass()
 {
 }
 
-bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<Attachment>& attachments, std::vector<VkExtent2D> extents)
+bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, const std::vector<Attachment>& attachments, std::vector<VkExtent2D> extents)
 {
 	if (attachments.empty())
 		throw std::runtime_error("Can't create RenderPass without attachment");
@@ -17,14 +17,14 @@ bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 	return true;
 }
 
-bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<Attachment>& attachments, std::vector<Image*> images)
+bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, const std::vector<Attachment>& attachments, std::vector<Image*> images)
 {
 	if (attachments.empty())
 		throw std::runtime_error("Can't create RenderPass without attachment");
 
 	m_renderPass = createRenderPass(device, attachments);
 	m_command.initialize(device, physicalDevice, surface);
-	m_command.allocateCommandBuffers(device, images.size());
+	m_command.allocateCommandBuffers(device, commandPool, images.size());
 
     m_framebuffers.resize(images.size());
 	for (int i(0); i < images.size(); ++i)
@@ -35,7 +35,7 @@ bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 	return true;
 }
 
-void RenderPass::fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues)
+void RenderPass::fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues, std::vector<Renderer*> renderers)
 {
     m_command.fillCommandBuffer(device, framebufferID, m_renderPass, m_framebuffers[framebufferID].getFramebuffer(), m_framebuffers[framebufferID].getExtent(),
             std::move(clearValues));

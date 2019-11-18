@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -157,13 +157,16 @@
   <ItemGroup>
     <ClCompile Include="Attachment.cpp" />
     <ClCompile Include="Command.cpp" />
+    <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="LoadingManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Mesh2D.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Model2D.cpp" />
+    <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="SceneElement.cpp" />
     <ClCompile Include="SceneManager.cpp" />
@@ -177,12 +180,15 @@
   <ItemGroup>
     <ClInclude Include="Attachment.h" />
     <ClInclude Include="Command.h" />
+    <ClInclude Include="CommandPool.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="LoadingManager.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Mesh2D.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="Model2D.h" />
+    <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="SceneElement.h" />
     <ClInclude Include="SceneManager.h" />

@@ -4,19 +4,19 @@ Framebuffer::~Framebuffer()
 {
 }
 
-bool Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkExtent2D extent, std::vector<Attachment> attachments)
-{
-	/*VkFramebufferCreateInfo framebufferInfo = {};
-	framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-	framebufferInfo.renderPass = renderPass;
-	framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-	framebufferInfo.pAttachments = attachments.data();
-	framebufferInfo.width = extent.width;
-	framebufferInfo.height = extent.height;
-	framebufferInfo.layers = 1;
-
-	return vkCreateFramebuffer(device, &framebufferInfo, nullptr, &m_framebuffer) != VK_SUCCESS;*/
-}
+//bool Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkExtent2D extent, std::vector<Attachment> attachments)
+//{
+//	VkFramebufferCreateInfo framebufferInfo = {};
+//	framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+//	framebufferInfo.renderPass = renderPass;
+//	framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+//	framebufferInfo.pAttachments = attachments.data();
+//	framebufferInfo.width = extent.width;
+//	framebufferInfo.height = extent.height;
+//	framebufferInfo.layers = 1;
+//
+//	return vkCreateFramebuffer(device, &framebufferInfo, nullptr, &m_framebuffer) != VK_SUCCESS;
+//}
 
 bool Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, Image* image, std::vector<Attachment> attachments)
 {

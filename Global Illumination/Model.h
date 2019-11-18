@@ -5,8 +5,7 @@
 class Model
 {
 public:
-    Model() = default;
-    ~Model();
+    virtual ~Model();
 
 private:
     

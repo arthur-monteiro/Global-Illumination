@@ -20,9 +20,12 @@
     <ClCompile Include="Attachment.cpp" />
     <ClCompile Include="Semaphore.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Mesh2D.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="SceneElement.cpp" />
+    <ClCompile Include="Model2D.cpp" />
+    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="CommandPool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -41,9 +44,12 @@
     <ClInclude Include="Attachment.h" />
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Mesh2D.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="SceneElement.h" />
+    <ClInclude Include="Model2D.h" />
+    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="CommandPool.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

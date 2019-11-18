@@ -7,17 +7,18 @@
 #include "Framebuffer.h"
 #include "Attachment.h"
 #include "Semaphore.h"
+#include "Renderer.h"
 
 class RenderPass
 {
 public:
-	RenderPass() {}
+	RenderPass() = default;
 	~RenderPass();
 
-	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<Attachment>& attachments, std::vector<VkExtent2D> extents);
-	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<Attachment>& attachments, std::vector<Image*> images);
+	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, const std::vector<Attachment>& attachments, std::vector<VkExtent2D> extents);
+	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, const std::vector<Attachment>& attachments, std::vector<Image*> images);
 
-	void fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues);
+	void fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues, std::vector<Renderer*> renderers);
 
 	void submit(VkDevice device, VkQueue graphicsQueue, size_t framebufferID, std::vector<Semaphore> waitSemaphores);
 

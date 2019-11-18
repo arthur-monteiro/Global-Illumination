@@ -6,18 +6,16 @@ Command::~Command()
 
 bool Command::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
 {
-	m_commandPool = createCommandPool(device, physicalDevice, surface);
-
 	return true;
 }
 
-void Command::allocateCommandBuffers(VkDevice device, size_t size)
+void Command::allocateCommandBuffers(VkDevice device, VkCommandPool commandPool, size_t size)
 {
 	m_commandBuffers.resize(size);
 
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandPool = m_commandPool;
+	allocInfo.commandPool = commandPool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfo.commandBufferCount = (uint32_t)m_commandBuffers.size();
 
@@ -49,20 +47,4 @@ void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, VkRende
 
 	if (vkEndCommandBuffer(m_commandBuffers[commandBufferID]) != VK_SUCCESS)
 		throw std::runtime_error("Error : end command buffer");
-}
-
-VkCommandPool Command::createCommandPool(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
-{
-	VkCommandPool commandPool;
-
-	QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice, surface);
-
-	VkCommandPoolCreateInfo poolInfo = {};
-	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
-
-	if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
-		throw std::runtime_error("Error : create command pool");
-
-	return commandPool;
 }

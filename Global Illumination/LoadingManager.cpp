@@ -22,7 +22,7 @@ bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 		});
 
 	// Quad renderer
-	m_quadRenderer.initialize(device, "Shaders/loading/quadVertex.spv", "Shaders/loading/quadFragment.spv");
+	m_quadRenderer.initialize(device, "Shaders/loading/quadVertex.spv", "Shaders/loading/quadFragment.spv", { Vertex2D::getBindingDescription(0) }, Vertex2D::getAttributeDescriptions(0), {}, {}, { true });
 	m_quadRenderer.addModel(&m_quad);
 
 	/* Main Render Pass*/
@@ -51,6 +51,14 @@ bool LoadingManager::submit(VkDevice device, VkQueue graphicsQueue, uint32_t swa
     m_mainRenderPass.submit(device, graphicsQueue, swapChainImageIndex, { imageAvailableSemaphore });
 
     return true;
+}
+
+void LoadingManager::cleanup(VkDevice device)
+{
+	m_mainRenderPass.cleanup(device);
+	m_uniqueCommandPool.cleanup(device);
+	m_quadRenderer.cleanup(device);
+	m_quad.cleanup(device);
 }
 
 VkSemaphore LoadingManager::getLastRenderFinishedSemaphore()

@@ -5,8 +5,20 @@ Pipeline::~Pipeline()
 }
 
 void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
-	std::vector<VkVertexInputAttributeDescription> attributeInputDescription, VkExtent2D extent, VkSampleCountFlagBits msaaSamples, std::vector<bool> alphaBlending)
+	std::vector<VkVertexInputAttributeDescription> attributeInputDescription, VkExtent2D extent, VkSampleCountFlagBits msaaSamples, std::vector<bool> alphaBlending, 
+	VkDescriptorSetLayout* descriptorSetLayout)
 {
+	/* Pipeline layout */
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount = 1;
+	pipelineLayoutInfo.pSetLayouts = descriptorSetLayout;
+	pipelineLayoutInfo.pushConstantRangeCount = 0;
+
+	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
+		throw std::runtime_error("Error : create pipeline layout");
+
+
 	/* Shaders */
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
@@ -135,11 +147,27 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
+	VkPipelineDepthStencilStateCreateInfo depthStencil = {};
+	depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	depthStencil.depthTestEnable = VK_TRUE;
+	depthStencil.depthWriteEnable = VK_TRUE;
+	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+	depthStencil.depthBoundsTestEnable = VK_FALSE;
+	depthStencil.stencilTestEnable = VK_FALSE;
+
+	pipelineInfo.pDepthStencilState = &depthStencil;
+
 	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline) != VK_SUCCESS)
 		throw std::runtime_error("Error : graphic pipeline creation");
 
 	vkDestroyShaderModule(device, vertShaderModule, nullptr);
 	vkDestroyShaderModule(device, fragShaderModule, nullptr);
+}
+
+void Pipeline::cleanup(VkDevice device)
+{
+	vkDestroyPipeline(device, m_pipeline, nullptr);
+	vkDestroyPipelineLayout(device, m_pipelineLayout, nullptr);
 }
 
 std::vector<char> Pipeline::readFile(const std::string& filename)

@@ -18,6 +18,11 @@ void SceneManager::submit(VkDevice device, VkQueue graphicsQueue, uint32_t swapC
     m_loadingManager.submit(device, graphicsQueue, swapChainImageIndex, imageAvailableSemaphore);
 }
 
+void SceneManager::cleanup(VkDevice device)
+{
+	m_loadingManager.cleanup(device);
+}
+
 VkSemaphore SceneManager::getLastRenderFinishedSemaphore()
 {
     return m_loadingManager.getLastRenderFinishedSemaphore();

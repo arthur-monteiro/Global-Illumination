@@ -37,8 +37,13 @@ bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 
 void RenderPass::fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues, std::vector<Renderer*> renderers)
 {
+	for (int i(0); i < renderers.size(); ++i)
+	{
+		renderers[i]->createPipeline(device, m_renderPass, m_framebuffers[framebufferID].getExtent(), VK_SAMPLE_COUNT_1_BIT);
+	}
+
     m_command.fillCommandBuffer(device, framebufferID, m_renderPass, m_framebuffers[framebufferID].getFramebuffer(), m_framebuffers[framebufferID].getExtent(),
-            std::move(clearValues));
+            std::move(clearValues), renderers);
 }
 
 void RenderPass::submit(VkDevice device, VkQueue graphicsQueue, size_t framebufferID, std::vector<Semaphore> waitSemaphores)
@@ -66,6 +71,24 @@ void RenderPass::submit(VkDevice device, VkQueue graphicsQueue, size_t framebuff
 
     if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
         throw std::runtime_error("Error : queue submit");
+}
+
+void RenderPass::recreate(VkDevice device, VkPhysicalDevice physicalDevice, const std::vector<Attachment>& attachments, std::vector<Image*> images)
+{
+	for (int i(0); i < m_framebuffers.size(); ++i)
+		m_framebuffers[i].cleanup(device);
+
+	for (int i(0); i < m_framebuffers.size(); ++i)
+		m_framebuffers[i].initialize(device, physicalDevice, m_renderPass, images[i], attachments);
+}
+
+void RenderPass::cleanup(VkDevice device)
+{
+	vkDestroyRenderPass(device, m_renderPass, nullptr);
+	m_command.cleanup(device);
+	for (int i(0); i < m_framebuffers.size(); ++i)
+		m_framebuffers[i].cleanup(device);
+	m_renderCompleteSemaphore.cleanup(device);
 }
 
 VkRenderPass RenderPass::createRenderPass(VkDevice device, std::vector<Attachment> attachments)

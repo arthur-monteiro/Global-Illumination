@@ -19,8 +19,10 @@ public:
 	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, const std::vector<Attachment>& attachments, std::vector<Image*> images);
 
 	void fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues, std::vector<Renderer*> renderers);
-
 	void submit(VkDevice device, VkQueue graphicsQueue, size_t framebufferID, std::vector<Semaphore> waitSemaphores);
+	void recreate(VkDevice device, VkPhysicalDevice physicalDevice, const std::vector<Attachment>& attachments, std::vector<Image*> images);
+
+	void cleanup(VkDevice device);
 
 // Getters
 public:

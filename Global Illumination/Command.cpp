@@ -23,7 +23,8 @@ void Command::allocateCommandBuffers(VkDevice device, VkCommandPool commandPool,
 		throw std::runtime_error("Error : command buffer allocation");
 }
 
-void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, VkRenderPass renderPass, VkFramebuffer framebuffer, VkExtent2D extent, std::vector<VkClearValue> clearValues)
+void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, VkRenderPass renderPass, VkFramebuffer framebuffer, VkExtent2D extent, std::vector<VkClearValue> clearValues,
+	std::vector<Renderer*> renderers)
 {
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -43,8 +44,32 @@ void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, VkRende
 
 	vkCmdBeginRenderPass(m_commandBuffers[commandBufferID], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+	for (int i(0); i < renderers.size(); ++i)
+	{
+		vkCmdBindPipeline(m_commandBuffers[commandBufferID], VK_PIPELINE_BIND_POINT_GRAPHICS, renderers[i]->getPipeline());
+
+		const VkDeviceSize offsets[1] = { 0 };
+
+		std::vector<VertexBuffer> vertexBuffers = renderers[i]->getVertexBuffers();
+		for (int j(0); j < vertexBuffers.size(); ++j)
+		{
+			vkCmdBindVertexBuffers(m_commandBuffers[commandBufferID], 0, 1, &vertexBuffers[j].vertexBuffer, offsets);
+			vkCmdBindIndexBuffer(m_commandBuffers[commandBufferID], vertexBuffers[j].indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+			/*vkCmdBindDescriptorSets(m_commandBuffer[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+				m_meshesPipeline[j].pipelineLayout, 0, 1, &m_meshesPipeline[j].descriptorSet[k], 0, nullptr);*/
+
+			vkCmdDrawIndexed(m_commandBuffers[commandBufferID], vertexBuffers[j].nbIndices, 1, 0, 0, 0);
+		}
+
+	}
+
 	vkCmdEndRenderPass(m_commandBuffers[commandBufferID]);
 
 	if (vkEndCommandBuffer(m_commandBuffers[commandBufferID]) != VK_SUCCESS)
 		throw std::runtime_error("Error : end command buffer");
+}
+
+void Command::cleanup(VkDevice device)
+{
 }

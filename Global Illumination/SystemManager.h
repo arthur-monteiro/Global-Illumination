@@ -16,13 +16,16 @@ public:
 	~SystemManager();
 
 	bool initialize();
+
 	bool run();
+	void resize(int width, int height);
+
 	bool cleanup();
 
 private:
 	static void windowResizeCallback(void* systemManagerInstance, int width, int height)
 	{
-
+		reinterpret_cast<SystemManager*>(systemManagerInstance)->resize(width, height);
 	}
 
 private:

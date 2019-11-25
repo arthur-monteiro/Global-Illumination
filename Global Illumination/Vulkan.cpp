@@ -23,6 +23,10 @@ void Vulkan::initialize(GLFWwindow* glfwWindowPointer)
 
 void Vulkan::cleanup()
 {
+	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+	//vkDestroyDebugReportCallbackEXT(m_instance, m_debugCallback, nullptr);
+	/*vkDestroyInstance(m_instance, nullptr);
+	vkDestroyDevice(m_device, nullptr);*/
 }
 
 void Vulkan::createInstance()

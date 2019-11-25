@@ -17,8 +17,6 @@ public:
 
 	bool initialize(VkDevice device, T data);
 
-	UniformBufferObjectLayout getLayout() { return m_layout; }
-
 private:
 };
 

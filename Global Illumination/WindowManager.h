@@ -11,8 +11,11 @@ class WindowManager
 public:
 	WindowManager() {};
 	~WindowManager();
+
 	bool initialize(std::string appName, int width, int height, void* systemManagerInstance,
 		std::function<void(void*, int, int)> resizeCallback);
+
+	void cleanup();
 
 	GLFWwindow* getWindow() { return m_window; }
 

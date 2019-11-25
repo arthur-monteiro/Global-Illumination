@@ -8,3 +8,8 @@ void CommandPool::initialize(VkDevice device, VkPhysicalDevice physicalDevice, V
 {
 	m_commandPool = createCommandPool(device, physicalDevice, surface);
 }
+
+void CommandPool::cleanup(VkDevice device)
+{
+	vkDestroyCommandPool(device, m_commandPool, nullptr);
+}

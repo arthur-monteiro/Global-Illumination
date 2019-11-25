@@ -67,7 +67,14 @@ bool SwapChain::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkS
 
 bool SwapChain::cleanup(VkDevice device)
 {
-	return false;
+	vkDestroySwapchainKHR(device, m_swapChain, nullptr);
+
+	/*for (int i(0); i < m_images.size(); ++i)
+		m_images[i].cleanup(device);*/
+
+	m_imageAvailableSemaphore.cleanup(device);
+
+	return true;
 }
 
 std::vector<Image *> SwapChain::getImages()
@@ -182,4 +189,14 @@ void SwapChain::present(VkQueue presentQueue, VkSemaphore waitSemaphore, uint32_
         throw std::runtime_error("Erreur : affichage de la swapchain");*/
 
     vkQueueWaitIdle(presentQueue);
+}
+
+void SwapChain::recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, GLFWwindow* window)
+{
+	vkDeviceWaitIdle(device);
+
+	cleanup(device);
+	m_images.clear();
+
+	initialize(device, physicalDevice, surface, window);
 }

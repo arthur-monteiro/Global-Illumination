@@ -10,6 +10,8 @@ public:
 
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 
+	void cleanup(VkDevice device);
+
 	VkCommandPool getCommandPool() { return m_commandPool; }
 
 private:

@@ -14,3 +14,8 @@ bool Semaphore::initialize(VkDevice device)
 
     return true;
 }
+
+void Semaphore::cleanup(VkDevice device)
+{
+	vkDestroySemaphore(device, m_semaphore, nullptr);
+}

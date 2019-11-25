@@ -36,8 +36,18 @@ bool SystemManager::run()
 	return true;
 }
 
+void SystemManager::resize(int width, int height)
+{
+	if (width == 0 || height == 0) return;
+	m_swapChain.recreate(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_vulkan.getSurface(), m_windowManager.getWindow());
+}
+
 bool SystemManager::cleanup()
 {
-	
+	m_windowManager.cleanup();
+	m_sceneManager.cleanup(m_vulkan.getDevice());
+	m_swapChain.cleanup(m_vulkan.getDevice());
+	m_vulkan.cleanup();
+
 	return true;
 }

@@ -11,6 +11,10 @@ public:
 
 	int addMeshFromVertices(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::vector<Vertex2D> vertices, std::vector<uint32_t> indices);
 
+	void cleanup(VkDevice device);
+
+	std::vector<VertexBuffer> getVertexBuffers();
+
 private:
 	std::vector<Mesh<Vertex2D>> m_meshes;
 };

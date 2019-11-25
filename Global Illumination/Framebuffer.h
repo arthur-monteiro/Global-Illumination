@@ -12,6 +12,8 @@ public:
 	//bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkExtent2D extent, std::vector<Attachment> attachments);
 	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, Image * image, std::vector<Attachment> attachments);
 
+	void cleanup(VkDevice device);
+
 	VkFramebuffer getFramebuffer() { return m_framebuffer; }
 	VkExtent2D getExtent() { return m_extent; }
 

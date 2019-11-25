@@ -14,6 +14,8 @@ public:
 	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkQueue graphicsQueue, std::vector<Image*> swapChainImages);
 	bool submit(VkDevice device, VkQueue graphicsQueue, uint32_t swapChainImageIndex, const Semaphore& imageAvailableSemaphore);
 
+	void cleanup(VkDevice device);
+
 // Getters
 public:
     VkSemaphore getLastRenderFinishedSemaphore();

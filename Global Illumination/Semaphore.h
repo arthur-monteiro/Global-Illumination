@@ -10,6 +10,8 @@ public:
 
     bool initialize(VkDevice device);
 
+	void cleanup(VkDevice device);
+
 // Getters
 public:
     VkSemaphore getSemaphore() { return m_semaphore; }

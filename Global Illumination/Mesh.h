@@ -43,6 +43,13 @@ struct Vertex2D
 	}
 };
 
+struct VertexBuffer
+{
+	VkBuffer vertexBuffer;
+	VkBuffer indexBuffer;
+	unsigned int nbIndices;
+};
+
 template <typename T>
 class Mesh
 {
@@ -58,6 +65,20 @@ public:
 		createVertexBuffer(device, physicalDevice, commandPool, graphicsQueue, sizeof(m_vertices[0]) * m_vertices.size(), m_vertices.data());
 		createIndexBuffer(device, physicalDevice, commandPool, graphicsQueue);
 	}
+
+	void cleanup(VkDevice device)
+	{
+		m_vertices.clear();
+		m_indices.clear();
+
+		vkDestroyBuffer(device, m_vertexBuffer, nullptr);
+		vkFreeMemory(device, m_vertexBufferMemory, nullptr);
+
+		vkDestroyBuffer(device, m_indexBuffer, nullptr);
+		vkFreeMemory(device, m_indexBufferMemory, nullptr);
+	}
+
+	VertexBuffer getVertexBuffer() { return { m_vertexBuffer, m_indexBuffer, static_cast<unsigned int>(m_indices.size()) }; }
 
 private:
     // Vertex

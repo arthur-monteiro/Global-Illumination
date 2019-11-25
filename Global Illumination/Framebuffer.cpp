@@ -80,3 +80,10 @@ bool Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, V
 
 	return true;
 }
+
+void Framebuffer::cleanup(VkDevice device)
+{
+	vkDestroyFramebuffer(device, m_framebuffer, nullptr);
+	for (int i(0); i < m_images.size(); ++i)
+		m_images[i].cleanup(device);
+}

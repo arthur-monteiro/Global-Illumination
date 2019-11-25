@@ -23,3 +23,10 @@ bool WindowManager::initialize(std::string appName, int width, int height, void*
 
 	return true;
 }
+
+void WindowManager::cleanup()
+{
+	glfwDestroyWindow(m_window);
+
+	glfwTerminate();
+}

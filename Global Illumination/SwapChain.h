@@ -13,8 +13,11 @@ public:
 	~SwapChain();
 
 	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, GLFWwindow* window);
+
 	uint32_t getCurrentImage(VkDevice device);
 	void present(VkQueue presentQueue, VkSemaphore waitSemaphore, uint32_t imageIndex);
+	void recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, GLFWwindow* window);
+
 	bool cleanup(VkDevice device);
 
 // Getters

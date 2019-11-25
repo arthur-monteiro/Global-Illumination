@@ -50,7 +50,7 @@ void Image::createImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32
 	imageInfo.flags = flags;
 
 	if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS)
-		throw std::runtime_error("Error : image creation");
+		throw std::runtime_error("Error : create image");
 
 	VkMemoryRequirements memRequirements;
 	vkGetImageMemoryRequirements(device, image, &memRequirements);
@@ -61,10 +61,10 @@ void Image::createImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32
 	allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
 
 	if(allocInfo.memoryTypeIndex < 0)
-		throw std::runtime_error("Erreur : aucun type de m�moire ad�quate trouv� !");
+		throw std::runtime_error("Error : no memory type found");
 
 	if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
-		throw std::runtime_error("failed to allocate image memory!");
+		throw std::runtime_error("Failed to allocate image memory!");
 
 	vkBindImageMemory(device, image, imageMemory, 0);
 }
@@ -84,7 +84,7 @@ VkImageView Image::createImageView(VkDevice device, VkImage image, VkFormat form
 
 	VkImageView imageView;
 	if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : Cr�ation d'une image view");
+		throw std::runtime_error("Error : create image view");
 
 	return imageView;
 }

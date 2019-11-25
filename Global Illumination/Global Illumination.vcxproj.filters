@@ -26,6 +26,9 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="CommandPool.cpp" />
+    <ClCompile Include="UniformBufferObject.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Sampler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -50,6 +53,9 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="CommandPool.h" />
+    <ClInclude Include="UniformBufferObject.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="Sampler.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

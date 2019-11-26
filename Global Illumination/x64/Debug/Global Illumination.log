@@ -1,2 +1,6 @@
 ﻿  LoadingManager.cpp
-  Global Illumination.vcxproj -> E:\nosave\VS Project\Global Illumination\x64\Debug\Global Illumination.exe
+  SceneManager.cpp
+  SystemManager.cpp
+  main.cpp
+  Generating Code...
+  Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe

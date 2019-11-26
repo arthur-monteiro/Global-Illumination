@@ -13,6 +13,6 @@ layout(location = 0) out vec4 outColor;
 
 void main() 
 {
-	float color = 1.0 - texture(tex, inTexCoord).r;
-	outColor = vec4(color.rrr, min(color.x, opacity.opacity));
+	vec3 color = texture(tex, inTexCoord).rgb;
+	outColor = vec4(color.rgb, min(opacity.opacity, color.b));
 }

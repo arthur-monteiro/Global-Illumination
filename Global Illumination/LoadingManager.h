@@ -42,7 +42,7 @@ private:
 	Model2DTextured m_loadingLogoQuad;
 	Renderer m_loadingLogoQuadRenderer;
 	Texture m_loadingLogoTexture;
-	float m_logoWidth = 0.25f;
+	float m_logoWidth = 1.0f;
 	float m_logoOpacity = 1.0f;
 	UniformBufferObject m_uboLogoOpacity;
 	UniformBufferObject m_uboLogoOffset;

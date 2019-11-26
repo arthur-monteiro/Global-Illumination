@@ -33,6 +33,8 @@ bool SystemManager::run()
         m_swapChain.present(m_vulkan.getPresentQueue(), m_sceneManager.getLastRenderFinishedSemaphore(), swapChainImageIndex);
     }
 
+	vkDeviceWaitIdle(m_vulkan.getDevice());
+
 	return true;
 }
 

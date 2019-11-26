@@ -9,5 +9,5 @@ layout(location = 0) out vec4 outColor;
 
 void main() 
 {
-	outColor = vec4(texture(tex, inTexCoord).rgb, 1.0);
+	outColor = vec4(texture(tex, inTexCoord).rgb * 0.8, 1.0);
 }

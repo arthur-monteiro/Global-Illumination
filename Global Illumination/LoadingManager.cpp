@@ -10,10 +10,10 @@ bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 	m_uniqueDescriptorPool.initialize(device);
 
 	// Textures
-	m_fullScreenLoadingTexture.createFromFile(device, physicalDevice, m_uniqueCommandPool.getCommandPool(), graphicsQueue, "Textures/black.jpg");
+	m_fullScreenLoadingTexture.createFromFile(device, physicalDevice, m_uniqueCommandPool.getCommandPool(), graphicsQueue, "Textures/loading_screen.png");
 	m_fullScreenLoadingTexture.createSampler(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 1.0f, VK_FILTER_LINEAR);
 
-	m_loadingLogoTexture.createFromFile(device, physicalDevice, m_uniqueCommandPool.getCommandPool(), graphicsQueue, "Textures/circle.png");
+	m_loadingLogoTexture.createFromFile(device, physicalDevice, m_uniqueCommandPool.getCommandPool(), graphicsQueue, "Textures/loading_logo.jpg");
 	m_loadingLogoTexture.createSampler(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 1.0f, VK_FILTER_LINEAR);
 
 	// Quads
@@ -31,10 +31,10 @@ bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 
 	m_loadingLogoQuad.addMeshFromVertices(device, physicalDevice, m_uniqueCommandPool.getCommandPool(), graphicsQueue,
 		{
-			{ glm::vec2(1.0f - m_logoWidth, 1.0f), glm::vec2(0.0f, 0.0f) }, // bot left
-			{ glm::vec2(1.0f - m_logoWidth, 1.0f - m_logoWidth), glm::vec2(0.0f, 1.0f) }, // top left
-			{ glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 0.0f) }, // bot right
-			{ glm::vec2(1.0f, 1.0f - m_logoWidth), glm::vec2(1.0f, 1.0f) } // top right
+			{ glm::vec2(1.0f - m_logoWidth, 1.0f), glm::vec2(0.0f, 1.0f) }, // bot left
+			{ glm::vec2(1.0f - m_logoWidth, 1.0f - m_logoWidth), glm::vec2(0.0f, 0.0f) }, // top left
+			{ glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 1.0f) }, // bot right
+			{ glm::vec2(1.0f, 1.0f - m_logoWidth), glm::vec2(1.0f, 0.0f) } // top right
 		},
 		{
 			0, 1, 2,
@@ -78,11 +78,11 @@ bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 				{ { &m_uboLogoOpacity, uboLayoutLogoOpacity }, { &m_uboLogoOffset, uboLayoutLogoOffset } }, { { &m_loadingLogoTexture, textureLayout } });
 	}
 
-	/* Main Render Pass*/
+	/* Main Render Pass */
 	// Attachments -> depth + color
     m_attachments.resize(2);
 	m_attachments[0].initialize(findDepthFormat(physicalDevice), VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
-	m_attachments[1].initialize(swapChainImages[0]->getFormat(), VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+	m_attachments[1].initialize(swapChainImages[0]->getFormat(), VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 
 	// Init with swapchain images
 	m_mainRenderPass.initialize(device, physicalDevice, surface, m_uniqueCommandPool.getCommandPool(), m_attachments, swapChainImages);
@@ -90,7 +90,7 @@ bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 	// Fill command buffers
 	m_clearValues.resize(2);
 	m_clearValues[0] = { 1.0f };
-	m_clearValues[1] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	m_clearValues[1] = { 1.0f, 0.0f, 0.0f, 1.0f };
     for(int i(0); i < swapChainImages.size(); ++i)
 		m_mainRenderPass.fillCommandBuffer(device, i, m_clearValues, { &m_fullScreenQuadRenderer, &m_loadingLogoQuadRenderer });
 

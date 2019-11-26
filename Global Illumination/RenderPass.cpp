@@ -1,7 +1,5 @@
 #include "RenderPass.h"
 
-#include <utility>
-
 RenderPass::~RenderPass()
 {
 }
@@ -38,9 +36,7 @@ bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 void RenderPass::fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues, std::vector<Renderer*> renderers)
 {
 	for (int i(0); i < renderers.size(); ++i)
-	{
 		renderers[i]->createPipeline(device, m_renderPass, m_framebuffers[framebufferID].getExtent(), VK_SAMPLE_COUNT_1_BIT);
-	}
 
     m_command.fillCommandBuffer(device, framebufferID, m_renderPass, m_framebuffers[framebufferID].getFramebuffer(), m_framebuffers[framebufferID].getExtent(),
             std::move(clearValues), renderers);
@@ -73,19 +69,22 @@ void RenderPass::submit(VkDevice device, VkQueue graphicsQueue, size_t framebuff
         throw std::runtime_error("Error : queue submit");
 }
 
-void RenderPass::recreate(VkDevice device, VkPhysicalDevice physicalDevice, const std::vector<Attachment>& attachments, std::vector<Image*> images)
+void RenderPass::resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, const std::vector<Attachment>& attachments, std::vector<Image*> images)
 {
 	for (int i(0); i < m_framebuffers.size(); ++i)
 		m_framebuffers[i].cleanup(device);
 
 	for (int i(0); i < m_framebuffers.size(); ++i)
 		m_framebuffers[i].initialize(device, physicalDevice, m_renderPass, images[i], attachments);
+
+	m_command.cleanup(device, commandPool);
+	m_command.allocateCommandBuffers(device, commandPool, images.size());
 }
 
-void RenderPass::cleanup(VkDevice device)
+void RenderPass::cleanup(VkDevice device, VkCommandPool commandPool)
 {
 	vkDestroyRenderPass(device, m_renderPass, nullptr);
-	m_command.cleanup(device);
+	m_command.cleanup(device, commandPool);
 	for (int i(0); i < m_framebuffers.size(); ++i)
 		m_framebuffers[i].cleanup(device);
 	m_renderCompleteSemaphore.cleanup(device);
@@ -123,7 +122,7 @@ VkRenderPass RenderPass::createRenderPass(VkDevice device, std::vector<Attachmen
 			ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			depthAttachmentRef = ref;
 		}
-		else if (attachments[i].getUsageType() == VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT)
+		else if (attachments[i].getUsageType() == (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT))
 		{
 			ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 			resolveAttachmentRefs.push_back(ref);

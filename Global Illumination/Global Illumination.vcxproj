@@ -158,6 +158,7 @@
     <ClCompile Include="Attachment.cpp" />
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="CommandPool.cpp" />
+    <ClCompile Include="DescriptorPool.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="LoadingManager.cpp" />
@@ -165,6 +166,7 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Model2D.cpp" />
+    <ClCompile Include="Model2DTextured.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
@@ -184,12 +186,14 @@
     <ClInclude Include="Attachment.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="CommandPool.h" />
+    <ClInclude Include="DescriptorPool.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="LoadingManager.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Model2D.h" />
+    <ClInclude Include="Model2DTextured.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />

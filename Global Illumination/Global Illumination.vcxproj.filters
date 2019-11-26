@@ -29,6 +29,8 @@
     <ClCompile Include="UniformBufferObject.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Sampler.cpp" />
+    <ClCompile Include="DescriptorPool.cpp" />
+    <ClCompile Include="Model2DTextured.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -56,6 +58,8 @@
     <ClInclude Include="UniformBufferObject.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Sampler.h" />
+    <ClInclude Include="DescriptorPool.h" />
+    <ClInclude Include="Model2DTextured.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

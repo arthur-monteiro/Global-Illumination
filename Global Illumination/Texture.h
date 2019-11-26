@@ -19,7 +19,16 @@ public:
 	Texture() = default;
 	~Texture();
 
-	bool createFromFile(VkDevice device, VkPhysicalDevice physicalDevice, std::string filename);
+	bool createFromFile(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::string filename);
+	void createSampler(VkDevice device, VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter);
+
+	void cleanup(VkDevice device);
+
+// Getters
+public:
+	VkImageView getImageView() { return m_image.getImageView(); }
+	VkImageLayout getImageLayout() { return m_image.getImageLayout(); }
+	VkSampler getSampler() { return m_sampler.getSampler(); }
 
 private:
 	Image m_image;

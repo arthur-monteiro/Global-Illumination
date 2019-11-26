@@ -18,6 +18,11 @@ void SceneManager::submit(VkDevice device, VkQueue graphicsQueue, uint32_t swapC
     m_loadingManager.submit(device, graphicsQueue, swapChainImageIndex, imageAvailableSemaphore);
 }
 
+void SceneManager::resize(VkDevice device, VkPhysicalDevice physicalDevice, std::vector<Image*> swapChainImages)
+{
+	m_loadingManager.resize(device, physicalDevice, swapChainImages);
+}
+
 void SceneManager::cleanup(VkDevice device)
 {
 	m_loadingManager.cleanup(device);

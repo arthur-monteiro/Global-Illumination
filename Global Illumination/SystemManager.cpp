@@ -40,6 +40,7 @@ void SystemManager::resize(int width, int height)
 {
 	if (width == 0 || height == 0) return;
 	m_swapChain.recreate(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_vulkan.getSurface(), m_windowManager.getWindow());
+	m_sceneManager.resize(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_swapChain.getImages());
 }
 
 bool SystemManager::cleanup()

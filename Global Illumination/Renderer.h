@@ -16,13 +16,16 @@ public:
 		std::vector<VkVertexInputAttributeDescription> attributeInputDescription, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, 
 		std::vector<TextureLayout> textureLayouts, std::vector<bool> alphaBlending);
 	void createPipeline(VkDevice device, VkRenderPass renderPass, VkExtent2D extent, VkSampleCountFlagBits msaa);
+	void destroyPipeline(VkDevice device);
 
-	int addModel(Model* model);
+	int addModel(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer, 
+		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures);
 
-	void cleanup(VkDevice device);
+	void cleanup(VkDevice device, VkDescriptorPool descriptorPool);
 
 	VkPipeline getPipeline() { return m_pipeline.getPipeline(); }
-	std::vector<VertexBuffer> getVertexBuffers();
+	std::vector<std::pair<VertexBuffer, VkDescriptorSet>> getMeshes();
+	VkPipelineLayout getPipelineLayout() { return m_pipeline.getPipelineLayout(); }
 
 private:
 	/* Information */
@@ -34,11 +37,14 @@ private:
 
 	VkDescriptorSetLayout m_descriptorSetLayout;
 
-	std::vector<Model*> m_models;
+	std::vector<std::pair<VertexBuffer, VkDescriptorSet>> m_meshes;
 
 	Pipeline m_pipeline;
+	bool m_pipelineCreated = false;
 
 private:
 	void createDescriptorSetLayout(VkDevice device, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, std::vector<TextureLayout> textureLayouts);
+	VkDescriptorSet createDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool,
+		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures);
 };
 

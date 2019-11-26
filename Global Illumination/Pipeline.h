@@ -17,6 +17,7 @@ public:
 	void cleanup(VkDevice device);
 
 	VkPipeline getPipeline() { return m_pipeline; }
+	VkPipelineLayout getPipelineLayout() { return m_pipelineLayout; }
 
 private:
 	VkPipelineLayout m_pipelineLayout;

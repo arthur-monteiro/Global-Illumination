@@ -1,15 +1,21 @@
 #pragma once
 
 #include <thread>
+#include <mutex>
 
 #include "LoadingManager.h"
 #include "SceneManager.h"
 
-class GameManagerT
+enum GAME_STATE {
+    LOADING,
+    RUNNING
+};
+
+class GameManager
 {
 public:
-	GameManagerT() {}
-	~GameManagerT();
+	GameManager() {}
+	~GameManager();
 
 	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkQueue graphicsQueue, std::vector<Image*> swapChainImages);
 	void submit(VkDevice device, VkQueue graphicsQueue, uint32_t swapChainImageIndex, Semaphore imageAvailableSemaphore);
@@ -23,7 +29,11 @@ public:
 
 private:
 	LoadingManager m_loadingManager;
-	SceneManager m_gameManager;
+	SceneManager m_sceneManager;
+
     std::thread m_sceneLoadingThread;
+    std::mutex * m_mutexGraphicsQueue;
+
+    GAME_STATE m_gameState = GAME_STATE::LOADING;
 };
 

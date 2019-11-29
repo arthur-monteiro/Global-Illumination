@@ -1,14 +1,34 @@
-//
-// Created by arthur on 11/29/19.
-//
+#pragma once
 
-#ifndef GLOBAL_ILLUMINATION_MODELPBR_H
-#define GLOBAL_ILLUMINATION_MODELPBR_H
+#include <unordered_map>
+#include <mutex>
 
+#include "Model.h"
+#include "Mesh.h"
+#include "Texture.h"
 
-class ModelPBR {
-
+struct MeshPBR
+{
+    Mesh<VertexPBR> mesh;
+    std::array<Texture, 5> textures;
 };
 
+class ModelPBR : public Model
+{
+public:
+    ModelPBR() = default;
+    ~ModelPBR();
 
-#endif //GLOBAL_ILLUMINATION_MODELPBR_H
+    void loadFromFile(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::mutex * graphicsQueueMutex,
+            std::string filename, std::string mtlFolder);
+
+    void cleanup(VkDevice device);
+
+    std::vector<VertexBuffer> getVertexBuffers();
+
+private:
+    std::vector<MeshPBR> m_meshes;
+
+private:
+    static std::string getTexName(std::string texName, std::string folder);
+};

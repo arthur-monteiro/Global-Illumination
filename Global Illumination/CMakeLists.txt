@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 find_package(Vulkan REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
+find_package (Threads REQUIRED)
 
 add_executable(Global_Illumination
         Attachment.cpp
@@ -21,8 +22,8 @@ add_executable(Global_Illumination
         main.cpp
         RenderPass.cpp
         RenderPass.h
-        SceneManager.cpp
-        SceneManager.h
+        GameManager.cpp
+        GameManager.h
         SwapChain.cpp
         SwapChain.h
         SystemManager.cpp
@@ -32,9 +33,32 @@ add_executable(Global_Illumination
         VulkanHelper.cpp
         VulkanHelper.h
         WindowManager.cpp
-        WindowManager.h Semaphore.cpp Semaphore.h SceneElement.cpp SceneElement.h Model.cpp Model.h Mesh.cpp Mesh.h Mesh2D.cpp Mesh2D.h)
+        WindowManager.h
+        Semaphore.cpp
+        Semaphore.h
+        Model.cpp
+        Model.h
+        Mesh.cpp
+        Mesh.h
+        CommandPool.cpp
+        CommandPool.h
+        DescriptorPool.cpp
+        DescriptorPool.h
+        Model2DTextured.cpp
+        Model2DTextured.h
+        Texture.cpp
+        Texture.h
+        Sampler.cpp
+        Sampler.h
+        Renderer.cpp
+        Renderer.h
+        UniformBufferObject.cpp
+        UniformBufferObject.h
+        Pipeline.cpp
+        Pipeline.h SceneManager.cpp SceneManager.h ModelPBR.cpp ModelPBR.h GBuffer.cpp GBuffer.h)
 
 target_include_directories(Global_Illumination PRIVATE /usr/include/freetype2)
 target_link_libraries(Global_Illumination Vulkan::Vulkan)
 target_link_libraries(Global_Illumination glfw)
 target_link_libraries(Global_Illumination freetype)
+target_link_libraries (Global_Illumination Threads::Threads)

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "SceneManager.h"
+#include "GameManager.h"
 #include "WindowManager.h"
 #include "Vulkan.h"
 #include "SwapChain.h"
@@ -29,7 +29,7 @@ private:
 	}
 
 private:
-	SceneManager m_sceneManager;
+	GameManager m_sceneManager;
 	WindowManager m_windowManager;
 	Vulkan m_vulkan;
 	SwapChain m_swapChain;

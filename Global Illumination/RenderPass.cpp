@@ -11,6 +11,13 @@ bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 
 	m_renderPass = createRenderPass(device, attachments);
 	m_command.initialize(device, physicalDevice, surface);
+    m_command.allocateCommandBuffers(device, commandPool, extents.size());
+
+    m_framebuffers.resize(extents.size());
+    for(int i(0); i < m_framebuffers.size(); ++i)
+    {
+        m_framebuffers[i].initialize(device, physicalDevice, m_renderPass, extents[i], attachments);
+    }
 
 	return true;
 }

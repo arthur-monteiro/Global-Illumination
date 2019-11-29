@@ -47,6 +47,6 @@ private:
 	UniformBufferObject m_uboLogoOpacity;
 	UniformBufferObject m_uboLogoOffset;
 	std::chrono::high_resolution_clock::time_point m_timerStart = std::chrono::high_resolution_clock::now();
-	int m_loadingLogoLoopMillisecond = 1000;
+	int m_loadingLogoLoopMillisecond = 600;
 };
 

@@ -100,10 +100,34 @@
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Command.h">
 			<Option target="Global_Illumination"/>
 		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/CommandPool.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/CommandPool.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/DescriptorPool.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/DescriptorPool.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Framebuffer.cpp">
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Framebuffer.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GBuffer.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GBuffer.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GameManager.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GameManager.h">
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Image.cpp">
@@ -124,16 +148,28 @@
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh.h">
 			<Option target="Global_Illumination"/>
 		</Unit>
-		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh2D.cpp">
-			<Option target="Global_Illumination"/>
-		</Unit>
-		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh2D.h">
-			<Option target="Global_Illumination"/>
-		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model.cpp">
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model2DTextured.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model2DTextured.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ModelPBR.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ModelPBR.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Pipeline.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Pipeline.h">
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.cpp">
@@ -142,10 +178,16 @@
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.h">
 			<Option target="Global_Illumination"/>
 		</Unit>
-		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneElement.cpp">
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Renderer.cpp">
 			<Option target="Global_Illumination"/>
 		</Unit>
-		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneElement.h">
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Renderer.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Sampler.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Sampler.h">
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneManager.cpp">
@@ -170,6 +212,18 @@
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SystemManager.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Texture.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Texture.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/UniformBufferObject.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/UniformBufferObject.h">
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Vulkan.cpp">

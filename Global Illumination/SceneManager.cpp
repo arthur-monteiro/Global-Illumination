@@ -5,12 +5,13 @@ SceneManager::~SceneManager()
 
 }
 
-void SceneManager::load()
+void SceneManager::load(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue graphicsQueue, VkSurfaceKHR surface,
+        std::mutex * graphicsQueueMutex,  std::vector<Image*> swapChainImages)
 {
-    for(int i(0); i < 1'000'000; ++i)
-    {
-        std::cout << "Loading scene\n";
-    }
+    m_commandPool.initialize(device, physicalDevice, surface);
+    m_model.loadFromFile(device, physicalDevice, m_commandPool.getCommandPool(), graphicsQueue, graphicsQueueMutex,
+            "Models/sponza/sponza.obj", "Models/sponza");
+    m_gbuffer.initialize(device, physicalDevice, surface, m_commandPool.getCommandPool(), swapChainImages[0]->getExtent());
 
-    return;
+    m_loadingState = 1.0f;
 }

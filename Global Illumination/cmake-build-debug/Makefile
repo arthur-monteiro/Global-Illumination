@@ -177,6 +177,60 @@ Command.cpp.s:
 	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Command.cpp.s
 .PHONY : Command.cpp.s
 
+CommandPool.o: CommandPool.cpp.o
+
+.PHONY : CommandPool.o
+
+# target to build an object file
+CommandPool.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/CommandPool.cpp.o
+.PHONY : CommandPool.cpp.o
+
+CommandPool.i: CommandPool.cpp.i
+
+.PHONY : CommandPool.i
+
+# target to preprocess a source file
+CommandPool.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/CommandPool.cpp.i
+.PHONY : CommandPool.cpp.i
+
+CommandPool.s: CommandPool.cpp.s
+
+.PHONY : CommandPool.s
+
+# target to generate assembly for a file
+CommandPool.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/CommandPool.cpp.s
+.PHONY : CommandPool.cpp.s
+
+DescriptorPool.o: DescriptorPool.cpp.o
+
+.PHONY : DescriptorPool.o
+
+# target to build an object file
+DescriptorPool.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/DescriptorPool.cpp.o
+.PHONY : DescriptorPool.cpp.o
+
+DescriptorPool.i: DescriptorPool.cpp.i
+
+.PHONY : DescriptorPool.i
+
+# target to preprocess a source file
+DescriptorPool.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/DescriptorPool.cpp.i
+.PHONY : DescriptorPool.cpp.i
+
+DescriptorPool.s: DescriptorPool.cpp.s
+
+.PHONY : DescriptorPool.s
+
+# target to generate assembly for a file
+DescriptorPool.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/DescriptorPool.cpp.s
+.PHONY : DescriptorPool.cpp.s
+
 Framebuffer.o: Framebuffer.cpp.o
 
 .PHONY : Framebuffer.o
@@ -203,6 +257,60 @@ Framebuffer.s: Framebuffer.cpp.s
 Framebuffer.cpp.s:
 	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Framebuffer.cpp.s
 .PHONY : Framebuffer.cpp.s
+
+GBuffer.o: GBuffer.cpp.o
+
+.PHONY : GBuffer.o
+
+# target to build an object file
+GBuffer.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o
+.PHONY : GBuffer.cpp.o
+
+GBuffer.i: GBuffer.cpp.i
+
+.PHONY : GBuffer.i
+
+# target to preprocess a source file
+GBuffer.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/GBuffer.cpp.i
+.PHONY : GBuffer.cpp.i
+
+GBuffer.s: GBuffer.cpp.s
+
+.PHONY : GBuffer.s
+
+# target to generate assembly for a file
+GBuffer.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/GBuffer.cpp.s
+.PHONY : GBuffer.cpp.s
+
+GameManager.o: GameManager.cpp.o
+
+.PHONY : GameManager.o
+
+# target to build an object file
+GameManager.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/GameManager.cpp.o
+.PHONY : GameManager.cpp.o
+
+GameManager.i: GameManager.cpp.i
+
+.PHONY : GameManager.i
+
+# target to preprocess a source file
+GameManager.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/GameManager.cpp.i
+.PHONY : GameManager.cpp.i
+
+GameManager.s: GameManager.cpp.s
+
+.PHONY : GameManager.s
+
+# target to generate assembly for a file
+GameManager.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/GameManager.cpp.s
+.PHONY : GameManager.cpp.s
 
 Image.o: Image.cpp.o
 
@@ -285,33 +393,6 @@ Mesh.cpp.s:
 	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Mesh.cpp.s
 .PHONY : Mesh.cpp.s
 
-Mesh2D.o: Mesh2D.cpp.o
-
-.PHONY : Mesh2D.o
-
-# target to build an object file
-Mesh2D.cpp.o:
-	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.o
-.PHONY : Mesh2D.cpp.o
-
-Mesh2D.i: Mesh2D.cpp.i
-
-.PHONY : Mesh2D.i
-
-# target to preprocess a source file
-Mesh2D.cpp.i:
-	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.i
-.PHONY : Mesh2D.cpp.i
-
-Mesh2D.s: Mesh2D.cpp.s
-
-.PHONY : Mesh2D.s
-
-# target to generate assembly for a file
-Mesh2D.cpp.s:
-	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Mesh2D.cpp.s
-.PHONY : Mesh2D.cpp.s
-
 Model.o: Model.cpp.o
 
 .PHONY : Model.o
@@ -338,6 +419,87 @@ Model.s: Model.cpp.s
 Model.cpp.s:
 	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Model.cpp.s
 .PHONY : Model.cpp.s
+
+Model2DTextured.o: Model2DTextured.cpp.o
+
+.PHONY : Model2DTextured.o
+
+# target to build an object file
+Model2DTextured.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Model2DTextured.cpp.o
+.PHONY : Model2DTextured.cpp.o
+
+Model2DTextured.i: Model2DTextured.cpp.i
+
+.PHONY : Model2DTextured.i
+
+# target to preprocess a source file
+Model2DTextured.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Model2DTextured.cpp.i
+.PHONY : Model2DTextured.cpp.i
+
+Model2DTextured.s: Model2DTextured.cpp.s
+
+.PHONY : Model2DTextured.s
+
+# target to generate assembly for a file
+Model2DTextured.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Model2DTextured.cpp.s
+.PHONY : Model2DTextured.cpp.s
+
+ModelPBR.o: ModelPBR.cpp.o
+
+.PHONY : ModelPBR.o
+
+# target to build an object file
+ModelPBR.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/ModelPBR.cpp.o
+.PHONY : ModelPBR.cpp.o
+
+ModelPBR.i: ModelPBR.cpp.i
+
+.PHONY : ModelPBR.i
+
+# target to preprocess a source file
+ModelPBR.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/ModelPBR.cpp.i
+.PHONY : ModelPBR.cpp.i
+
+ModelPBR.s: ModelPBR.cpp.s
+
+.PHONY : ModelPBR.s
+
+# target to generate assembly for a file
+ModelPBR.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/ModelPBR.cpp.s
+.PHONY : ModelPBR.cpp.s
+
+Pipeline.o: Pipeline.cpp.o
+
+.PHONY : Pipeline.o
+
+# target to build an object file
+Pipeline.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Pipeline.cpp.o
+.PHONY : Pipeline.cpp.o
+
+Pipeline.i: Pipeline.cpp.i
+
+.PHONY : Pipeline.i
+
+# target to preprocess a source file
+Pipeline.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Pipeline.cpp.i
+.PHONY : Pipeline.cpp.i
+
+Pipeline.s: Pipeline.cpp.s
+
+.PHONY : Pipeline.s
+
+# target to generate assembly for a file
+Pipeline.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Pipeline.cpp.s
+.PHONY : Pipeline.cpp.s
 
 RenderPass.o: RenderPass.cpp.o
 
@@ -366,32 +528,59 @@ RenderPass.cpp.s:
 	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/RenderPass.cpp.s
 .PHONY : RenderPass.cpp.s
 
-SceneElement.o: SceneElement.cpp.o
+Renderer.o: Renderer.cpp.o
 
-.PHONY : SceneElement.o
+.PHONY : Renderer.o
 
 # target to build an object file
-SceneElement.cpp.o:
-	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/SceneElement.cpp.o
-.PHONY : SceneElement.cpp.o
+Renderer.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Renderer.cpp.o
+.PHONY : Renderer.cpp.o
 
-SceneElement.i: SceneElement.cpp.i
+Renderer.i: Renderer.cpp.i
 
-.PHONY : SceneElement.i
+.PHONY : Renderer.i
 
 # target to preprocess a source file
-SceneElement.cpp.i:
-	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/SceneElement.cpp.i
-.PHONY : SceneElement.cpp.i
+Renderer.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Renderer.cpp.i
+.PHONY : Renderer.cpp.i
 
-SceneElement.s: SceneElement.cpp.s
+Renderer.s: Renderer.cpp.s
 
-.PHONY : SceneElement.s
+.PHONY : Renderer.s
 
 # target to generate assembly for a file
-SceneElement.cpp.s:
-	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/SceneElement.cpp.s
-.PHONY : SceneElement.cpp.s
+Renderer.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Renderer.cpp.s
+.PHONY : Renderer.cpp.s
+
+Sampler.o: Sampler.cpp.o
+
+.PHONY : Sampler.o
+
+# target to build an object file
+Sampler.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Sampler.cpp.o
+.PHONY : Sampler.cpp.o
+
+Sampler.i: Sampler.cpp.i
+
+.PHONY : Sampler.i
+
+# target to preprocess a source file
+Sampler.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Sampler.cpp.i
+.PHONY : Sampler.cpp.i
+
+Sampler.s: Sampler.cpp.s
+
+.PHONY : Sampler.s
+
+# target to generate assembly for a file
+Sampler.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Sampler.cpp.s
+.PHONY : Sampler.cpp.s
 
 SceneManager.o: SceneManager.cpp.o
 
@@ -500,6 +689,60 @@ SystemManager.s: SystemManager.cpp.s
 SystemManager.cpp.s:
 	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/SystemManager.cpp.s
 .PHONY : SystemManager.cpp.s
+
+Texture.o: Texture.cpp.o
+
+.PHONY : Texture.o
+
+# target to build an object file
+Texture.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Texture.cpp.o
+.PHONY : Texture.cpp.o
+
+Texture.i: Texture.cpp.i
+
+.PHONY : Texture.i
+
+# target to preprocess a source file
+Texture.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Texture.cpp.i
+.PHONY : Texture.cpp.i
+
+Texture.s: Texture.cpp.s
+
+.PHONY : Texture.s
+
+# target to generate assembly for a file
+Texture.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Texture.cpp.s
+.PHONY : Texture.cpp.s
+
+UniformBufferObject.o: UniformBufferObject.cpp.o
+
+.PHONY : UniformBufferObject.o
+
+# target to build an object file
+UniformBufferObject.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/UniformBufferObject.cpp.o
+.PHONY : UniformBufferObject.cpp.o
+
+UniformBufferObject.i: UniformBufferObject.cpp.i
+
+.PHONY : UniformBufferObject.i
+
+# target to preprocess a source file
+UniformBufferObject.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/UniformBufferObject.cpp.i
+.PHONY : UniformBufferObject.cpp.i
+
+UniformBufferObject.s: UniformBufferObject.cpp.s
+
+.PHONY : UniformBufferObject.s
+
+# target to generate assembly for a file
+UniformBufferObject.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/UniformBufferObject.cpp.s
+.PHONY : UniformBufferObject.cpp.s
 
 Vulkan.o: Vulkan.cpp.o
 
@@ -624,9 +867,21 @@ help:
 	@echo "... Command.o"
 	@echo "... Command.i"
 	@echo "... Command.s"
+	@echo "... CommandPool.o"
+	@echo "... CommandPool.i"
+	@echo "... CommandPool.s"
+	@echo "... DescriptorPool.o"
+	@echo "... DescriptorPool.i"
+	@echo "... DescriptorPool.s"
 	@echo "... Framebuffer.o"
 	@echo "... Framebuffer.i"
 	@echo "... Framebuffer.s"
+	@echo "... GBuffer.o"
+	@echo "... GBuffer.i"
+	@echo "... GBuffer.s"
+	@echo "... GameManager.o"
+	@echo "... GameManager.i"
+	@echo "... GameManager.s"
 	@echo "... Image.o"
 	@echo "... Image.i"
 	@echo "... Image.s"
@@ -636,18 +891,27 @@ help:
 	@echo "... Mesh.o"
 	@echo "... Mesh.i"
 	@echo "... Mesh.s"
-	@echo "... Mesh2D.o"
-	@echo "... Mesh2D.i"
-	@echo "... Mesh2D.s"
 	@echo "... Model.o"
 	@echo "... Model.i"
 	@echo "... Model.s"
+	@echo "... Model2DTextured.o"
+	@echo "... Model2DTextured.i"
+	@echo "... Model2DTextured.s"
+	@echo "... ModelPBR.o"
+	@echo "... ModelPBR.i"
+	@echo "... ModelPBR.s"
+	@echo "... Pipeline.o"
+	@echo "... Pipeline.i"
+	@echo "... Pipeline.s"
 	@echo "... RenderPass.o"
 	@echo "... RenderPass.i"
 	@echo "... RenderPass.s"
-	@echo "... SceneElement.o"
-	@echo "... SceneElement.i"
-	@echo "... SceneElement.s"
+	@echo "... Renderer.o"
+	@echo "... Renderer.i"
+	@echo "... Renderer.s"
+	@echo "... Sampler.o"
+	@echo "... Sampler.i"
+	@echo "... Sampler.s"
 	@echo "... SceneManager.o"
 	@echo "... SceneManager.i"
 	@echo "... SceneManager.s"
@@ -660,6 +924,12 @@ help:
 	@echo "... SystemManager.o"
 	@echo "... SystemManager.i"
 	@echo "... SystemManager.s"
+	@echo "... Texture.o"
+	@echo "... Texture.i"
+	@echo "... Texture.s"
+	@echo "... UniformBufferObject.o"
+	@echo "... UniformBufferObject.i"
+	@echo "... UniformBufferObject.s"
 	@echo "... Vulkan.o"
 	@echo "... Vulkan.i"
 	@echo "... Vulkan.s"

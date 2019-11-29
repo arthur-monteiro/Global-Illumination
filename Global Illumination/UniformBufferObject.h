@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstring>
+
 #include "VulkanHelper.h"
 
 struct UniformBufferObjectLayout

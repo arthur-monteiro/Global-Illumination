@@ -81,6 +81,69 @@ struct Vertex2DTextured
 	}
 };
 
+struct VertexPBR
+{
+    glm::vec3 pos;
+    glm::vec3 normal;
+    glm::vec3 tangent;
+    glm::vec2 texCoord;
+
+    static VkVertexInputBindingDescription getBindingDescription(uint32_t binding)
+    {
+        VkVertexInputBindingDescription bindingDescription = {};
+        bindingDescription.binding = binding;
+        bindingDescription.stride = sizeof(VertexPBR);
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+        return bindingDescription;
+    }
+
+    static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions(uint32_t binding)
+    {
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions(4);
+
+        attributeDescriptions[0].binding = binding;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[0].offset = offsetof(VertexPBR, pos);
+
+        attributeDescriptions[1].binding = binding;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(VertexPBR, normal);
+
+        attributeDescriptions[2].binding = binding;
+        attributeDescriptions[2].location = 2;
+        attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[2].offset = offsetof(VertexPBR, tangent);
+
+        attributeDescriptions[3].binding = binding;
+        attributeDescriptions[3].location = 3;
+        attributeDescriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[3].offset = offsetof(VertexPBR, texCoord);
+
+        return attributeDescriptions;
+    }
+
+    bool operator==(const VertexPBR& other) const
+    {
+        return pos == other.pos && normal == other.normal && texCoord == other.texCoord && tangent == other.tangent;
+    }
+};
+
+namespace std
+{
+    template<> struct hash<VertexPBR>
+    {
+        size_t operator()(VertexPBR const& vertex) const
+        {
+            return ((hash<glm::vec3>()(vertex.pos) ^
+                     (hash<glm::vec3>()(vertex.normal) << 1)) >> 1) ^
+                   (hash<glm::vec2>()(vertex.texCoord) << 1);
+        }
+    };
+}
+
 struct VertexBuffer
 {
 	VkBuffer vertexBuffer;
@@ -120,7 +183,7 @@ public:
 
 private:
     // Vertex
-	std::vector<T> m_vertices;
+	std::vector<T> m_vertices = {};
     VkBuffer m_vertexBuffer;
     VkDeviceMemory m_vertexBufferMemory;
 

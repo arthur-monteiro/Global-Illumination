@@ -101,7 +101,7 @@ bool LoadingManager::submit(VkDevice device, VkQueue graphicsQueue, uint32_t swa
 {
 	long long millisecondOffset = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_timerStart).count();
 
-	float logoOpacity = glm::exp(glm::sin(millisecondOffset / (float)m_loadingLogoLoopMillisecond)) / 2.0f;
+	float logoOpacity = (glm::exp(glm::sin(millisecondOffset / (float)m_loadingLogoLoopMillisecond)) / 2.0f - 0.18f) / 1.18f;
 	m_uboLogoOpacity.updateData(device, &logoOpacity);
 
     m_mainRenderPass.submit(device, graphicsQueue, swapChainImageIndex, { imageAvailableSemaphore });

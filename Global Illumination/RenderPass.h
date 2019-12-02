@@ -19,14 +19,15 @@ public:
 	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, const std::vector<Attachment>& attachments, std::vector<Image*> images);
 
 	void fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues, std::vector<Renderer*> renderers);
-	void submit(VkDevice device, VkQueue graphicsQueue, size_t framebufferID, std::vector<Semaphore> waitSemaphores);
+	void submit(VkDevice device, VkQueue graphicsQueue, size_t framebufferID, std::vector<Semaphore*> waitSemaphores);
 	void resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, const std::vector<Attachment>& attachments, std::vector<Image*> images);
 
 	void cleanup(VkDevice device, VkCommandPool commandPool);
 
 // Getters
 public:
-    VkSemaphore getRenderCompleteSemaphore() { return m_renderCompleteSemaphore.getSemaphore(); }
+    Semaphore * getRenderCompleteSemaphore() { return &m_renderCompleteSemaphore; }
+	std::vector<Image*> getImages(int framebufferID) { return m_framebuffers[framebufferID].getImages(); }
 
 private:
 	VkRenderPass m_renderPass;

@@ -27,9 +27,11 @@ public:
 
     std::vector<VertexBuffer> getVertexBuffers();
 	std::vector<Texture*> getTextures(int meshID);
+	glm::mat4 getTransformation() { return m_transformationMatrix; }
 
 private:
     std::vector<MeshPBR> m_meshes;
+	glm::mat4 m_transformationMatrix = glm::mat4(1.0f);
 
 private:
     static std::string getTexName(std::string texName, std::string folder);

@@ -16,7 +16,8 @@ bool SystemManager::initialize()
 
 	m_swapChain.initialize(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_vulkan.getSurface(), m_windowManager.getWindow());
 
-	m_sceneManager.initialize(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_vulkan.getSurface(), m_vulkan.getGraphicsQueue(), m_swapChain.getImages());
+	m_gameManager.initialize(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_vulkan.getSurface(), m_vulkan.getGraphicsQueue(), m_vulkan.getGraphicsQueueMutex(),
+		m_vulkan.getComputeQueue(), m_vulkan.getComputeQueueMutex(), m_swapChain.getImages());
 
 	return true;
 }
@@ -28,9 +29,12 @@ bool SystemManager::run()
         glfwPollEvents();
 
         uint32_t swapChainImageIndex = m_swapChain.getCurrentImage(m_vulkan.getDevice());
-        m_sceneManager.submit(m_vulkan.getDevice(), m_vulkan.getGraphicsQueue(), swapChainImageIndex, m_swapChain.getImageAvailableSemaphore());
+        m_gameManager.submit(m_vulkan.getDevice(), m_windowManager.getWindow(), m_vulkan.getGraphicsQueue(), m_vulkan.getGraphicsQueueMutex(),
+			m_vulkan.getComputeQueue(), m_vulkan.getComputeQueueMutex(), swapChainImageIndex, &m_swapChain.getImageAvailableSemaphore());
 
-        m_swapChain.present(m_vulkan.getPresentQueue(), m_sceneManager.getLastRenderFinishedSemaphore(), swapChainImageIndex);
+		m_vulkan.getPresentQueueMutex()->lock();
+        m_swapChain.present(m_vulkan.getPresentQueue(), m_gameManager.getLastRenderFinishedSemaphore(), swapChainImageIndex);
+		m_vulkan.getPresentQueueMutex()->unlock();
     }
 
 	vkDeviceWaitIdle(m_vulkan.getDevice());
@@ -42,13 +46,13 @@ void SystemManager::resize(int width, int height)
 {
 	if (width == 0 || height == 0) return;
 	m_swapChain.recreate(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_vulkan.getSurface(), m_windowManager.getWindow());
-	m_sceneManager.resize(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_swapChain.getImages());
+	m_gameManager.resize(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_swapChain.getImages());
 }
 
 bool SystemManager::cleanup()
 {
 	m_windowManager.cleanup();
-	m_sceneManager.cleanup(m_vulkan.getDevice());
+	m_gameManager.cleanup(m_vulkan.getDevice());
 	m_swapChain.cleanup(m_vulkan.getDevice());
 	m_vulkan.cleanup();
 

@@ -126,10 +126,11 @@ void ModelPBR::loadFromFile(VkDevice device, VkPhysicalDevice physicalDevice, Vk
         m_meshes[i].textures[4].createFromFile(device, physicalDevice, commandPool, graphicsQueue,
                                                getTexName(materials[i].ambient_texname, mtlFolder));
 
+		vkQueueWaitIdle(graphicsQueue);
         graphicsQueueMutex->unlock();
 
-       /* for(int j(0); j <= 5; ++j)
-            m_meshes[i].textures[j].createSampler(device, VK_SAMPLER_ADDRESS_MODE_REPEAT, 1.0f, VK_FILTER_LINEAR);*/
+        for(int j(0); j < 5; ++j)
+            m_meshes[i].textures[j].createSampler(device, VK_SAMPLER_ADDRESS_MODE_REPEAT, 1.0f, VK_FILTER_LINEAR);
     }
 
     int nTriangles = 0;

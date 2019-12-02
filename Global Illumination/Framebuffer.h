@@ -16,6 +16,7 @@ public:
 
 	VkFramebuffer getFramebuffer() { return m_framebuffer; }
 	VkExtent2D getExtent() { return m_extent; }
+	std::vector<Image*> getImages();
 
 private:
 	VkFramebuffer m_framebuffer;

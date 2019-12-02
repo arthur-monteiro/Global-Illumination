@@ -97,7 +97,7 @@ bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 	return true;
 }
 
-bool LoadingManager::submit(VkDevice device, VkQueue graphicsQueue, uint32_t swapChainImageIndex, const Semaphore& imageAvailableSemaphore)
+bool LoadingManager::submit(VkDevice device, VkQueue graphicsQueue, uint32_t swapChainImageIndex, Semaphore * imageAvailableSemaphore)
 {
 	long long millisecondOffset = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_timerStart).count();
 
@@ -134,5 +134,5 @@ void LoadingManager::cleanup(VkDevice device)
 
 VkSemaphore LoadingManager::getLastRenderFinishedSemaphore()
 {
-    return m_mainRenderPass.getRenderCompleteSemaphore();
+    return m_mainRenderPass.getRenderCompleteSemaphore()->getSemaphore();
 }

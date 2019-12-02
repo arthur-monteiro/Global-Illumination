@@ -4,23 +4,23 @@ GameManager::~GameManager()
 {
 }
 
-bool GameManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkQueue graphicsQueue, std::vector<Image*> swapChainImages)
+bool GameManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkQueue graphicsQueue, std::mutex* graphicsQueueMutex,
+	VkQueue computeQueue, std::mutex* computeQueueMutex, std::vector<Image*> swapChainImages)
 {
-    m_mutexGraphicsQueue = new std::mutex();
-
-	m_loadingManager.initialize(device, physicalDevice, surface, graphicsQueue, std::move(swapChainImages));
-    m_sceneLoadingThread = std::thread(&SceneManager::load, &m_sceneManager, device, physicalDevice, graphicsQueue, surface, m_mutexGraphicsQueue);
+	m_loadingManager.initialize(device, physicalDevice, surface, graphicsQueue, swapChainImages);
+    m_sceneLoadingThread = std::thread(&SceneManager::load, &m_sceneManager, device, physicalDevice, graphicsQueue, computeQueue, surface, graphicsQueueMutex, swapChainImages);
 
 	return true;
 }
 
-void GameManager::submit(VkDevice device, VkQueue graphicsQueue, uint32_t swapChainImageIndex, Semaphore imageAvailableSemaphore)
+void GameManager::submit(VkDevice device, GLFWwindow* window, VkQueue graphicsQueue, std::mutex * graphicsQueueMutex,
+	VkQueue computeQueue, std::mutex* computeQueueMutex, uint32_t swapChainImageIndex, Semaphore * imageAvailableSemaphore)
 {
     if(m_gameState == GAME_STATE::LOADING)
     {
-        m_mutexGraphicsQueue->lock();
+        graphicsQueueMutex->lock();
         m_loadingManager.submit(device, graphicsQueue, swapChainImageIndex, imageAvailableSemaphore);
-        m_mutexGraphicsQueue->unlock();
+		graphicsQueueMutex->unlock();
 
         if(m_sceneManager.getLoadingState() == 1.0f)
         {
@@ -30,7 +30,7 @@ void GameManager::submit(VkDevice device, VkQueue graphicsQueue, uint32_t swapCh
     }
     else if(m_gameState == GAME_STATE::RUNNING)
     {
-        std::cout << "Running \n";
+		m_sceneManager.submit(device, window, graphicsQueue, computeQueue, swapChainImageIndex, imageAvailableSemaphore);
     }
 }
 
@@ -46,5 +46,8 @@ void GameManager::cleanup(VkDevice device)
 
 VkSemaphore GameManager::getLastRenderFinishedSemaphore()
 {
-    return m_loadingManager.getLastRenderFinishedSemaphore();
+	if (m_gameState == GAME_STATE::LOADING)
+		return m_loadingManager.getLastRenderFinishedSemaphore();
+
+	return m_loadingManager.getLastRenderFinishedSemaphore();
 }

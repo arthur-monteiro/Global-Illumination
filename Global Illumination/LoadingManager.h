@@ -17,7 +17,7 @@ public:
 	~LoadingManager();
 
 	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkQueue graphicsQueue, std::vector<Image*> swapChainImages);
-	bool submit(VkDevice device, VkQueue graphicsQueue, uint32_t swapChainImageIndex, const Semaphore& imageAvailableSemaphore);
+	bool submit(VkDevice device, VkQueue graphicsQueue, uint32_t swapChainImageIndex, Semaphore * imageAvailableSemaphore);
 	void resize(VkDevice device, VkPhysicalDevice physicalDevice, std::vector<Image*> swapChainImages);
 
 	void cleanup(VkDevice device);

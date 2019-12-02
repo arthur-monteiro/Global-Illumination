@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <set>
+#include <mutex>
 
 #include "VulkanHelper.h"
 
@@ -22,8 +23,13 @@ public:
 	VkDevice getDevice() { return m_device; }
 	VkPhysicalDevice getPhysicalDevice() { return m_physicalDevice; }
 	VkSurfaceKHR getSurface() { return m_surface; }
+
 	VkQueue getGraphicsQueue() { return m_graphicsQueue; }
 	VkQueue getPresentQueue() { return m_presentQueue; }
+	VkQueue getComputeQueue() { return m_computeQueue; }
+	std::mutex* getGraphicsQueueMutex() { return m_mutexGraphicsQueue; }
+	std::mutex* getPresentQueueMutex() { return m_mutexPresentQueue; }
+	std::mutex* getComputeQueueMutex() { return m_mutexComputeQueue; }
 
 private:
 	/* Main Loading Functions */
@@ -61,6 +67,11 @@ private:
 	VkQueue m_graphicsQueue;
 	VkQueue m_presentQueue;
 	VkQueue m_computeQueue;
+
+	/* Mutex queues */
+	std::mutex* m_mutexGraphicsQueue;
+	std::mutex* m_mutexPresentQueue;
+	std::mutex* m_mutexComputeQueue;
 
 	/* Extensions / Layers */
 	std::vector<const char*> m_validationLayers = std::vector<const char*>();

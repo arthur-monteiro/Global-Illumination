@@ -49,7 +49,7 @@ void RenderPass::fillCommandBuffer(VkDevice device, size_t framebufferID, std::v
             std::move(clearValues), renderers);
 }
 
-void RenderPass::submit(VkDevice device, VkQueue graphicsQueue, size_t framebufferID, std::vector<Semaphore> waitSemaphores)
+void RenderPass::submit(VkDevice device, VkQueue graphicsQueue, size_t framebufferID, std::vector<Semaphore*> waitSemaphores)
 {
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -59,8 +59,8 @@ void RenderPass::submit(VkDevice device, VkQueue graphicsQueue, size_t framebuff
     std::vector<VkPipelineStageFlags> stages;
     for(int i(0); i < waitSemaphores.size(); ++i)
     {
-        semaphores.push_back(waitSemaphores[i].getSemaphore());
-        stages.push_back(waitSemaphores[i].getPipelineStage());
+        semaphores.push_back(waitSemaphores[i]->getSemaphore());
+        stages.push_back(waitSemaphores[i]->getPipelineStage());
     }
     submitInfo.pWaitSemaphores = semaphores.data();
     submitInfo.pWaitDstStageMask = stages.data();

@@ -5,7 +5,8 @@ GBuffer::~GBuffer()
 
 }
 
-bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkExtent2D extent, ModelPBR* model)
+bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkExtent2D extent, ModelPBR* model,
+	glm::mat4 mvp)
 {
     /* Main Render Pass */
     // Attachments -> depth + albedo + normal + (rougness + metal + ao)
@@ -21,7 +22,6 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSur
 	mvpLayout.accessibility = VK_SHADER_STAGE_VERTEX_BIT;
 	mvpLayout.binding = 0;
 
-	glm::mat4 mvp;
 	m_uboMVP.initialize(device, physicalDevice, &mvp, sizeof(glm::mat4));
 
 	std::vector<TextureLayout> textureLayouts(5);

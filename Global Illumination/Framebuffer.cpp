@@ -102,3 +102,12 @@ void Framebuffer::cleanup(VkDevice device)
 	for (int i(0); i < m_images.size(); ++i)
 		m_images[i].cleanup(device);
 }
+
+std::vector<Image*> Framebuffer::getImages()
+{
+	std::vector<Image*> images(m_images.size());
+	for (int i(0); i < m_images.size(); ++i)
+		images[i] = &m_images[i];
+
+	return images;
+}

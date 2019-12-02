@@ -58,6 +58,11 @@ void Image::createFromPixels(VkDevice device, VkPhysicalDevice physicalDevice, V
 	m_imageView = createImageView(device, m_image, m_imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_2D);
 }
 
+void Image::setImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImageLayout newLayout, VkPipelineStageFlags sourceStage, VkPipelineStageFlags destinationStage)
+{
+	transitionImageLayout(device, commandPool, graphicsQueue, m_image, m_imageFormat, m_imageLayout, newLayout, m_mipLevels, 0, sourceStage, destinationStage);
+}
+
 void Image::cleanup(VkDevice device)
 {
 	vkDestroyImageView(device, m_imageView, nullptr);

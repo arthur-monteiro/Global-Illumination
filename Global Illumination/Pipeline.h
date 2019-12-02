@@ -13,6 +13,7 @@ public:
 	void initialize(VkDevice device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
 		std::vector<VkVertexInputAttributeDescription> attributeInputDescription, VkExtent2D extent, VkSampleCountFlagBits msaaSamples, std::vector<bool> alphaBlending,
 		VkDescriptorSetLayout* descriptorSetLayout);
+	void initialize(VkDevice device, std::string computeShader, VkDescriptorSetLayout* descriptorSetLayout);
 
 	void cleanup(VkDevice device);
 

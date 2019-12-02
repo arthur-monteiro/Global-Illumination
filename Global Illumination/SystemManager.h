@@ -29,7 +29,7 @@ private:
 	}
 
 private:
-	GameManager m_sceneManager;
+	GameManager m_gameManager;
 	WindowManager m_windowManager;
 	Vulkan m_vulkan;
 	SwapChain m_swapChain;

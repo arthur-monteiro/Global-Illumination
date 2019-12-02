@@ -156,8 +156,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Attachment.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="CommandPool.cpp" />
+    <ClCompile Include="ComputePass.cpp" />
     <ClCompile Include="DescriptorPool.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="GameManager.cpp" />
@@ -174,7 +176,6 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="Sampler.cpp" />
-    <ClCompile Include="SceneElement.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Semaphore.cpp" />
     <ClCompile Include="SwapChain.cpp" />
@@ -187,8 +188,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Attachment.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="CommandPool.h" />
+    <ClInclude Include="ComputePass.h" />
     <ClInclude Include="DescriptorPool.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="GameManager.h" />
@@ -204,7 +207,6 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="Sampler.h" />
-    <ClInclude Include="SceneElement.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="SwapChain.h" />

@@ -164,6 +164,41 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 	vkDestroyShaderModule(device, fragShaderModule, nullptr);
 }
 
+void Pipeline::initialize(VkDevice device, std::string computeShader, VkDescriptorSetLayout* descriptorSetLayout)
+{
+	/* Pipeline layout */
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount = 1;
+	pipelineLayoutInfo.pSetLayouts = descriptorSetLayout;
+	pipelineLayoutInfo.pushConstantRangeCount = 0;
+
+	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
+		throw std::runtime_error("Error : create pipeline layout");
+
+	/* Shader */
+	std::vector<char> computeShaderCode = readFile(computeShader);
+	VkShaderModule computeShaderModule = createShaderModule(computeShaderCode, device);
+
+	VkPipelineShaderStageCreateInfo compShaderStageInfo = {};
+	compShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	compShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+	compShaderStageInfo.module = computeShaderModule;
+	compShaderStageInfo.pName = "main";
+
+	/* Pipeline */
+	VkComputePipelineCreateInfo pipelineInfo;
+	pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+	pipelineInfo.stage = compShaderStageInfo;
+	pipelineInfo.layout = m_pipelineLayout;
+	pipelineInfo.flags = 0;
+	pipelineInfo.pNext = nullptr;
+	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+
+	if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline) != VK_SUCCESS)
+		throw std::runtime_error("Error : create compute pipeline");
+}
+
 void Pipeline::cleanup(VkDevice device)
 {
 	vkDestroyPipeline(device, m_pipeline, nullptr);

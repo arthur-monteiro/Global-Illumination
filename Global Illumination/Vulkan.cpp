@@ -135,9 +135,19 @@ void Vulkan::createDevice()
 #endif
 
 	if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS)
-		throw std::runtime_error("Error : Device creation");
+		throw std::runtime_error("Error : create device");
 
 	vkGetDeviceQueue(m_device, indices.graphicsFamily, 0, &m_graphicsQueue);
 	vkGetDeviceQueue(m_device, indices.presentFamily, 0, &m_presentQueue);
 	vkGetDeviceQueue(m_device, indices.computeFamily, 0, &m_computeQueue);
+
+	m_mutexGraphicsQueue = new std::mutex();
+	if (indices.graphicsFamily != indices.presentFamily)
+		m_mutexPresentQueue = new std::mutex();
+	else
+		m_mutexPresentQueue = m_mutexGraphicsQueue;
+	if (indices.graphicsFamily != indices.computeFamily)
+		m_mutexComputeQueue = new std::mutex();
+	else
+		m_mutexComputeQueue = m_mutexGraphicsQueue;
 }

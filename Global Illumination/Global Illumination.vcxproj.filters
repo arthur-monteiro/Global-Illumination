@@ -31,6 +31,9 @@
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="DescriptorPool.cpp" />
     <ClCompile Include="Model2DTextured.cpp" />
+    <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="GBuffer.cpp" />
+    <ClCompile Include="ModelPBR.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -60,6 +63,9 @@
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="DescriptorPool.h" />
     <ClInclude Include="Model2DTextured.h" />
+    <ClInclude Include="GameManager.h" />
+    <ClInclude Include="GBuffer.h" />
+    <ClInclude Include="ModelPBR.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

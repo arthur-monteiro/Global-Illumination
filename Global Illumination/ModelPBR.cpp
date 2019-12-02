@@ -154,6 +154,15 @@ std::vector<VertexBuffer> ModelPBR::getVertexBuffers()
     return vertexBuffers;
 }
 
+std::vector<Texture*> ModelPBR::getTextures(int meshID)
+{
+	std::vector<Texture*> textures(m_meshes[meshID].textures.size());
+	for (int i(0); i < textures.size(); ++i)
+		textures[i] = &m_meshes[meshID].textures[i];
+
+	return textures;
+}
+
 std::string ModelPBR::getTexName(std::string texName, std::string folder)
 {
     return texName != "" ? folder + "/" + texName : "Textures/white_pixel.jpg";

@@ -35,7 +35,7 @@ void Renderer::destroyPipeline(VkDevice device)
 	m_pipelineCreated = false;
 }
 
-int Renderer::addModel(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer,
+int Renderer::addMesh(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer,
 	std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures)
 {
 	m_meshes.push_back({ vertexBuffer, createDescriptorSet(device, descriptorPool, ubos, textures) });

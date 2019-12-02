@@ -18,7 +18,7 @@ public:
 	void createPipeline(VkDevice device, VkRenderPass renderPass, VkExtent2D extent, VkSampleCountFlagBits msaa);
 	void destroyPipeline(VkDevice device);
 
-	int addModel(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer, 
+	int addMesh(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer, 
 		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures);
 
 	void cleanup(VkDevice device, VkDescriptorPool descriptorPool);

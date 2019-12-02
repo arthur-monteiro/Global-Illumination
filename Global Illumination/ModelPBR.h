@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <mutex>
+#include <array>
 
 #include "Model.h"
 #include "Mesh.h"
@@ -10,7 +11,7 @@
 struct MeshPBR
 {
     Mesh<VertexPBR> mesh;
-    std::array<Texture, 5> textures;
+	std::array<Texture, 5> textures;
 };
 
 class ModelPBR : public Model
@@ -25,6 +26,7 @@ public:
     void cleanup(VkDevice device);
 
     std::vector<VertexBuffer> getVertexBuffers();
+	std::vector<Texture*> getTextures(int meshID);
 
 private:
     std::vector<MeshPBR> m_meshes;

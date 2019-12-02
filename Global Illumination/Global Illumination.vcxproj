@@ -160,6 +160,8 @@
     <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="DescriptorPool.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
+    <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="GBuffer.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="LoadingManager.cpp" />
     <ClCompile Include="main.cpp" />
@@ -167,6 +169,7 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Model2D.cpp" />
     <ClCompile Include="Model2DTextured.cpp" />
+    <ClCompile Include="ModelPBR.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
@@ -188,12 +191,15 @@
     <ClInclude Include="CommandPool.h" />
     <ClInclude Include="DescriptorPool.h" />
     <ClInclude Include="Framebuffer.h" />
+    <ClInclude Include="GameManager.h" />
+    <ClInclude Include="GBuffer.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="LoadingManager.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Model2D.h" />
     <ClInclude Include="Model2DTextured.h" />
+    <ClInclude Include="ModelPBR.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />

@@ -5,7 +5,7 @@ GBuffer::~GBuffer()
 
 }
 
-bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, VkExtent2D extent)
+bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkExtent2D extent, ModelPBR* model)
 {
     /* Main Render Pass */
     // Attachments -> depth + albedo + normal + (rougness + metal + ao)
@@ -17,12 +17,54 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSur
 
     m_renderPass.initialize(device, physicalDevice, surface, commandPool, m_attachments, { extent });
 
+	UniformBufferObjectLayout mvpLayout;
+	mvpLayout.accessibility = VK_SHADER_STAGE_VERTEX_BIT;
+	mvpLayout.binding = 0;
+
+	glm::mat4 mvp;
+	m_uboMVP.initialize(device, physicalDevice, &mvp, sizeof(glm::mat4));
+
+	std::vector<TextureLayout> textureLayouts(5);
+	for (int i(0); i < textureLayouts.size(); ++i)
+	{
+		textureLayouts[i].accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
+		textureLayouts[i].binding = i + 1;
+	}
+
+	m_renderer.initialize(device, "Shaders/gbuffer/vert.spv", "Shaders/gbuffer/frag.spv", { VertexPBR::getBindingDescription(0) }, VertexPBR::getAttributeDescriptions(0),
+		{ mvpLayout }, textureLayouts, { true });
+
+	std::vector<VertexBuffer> vertexBuffers = model->getVertexBuffers();
+	for (int i(0); i < vertexBuffers.size(); ++i)
+	{
+		std::vector<Texture*> textures = model->getTextures(i);
+		std::vector<std::pair<Texture*, TextureLayout>> rendererTextures(textures.size());
+		for (int j(0); j < rendererTextures.size(); ++j)
+		{
+			rendererTextures[j].first = textures[j];
+			rendererTextures[j].second = textureLayouts[j];
+		}
+
+		m_renderer.addMesh(device, descriptorPool, vertexBuffers[i], { { &m_uboMVP, mvpLayout } }, rendererTextures);
+	}
+
+	m_clearValues.resize(4);
+	m_clearValues[0] = { 1.0f };
+	m_clearValues[1] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	m_clearValues[2] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	m_clearValues[3] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	m_clearValues[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	m_renderPass.fillCommandBuffer(device, 0, m_clearValues, { &m_renderer });
+
     return true;
 }
 
 bool GBuffer::submit(VkDevice device, VkQueue graphicsQueue)
 {
-    return false;
+	m_renderPass.submit(device, graphicsQueue, 0, {});
+
+    return true;
 }
 
 void GBuffer::resize(VkDevice device, VkPhysicalDevice physicalDevice, int width, int height)
@@ -30,7 +72,8 @@ void GBuffer::resize(VkDevice device, VkPhysicalDevice physicalDevice, int width
 
 }
 
-void GBuffer::cleanup(VkDevice device)
+void GBuffer::cleanup(VkDevice device, VkCommandPool commandPool, VkDescriptorPool descriptorPool)
 {
-
+	m_renderPass.cleanup(device, commandPool);
+	m_renderer.cleanup(device, descriptorPool);
 }

@@ -4,6 +4,7 @@
 
 #include "ModelPBR.h"
 #include "CommandPool.h"
+#include "DescriptorPool.h"
 #include "GBuffer.h"
 
 class SceneManager
@@ -21,6 +22,8 @@ private:
     float m_loadingState = 0.0f;
 
     CommandPool m_commandPool;
+	DescriptorPool m_descriptorPool;
+
     ModelPBR m_model;
     GBuffer m_gbuffer;
 };

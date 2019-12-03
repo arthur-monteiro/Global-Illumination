@@ -36,7 +36,9 @@ void Texture::createSampler(VkDevice device, VkSamplerAddressMode addressMode, f
 
 void Texture::setImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImageLayout newLayout, VkPipelineStageFlags sourceStage, VkPipelineStageFlags destinationStage)
 {
-	m_image.setImageLayout(device, commandPool, graphicsQueue, newLayout, sourceStage, destinationStage);
+	m_imagePtr == nullptr ?
+		m_image.setImageLayout(device, commandPool, graphicsQueue, newLayout, sourceStage, destinationStage) :
+		m_imagePtr->setImageLayout(device, commandPool, graphicsQueue, newLayout, sourceStage, destinationStage);
 }
 
 void Texture::cleanup(VkDevice device)

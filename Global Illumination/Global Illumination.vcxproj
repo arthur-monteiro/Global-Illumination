@@ -172,6 +172,7 @@
     <ClCompile Include="Model2D.cpp" />
     <ClCompile Include="Model2DTextured.cpp" />
     <ClCompile Include="ModelPBR.cpp" />
+    <ClCompile Include="Operation.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
@@ -203,6 +204,7 @@
     <ClInclude Include="Model2D.h" />
     <ClInclude Include="Model2DTextured.h" />
     <ClInclude Include="ModelPBR.h" />
+    <ClInclude Include="Operation.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />

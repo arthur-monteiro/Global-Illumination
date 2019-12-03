@@ -12,6 +12,7 @@ void Image::create(VkDevice device, VkPhysicalDevice physicalDevice, VkExtent2D 
 	m_imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 	m_imageView = createImageView(device, m_image, format, aspect, 1, VK_IMAGE_VIEW_TYPE_2D);
+	m_mipLevels = 1;
 }
 
 void Image::createFromImage(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspect, VkExtent2D extent)
@@ -21,6 +22,7 @@ void Image::createFromImage(VkDevice device, VkImage image, VkFormat format, VkI
 	m_imageFormat = format;
 	m_imageView = createImageView(device, m_image, format, aspect, 1, VK_IMAGE_VIEW_TYPE_2D);
 	m_extent = extent;
+	m_mipLevels = 1;
 }
 
 void Image::createFromPixels(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkExtent3D extent, unsigned char* pixels)
@@ -60,7 +62,8 @@ void Image::createFromPixels(VkDevice device, VkPhysicalDevice physicalDevice, V
 
 void Image::setImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImageLayout newLayout, VkPipelineStageFlags sourceStage, VkPipelineStageFlags destinationStage)
 {
-	transitionImageLayout(device, commandPool, graphicsQueue, m_image, m_imageFormat, m_imageLayout, newLayout, m_mipLevels, 0, sourceStage, destinationStage);
+	transitionImageLayout(device, commandPool, graphicsQueue, m_image, m_imageFormat, m_imageLayout, newLayout, m_mipLevels, 1, sourceStage, destinationStage);
+	m_imageLayout = newLayout;
 }
 
 void Image::cleanup(VkDevice device)
@@ -187,7 +190,9 @@ void Image::transitionImageLayout(VkDevice device, VkCommandPool commandPool, Vk
 		case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
 			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
 			break;
+
 		default:
+			throw std::runtime_error("Error : image layout transition not supported");
 			break;
 		}
 
@@ -216,7 +221,13 @@ void Image::transitionImageLayout(VkDevice device, VkCommandPool commandPool, Vk
 			}
 			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 			break;
+
+		case VK_IMAGE_LAYOUT_GENERAL:
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			break;
+
 		default:
+			throw std::runtime_error("Error : image layout transition not supported");
 			break;
 		}
 

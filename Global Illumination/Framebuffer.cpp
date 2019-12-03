@@ -6,6 +6,7 @@ Framebuffer::~Framebuffer()
 
 bool Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkExtent2D extent, std::vector<Attachment> attachments)
 {
+	m_extent = extent;
     m_images.resize(attachments.size());
     std::vector<VkImageView> imageViewAttachments(attachments.size());
 

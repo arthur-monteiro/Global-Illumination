@@ -70,6 +70,67 @@ void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, VkRende
 		throw std::runtime_error("Error : end command buffer");
 }
 
+void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, Operation& operation)
+{
+	VkCommandBufferBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+
+	vkBeginCommandBuffer(m_commandBuffers[commandBufferID], &beginInfo);
+
+	std::vector<CopyImageOperation> copyImageOperations = operation.getCopyImageOperation();
+	for (int i(0); i < copyImageOperations.size(); ++i)
+	{
+		VkImageCopy copyRegion = {};
+		copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		copyRegion.srcSubresource.mipLevel = 0;
+		copyRegion.srcSubresource.baseArrayLayer = 0;
+		copyRegion.srcSubresource.layerCount = 1;
+		copyRegion.srcOffset = { 0, 0, 0 };
+		copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		copyRegion.dstSubresource.mipLevel = 0;
+		copyRegion.dstSubresource.baseArrayLayer = 0;
+		copyRegion.dstSubresource.layerCount = 1;
+		copyRegion.dstOffset = { 0, 0, 0 };
+		copyRegion.extent = { copyImageOperations[i].srcImage->getExtent().width, copyImageOperations[i].srcImage->getExtent().height, 1 };
+
+		vkCmdCopyImage(m_commandBuffers[commandBufferID],
+			copyImageOperations[i].srcImage->getImage(), copyImageOperations[i].srcImage->getImageLayout(),
+			copyImageOperations[i].dstImage->getImage(), copyImageOperations[i].dstImage->getImageLayout(),
+			1, &copyRegion);
+	}
+
+	if (vkEndCommandBuffer(m_commandBuffers[commandBufferID]) != VK_SUCCESS)
+		throw std::runtime_error("Error : end command buffer");
+}
+
+void Command::submit(VkDevice device, VkQueue graphicsQueue, std::vector<Semaphore*> waitSemaphores, std::vector<VkSemaphore> signalSemaphores, size_t commandBufferID)
+{
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	submitInfo.signalSemaphoreCount = signalSemaphores.size();
+	submitInfo.pSignalSemaphores = signalSemaphores.data();
+
+	VkCommandBuffer commandBuffer = m_commandBuffers[0];
+	submitInfo.pCommandBuffers = &commandBuffer;
+	submitInfo.commandBufferCount = 1;
+
+	submitInfo.waitSemaphoreCount = waitSemaphores.size();
+	std::vector<VkSemaphore> semaphores;
+	std::vector<VkPipelineStageFlags> stages;
+	for (int i(0); i < waitSemaphores.size(); ++i)
+	{
+		semaphores.push_back(waitSemaphores[i]->getSemaphore());
+		stages.push_back(waitSemaphores[i]->getPipelineStage());
+	}
+	submitInfo.pWaitSemaphores = semaphores.data();
+	submitInfo.pWaitDstStageMask = stages.data();
+
+	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+		throw std::runtime_error("Error : submit to graphics queue");
+}
+
 void Command::cleanup(VkDevice device, VkCommandPool commandPool)
 {
 	vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());

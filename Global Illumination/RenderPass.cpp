@@ -19,6 +19,9 @@ bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
         m_framebuffers[i].initialize(device, physicalDevice, m_renderPass, extents[i], attachments);
     }
 
+	m_renderCompleteSemaphore.initialize(device);
+	m_renderCompleteSemaphore.setPipelineStage(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
 	return true;
 }
 
@@ -119,20 +122,20 @@ VkRenderPass RenderPass::createRenderPass(VkDevice device, std::vector<Attachmen
 		VkAttachmentReference ref;
 		ref.attachment = i;
 
-		if (attachments[i].getUsageType() == VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+		if ((attachments[i].getUsageType() & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) && (attachments[i].getUsageType() & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT))
+		{
+			ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			resolveAttachmentRefs.push_back(ref);
+		}
+		else if (attachments[i].getUsageType() & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
 		{
 			ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 			colorAttachmentRefs.push_back(ref);
 		}
-		else if (attachments[i].getUsageType() == VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
+		else if (attachments[i].getUsageType() & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 		{
 			ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			depthAttachmentRef = ref;
-		}
-		else if (attachments[i].getUsageType() == (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT))
-		{
-			ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-			resolveAttachmentRefs.push_back(ref);
 		}
 	}
 

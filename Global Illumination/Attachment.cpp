@@ -4,7 +4,7 @@ Attachment::~Attachment()
 {
 }
 
-void Attachment::initialize(VkFormat format, VkSampleCountFlagBits sampleCount, VkImageLayout finalLayout, VkAttachmentStoreOp storeOperation, VkImageUsageFlagBits usageType)
+void Attachment::initialize(VkFormat format, VkSampleCountFlagBits sampleCount, VkImageLayout finalLayout, VkAttachmentStoreOp storeOperation, VkImageUsageFlags usageType)
 {
 	m_format = format;
 	m_sampleCount = sampleCount;

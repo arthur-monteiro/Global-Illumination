@@ -9,12 +9,13 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSur
 	glm::mat4 mvp)
 {
     /* Main Render Pass */
-    // Attachments -> depth + albedo + normal + (rougness + metal + ao)
-    m_attachments.resize(4);
+    // Attachments -> depth + world pos + albedo + normal + (rougness + metal + ao)
+    m_attachments.resize(5);
     m_attachments[0].initialize(findDepthFormat(physicalDevice), VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
-    m_attachments[1].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
-    m_attachments[2].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
-    m_attachments[3].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+	m_attachments[1].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
+    m_attachments[2].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
+    m_attachments[3].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
+    m_attachments[4].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
 
     m_renderPass.initialize(device, physicalDevice, surface, commandPool, m_attachments, { extent });
 
@@ -22,7 +23,11 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSur
 	mvpLayout.accessibility = VK_SHADER_STAGE_VERTEX_BIT;
 	mvpLayout.binding = 0;
 
-	m_uboMVP.initialize(device, physicalDevice, &mvp, sizeof(glm::mat4));
+	MVP_UBO ubo;
+	ubo.mvp = mvp;
+	ubo.model = model->getTransformation();
+
+	m_uboMVP.initialize(device, physicalDevice, &ubo, sizeof(MVP_UBO));
 
 	std::vector<TextureLayout> textureLayouts(5);
 	for (int i(0); i < textureLayouts.size(); ++i)
@@ -32,7 +37,7 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSur
 	}
 
 	m_renderer.initialize(device, "Shaders/gbuffer/vert.spv", "Shaders/gbuffer/frag.spv", { VertexPBR::getBindingDescription(0) }, VertexPBR::getAttributeDescriptions(0),
-		{ mvpLayout }, textureLayouts, { true });
+		{ mvpLayout }, textureLayouts, { true, true, true, true });
 
 	std::vector<VertexBuffer> vertexBuffers = model->getVertexBuffers();
 	for (int i(0); i < vertexBuffers.size(); ++i)
@@ -48,7 +53,7 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSur
 		m_renderer.addMesh(device, descriptorPool, vertexBuffers[i], { { &m_uboMVP, mvpLayout } }, rendererTextures);
 	}
 
-	m_clearValues.resize(4);
+	m_clearValues.resize(5);
 	m_clearValues[0] = { 1.0f };
 	m_clearValues[1] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	m_clearValues[2] = { 0.0f, 0.0f, 0.0f, 1.0f };

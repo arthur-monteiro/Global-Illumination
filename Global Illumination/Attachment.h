@@ -9,7 +9,7 @@ public:
 	Attachment() {}
 	~Attachment();
 
-	void initialize(VkFormat format, VkSampleCountFlagBits sampleCount, VkImageLayout finalLayout, VkAttachmentStoreOp storeOperation, VkImageUsageFlagBits usageType);
+	void initialize(VkFormat format, VkSampleCountFlagBits sampleCount, VkImageLayout finalLayout, VkAttachmentStoreOp storeOperation, VkImageUsageFlags usageType);
 
 // Getters
 public:
@@ -17,7 +17,7 @@ public:
 	VkSampleCountFlagBits getSampleCount() { return m_sampleCount; }
 	VkAttachmentStoreOp getStoreOperation() { return m_storeOperation; }
 	VkImageLayout getFinalLayout() { return m_finalLayout; }
-	VkImageUsageFlagBits getUsageType() { return m_usageType; }
+	VkImageUsageFlags getUsageType() { return m_usageType; }
 	
 private:
 	VkExtent2D m_extent;
@@ -26,6 +26,6 @@ private:
 	VkImageLayout m_finalLayout;
 	VkAttachmentStoreOp m_storeOperation;
 
-	VkImageUsageFlagBits m_usageType;
+	VkImageUsageFlags m_usageType;
 };
 

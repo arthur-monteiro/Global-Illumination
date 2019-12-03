@@ -35,6 +35,7 @@
     <ClCompile Include="ModelPBR.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ComputePass.cpp" />
+    <ClCompile Include="Operation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -68,6 +69,7 @@
     <ClInclude Include="ModelPBR.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ComputePass.h" />
+    <ClInclude Include="Operation.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

@@ -93,6 +93,8 @@ void ComputePass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, V
 		descriptorWrite.dstArrayElement = 0;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.pImageInfo = &imageInfo[i];
+		descriptorWrite.pNext = NULL;
 
 		descriptorWrites.push_back(descriptorWrite);
 	}
@@ -118,6 +120,7 @@ void ComputePass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, V
 
 	/* Semaphore creation */
 	m_renderCompleteSemaphore.initialize(device);
+	m_renderCompleteSemaphore.setPipelineStage(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 }
 
 void ComputePass::submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> waitSemaphores)

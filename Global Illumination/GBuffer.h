@@ -22,6 +22,12 @@ public:
 	Semaphore * getRenderCompleteSemaphore() { return m_renderPass.getRenderCompleteSemaphore(); }
 
 private:
+	struct MVP_UBO
+	{
+		glm::mat4 mvp;
+		glm::mat4 model;
+	};
+
     RenderPass m_renderPass;
     std::vector<Attachment> m_attachments;
     std::vector<VkClearValue> m_clearValues;

@@ -8,6 +8,8 @@
 #include "GBuffer.h"
 #include "Camera.h"
 #include "ComputePass.h"
+#include "Command.h"
+#include "Operation.h"
 
 class SceneManager
 {
@@ -39,4 +41,8 @@ private:
 
 	ComputePass m_computePassFinalRender;
 	Texture m_finalResultTexture;
+
+	std::vector<Image*> m_swapchainImages;
+	Command m_copyResultToSwapchainCommand;
+	std::vector<Operation> m_copyResultToSwapchainOperations;
 };

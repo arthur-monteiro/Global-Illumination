@@ -30,6 +30,7 @@ public:
 
 // Getters
 public:
+	Image* getImage() { return m_imagePtr == nullptr ? &m_image : m_imagePtr; }
 	VkImageView getImageView() { return m_imagePtr == nullptr ? m_image.getImageView() : m_imagePtr->getImageView(); }
 	VkImageLayout getImageLayout() { return m_imagePtr == nullptr ? m_image.getImageLayout() : m_imagePtr->getImageLayout(); }
 	VkSampler getSampler() { return m_sampler.getSampler(); }

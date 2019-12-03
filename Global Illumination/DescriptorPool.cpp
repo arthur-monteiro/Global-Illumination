@@ -6,11 +6,13 @@ DescriptorPool::~DescriptorPool()
 
 void DescriptorPool::initialize(VkDevice device)
 {
-	std::array<VkDescriptorPoolSize, 2> poolSizes;
+	std::array<VkDescriptorPoolSize, 3> poolSizes;
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = 512;
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	poolSizes[1].descriptorCount = 512;
+	poolSizes[2].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+	poolSizes[2].descriptorCount = 512;
 
 	VkDescriptorPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;

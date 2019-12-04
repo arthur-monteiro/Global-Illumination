@@ -11,7 +11,7 @@ public:
 
     bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkExtent2D extent, ModelPBR* model,
 		glm::mat4 mvp);
-    bool submit(VkDevice device, VkQueue graphicsQueue);
+    bool submit(VkDevice device, VkQueue graphicsQueue, glm::mat4 mvp, glm::mat4 model);
     void resize(VkDevice device, VkPhysicalDevice physicalDevice, int width, int height);
 
     void cleanup(VkDevice device, VkCommandPool commandPool, VkDescriptorPool descriptorPool);

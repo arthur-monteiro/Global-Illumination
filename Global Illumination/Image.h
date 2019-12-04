@@ -14,6 +14,7 @@ public:
 	void createFromPixels(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkExtent3D extent, unsigned char* pixels);
 
 	void setImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImageLayout newLayout, VkPipelineStageFlags sourceStage, VkPipelineStageFlags destinationStage);
+    void setImageLayoutWithoutOperation(VkImageLayout newImageLayout) { m_imageLayout = newImageLayout;}
 
 	void cleanup(VkDevice device);
 
@@ -47,4 +48,9 @@ private:
 	static void copyBufferToImage(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t baseArrayLayer);
 	static void generateMipmaps(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage image, VkFormat imageFormat, int32_t texWidth,
 		int32_t texHeight, uint32_t mipLevels, uint32_t baseArrayLayer);
+
+public:
+    static void transitionImageLayoutUsingCommandBuffer(VkDevice device, VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout,
+                                                        uint32_t mipLevels, VkPipelineStageFlags sourceStage, VkPipelineStageFlags destinationStage,
+                                                        uint32_t arrayLayer);
 };

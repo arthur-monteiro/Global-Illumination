@@ -6,7 +6,8 @@
 #include "LoadingManager.h"
 #include "SceneManager.h"
 
-enum GAME_STATE {
+enum GAME_STATE
+{
     LOADING,
     RUNNING
 };

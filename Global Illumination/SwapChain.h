@@ -23,7 +23,7 @@ public:
 // Getters
 public:
     std::vector<Image*> getImages();
-    Semaphore getImageAvailableSemaphore() { return m_imageAvailableSemaphore; }
+    Semaphore * getImageAvailableSemaphore() { return &m_imageAvailableSemaphore; }
 
 private:
 	VkSwapchainKHR m_swapChain;

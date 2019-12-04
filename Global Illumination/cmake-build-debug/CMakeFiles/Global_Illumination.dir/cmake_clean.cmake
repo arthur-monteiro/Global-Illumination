@@ -1,7 +1,9 @@
 file(REMOVE_RECURSE
   "CMakeFiles/Global_Illumination.dir/Attachment.cpp.o"
+  "CMakeFiles/Global_Illumination.dir/Camera.cpp.o"
   "CMakeFiles/Global_Illumination.dir/Command.cpp.o"
   "CMakeFiles/Global_Illumination.dir/CommandPool.cpp.o"
+  "CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o"
   "CMakeFiles/Global_Illumination.dir/DescriptorPool.cpp.o"
   "CMakeFiles/Global_Illumination.dir/Framebuffer.cpp.o"
   "CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o"
@@ -12,6 +14,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/Global_Illumination.dir/Model.cpp.o"
   "CMakeFiles/Global_Illumination.dir/Model2DTextured.cpp.o"
   "CMakeFiles/Global_Illumination.dir/ModelPBR.cpp.o"
+  "CMakeFiles/Global_Illumination.dir/Operation.cpp.o"
   "CMakeFiles/Global_Illumination.dir/Pipeline.cpp.o"
   "CMakeFiles/Global_Illumination.dir/RenderPass.cpp.o"
   "CMakeFiles/Global_Illumination.dir/Renderer.cpp.o"

@@ -65,8 +65,13 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSur
     return true;
 }
 
-bool GBuffer::submit(VkDevice device, VkQueue graphicsQueue)
+bool GBuffer::submit(VkDevice device, VkQueue graphicsQueue, glm::mat4 mvp, glm::mat4 model)
 {
+    MVP_UBO ubo {};
+    ubo.mvp = mvp;
+    ubo.model = model;
+    m_uboMVP.updateData(device, &ubo);
+
 	m_renderPass.submit(device, graphicsQueue, 0, {});
 
     return true;

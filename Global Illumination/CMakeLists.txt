@@ -55,7 +55,19 @@ add_executable(Global_Illumination
         UniformBufferObject.cpp
         UniformBufferObject.h
         Pipeline.cpp
-        Pipeline.h SceneManager.cpp SceneManager.h ModelPBR.cpp ModelPBR.h GBuffer.cpp GBuffer.h)
+        Pipeline.h
+        SceneManager.cpp
+        SceneManager.h
+        ModelPBR.cpp
+        ModelPBR.h
+        GBuffer.cpp
+        GBuffer.h
+        ComputePass.cpp
+        ComputePass.h
+        Operation.cpp
+        Operation.h
+        Camera.cpp
+        Camera.h)
 
 target_include_directories(Global_Illumination PRIVATE /usr/include/freetype2)
 target_link_libraries(Global_Illumination Vulkan::Vulkan)

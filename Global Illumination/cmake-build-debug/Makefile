@@ -150,6 +150,33 @@ Attachment.cpp.s:
 	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Attachment.cpp.s
 .PHONY : Attachment.cpp.s
 
+Camera.o: Camera.cpp.o
+
+.PHONY : Camera.o
+
+# target to build an object file
+Camera.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Camera.cpp.o
+.PHONY : Camera.cpp.o
+
+Camera.i: Camera.cpp.i
+
+.PHONY : Camera.i
+
+# target to preprocess a source file
+Camera.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Camera.cpp.i
+.PHONY : Camera.cpp.i
+
+Camera.s: Camera.cpp.s
+
+.PHONY : Camera.s
+
+# target to generate assembly for a file
+Camera.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Camera.cpp.s
+.PHONY : Camera.cpp.s
+
 Command.o: Command.cpp.o
 
 .PHONY : Command.o
@@ -203,6 +230,33 @@ CommandPool.s: CommandPool.cpp.s
 CommandPool.cpp.s:
 	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/CommandPool.cpp.s
 .PHONY : CommandPool.cpp.s
+
+ComputePass.o: ComputePass.cpp.o
+
+.PHONY : ComputePass.o
+
+# target to build an object file
+ComputePass.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o
+.PHONY : ComputePass.cpp.o
+
+ComputePass.i: ComputePass.cpp.i
+
+.PHONY : ComputePass.i
+
+# target to preprocess a source file
+ComputePass.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/ComputePass.cpp.i
+.PHONY : ComputePass.cpp.i
+
+ComputePass.s: ComputePass.cpp.s
+
+.PHONY : ComputePass.s
+
+# target to generate assembly for a file
+ComputePass.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/ComputePass.cpp.s
+.PHONY : ComputePass.cpp.s
 
 DescriptorPool.o: DescriptorPool.cpp.o
 
@@ -473,6 +527,33 @@ ModelPBR.s: ModelPBR.cpp.s
 ModelPBR.cpp.s:
 	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/ModelPBR.cpp.s
 .PHONY : ModelPBR.cpp.s
+
+Operation.o: Operation.cpp.o
+
+.PHONY : Operation.o
+
+# target to build an object file
+Operation.cpp.o:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Operation.cpp.o
+.PHONY : Operation.cpp.o
+
+Operation.i: Operation.cpp.i
+
+.PHONY : Operation.i
+
+# target to preprocess a source file
+Operation.cpp.i:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Operation.cpp.i
+.PHONY : Operation.cpp.i
+
+Operation.s: Operation.cpp.s
+
+.PHONY : Operation.s
+
+# target to generate assembly for a file
+Operation.cpp.s:
+	$(MAKE) -f CMakeFiles/Global_Illumination.dir/build.make CMakeFiles/Global_Illumination.dir/Operation.cpp.s
+.PHONY : Operation.cpp.s
 
 Pipeline.o: Pipeline.cpp.o
 
@@ -864,12 +945,18 @@ help:
 	@echo "... Attachment.o"
 	@echo "... Attachment.i"
 	@echo "... Attachment.s"
+	@echo "... Camera.o"
+	@echo "... Camera.i"
+	@echo "... Camera.s"
 	@echo "... Command.o"
 	@echo "... Command.i"
 	@echo "... Command.s"
 	@echo "... CommandPool.o"
 	@echo "... CommandPool.i"
 	@echo "... CommandPool.s"
+	@echo "... ComputePass.o"
+	@echo "... ComputePass.i"
+	@echo "... ComputePass.s"
 	@echo "... DescriptorPool.o"
 	@echo "... DescriptorPool.i"
 	@echo "... DescriptorPool.s"
@@ -900,6 +987,9 @@ help:
 	@echo "... ModelPBR.o"
 	@echo "... ModelPBR.i"
 	@echo "... ModelPBR.s"
+	@echo "... Operation.o"
+	@echo "... Operation.i"
+	@echo "... Operation.s"
 	@echo "... Pipeline.o"
 	@echo "... Pipeline.i"
 	@echo "... Pipeline.s"

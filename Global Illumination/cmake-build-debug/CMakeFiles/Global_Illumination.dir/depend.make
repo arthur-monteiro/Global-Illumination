@@ -6,14 +6,19 @@ CMakeFiles/Global_Illumination.dir/Attachment.cpp.o: ../Attachment.h
 CMakeFiles/Global_Illumination.dir/Attachment.cpp.o: ../Image.h
 CMakeFiles/Global_Illumination.dir/Attachment.cpp.o: ../VulkanHelper.h
 
+CMakeFiles/Global_Illumination.dir/Camera.cpp.o: ../Camera.cpp
+CMakeFiles/Global_Illumination.dir/Camera.cpp.o: ../Camera.h
+
 CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../Command.cpp
 CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../Command.h
 CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../Image.h
 CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../Mesh.h
 CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../Model.h
+CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../Operation.h
 CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../Pipeline.h
 CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../Renderer.h
 CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../Sampler.h
+CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../Semaphore.h
 CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../Texture.h
 CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../UniformBufferObject.h
 CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../VulkanHelper.h
@@ -21,6 +26,21 @@ CMakeFiles/Global_Illumination.dir/Command.cpp.o: ../VulkanHelper.h
 CMakeFiles/Global_Illumination.dir/CommandPool.cpp.o: ../CommandPool.cpp
 CMakeFiles/Global_Illumination.dir/CommandPool.cpp.o: ../CommandPool.h
 CMakeFiles/Global_Illumination.dir/CommandPool.cpp.o: ../VulkanHelper.h
+
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../Command.h
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../ComputePass.cpp
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../ComputePass.h
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../Image.h
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../Mesh.h
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../Model.h
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../Operation.h
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../Pipeline.h
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../Renderer.h
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../Sampler.h
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../Semaphore.h
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../Texture.h
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../UniformBufferObject.h
+CMakeFiles/Global_Illumination.dir/ComputePass.cpp.o: ../VulkanHelper.h
 
 CMakeFiles/Global_Illumination.dir/DescriptorPool.cpp.o: ../DescriptorPool.cpp
 CMakeFiles/Global_Illumination.dir/DescriptorPool.cpp.o: ../DescriptorPool.h
@@ -32,14 +52,33 @@ CMakeFiles/Global_Illumination.dir/Framebuffer.cpp.o: ../Framebuffer.h
 CMakeFiles/Global_Illumination.dir/Framebuffer.cpp.o: ../Image.h
 CMakeFiles/Global_Illumination.dir/Framebuffer.cpp.o: ../VulkanHelper.h
 
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../Attachment.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../Command.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../Framebuffer.h
 CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../GBuffer.cpp
 CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../GBuffer.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../Image.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../Mesh.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../Model.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../ModelPBR.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../Operation.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../Pipeline.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../RenderPass.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../Renderer.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../Sampler.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../Semaphore.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../Texture.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../UniformBufferObject.h
+CMakeFiles/Global_Illumination.dir/GBuffer.cpp.o: ../VulkanHelper.h
 
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../Attachment.h
+CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../Camera.h
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../Command.h
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../CommandPool.h
+CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../ComputePass.h
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../DescriptorPool.h
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../Framebuffer.h
+CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../GBuffer.h
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../GameManager.cpp
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../GameManager.h
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../Image.h
@@ -48,6 +87,7 @@ CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../Mesh.h
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../Model.h
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../Model2DTextured.h
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../ModelPBR.h
+CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../Operation.h
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../Pipeline.h
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../RenderPass.h
 CMakeFiles/Global_Illumination.dir/GameManager.cpp.o: ../Renderer.h
@@ -73,6 +113,7 @@ CMakeFiles/Global_Illumination.dir/LoadingManager.cpp.o: ../LoadingManager.h
 CMakeFiles/Global_Illumination.dir/LoadingManager.cpp.o: ../Mesh.h
 CMakeFiles/Global_Illumination.dir/LoadingManager.cpp.o: ../Model.h
 CMakeFiles/Global_Illumination.dir/LoadingManager.cpp.o: ../Model2DTextured.h
+CMakeFiles/Global_Illumination.dir/LoadingManager.cpp.o: ../Operation.h
 CMakeFiles/Global_Illumination.dir/LoadingManager.cpp.o: ../Pipeline.h
 CMakeFiles/Global_Illumination.dir/LoadingManager.cpp.o: ../RenderPass.h
 CMakeFiles/Global_Illumination.dir/LoadingManager.cpp.o: ../Renderer.h
@@ -106,6 +147,11 @@ CMakeFiles/Global_Illumination.dir/ModelPBR.cpp.o: ../Sampler.h
 CMakeFiles/Global_Illumination.dir/ModelPBR.cpp.o: ../Texture.h
 CMakeFiles/Global_Illumination.dir/ModelPBR.cpp.o: ../VulkanHelper.h
 
+CMakeFiles/Global_Illumination.dir/Operation.cpp.o: ../Image.h
+CMakeFiles/Global_Illumination.dir/Operation.cpp.o: ../Operation.cpp
+CMakeFiles/Global_Illumination.dir/Operation.cpp.o: ../Operation.h
+CMakeFiles/Global_Illumination.dir/Operation.cpp.o: ../VulkanHelper.h
+
 CMakeFiles/Global_Illumination.dir/Pipeline.cpp.o: ../Pipeline.cpp
 CMakeFiles/Global_Illumination.dir/Pipeline.cpp.o: ../Pipeline.h
 CMakeFiles/Global_Illumination.dir/Pipeline.cpp.o: ../VulkanHelper.h
@@ -116,6 +162,7 @@ CMakeFiles/Global_Illumination.dir/RenderPass.cpp.o: ../Framebuffer.h
 CMakeFiles/Global_Illumination.dir/RenderPass.cpp.o: ../Image.h
 CMakeFiles/Global_Illumination.dir/RenderPass.cpp.o: ../Mesh.h
 CMakeFiles/Global_Illumination.dir/RenderPass.cpp.o: ../Model.h
+CMakeFiles/Global_Illumination.dir/RenderPass.cpp.o: ../Operation.h
 CMakeFiles/Global_Illumination.dir/RenderPass.cpp.o: ../Pipeline.h
 CMakeFiles/Global_Illumination.dir/RenderPass.cpp.o: ../RenderPass.cpp
 CMakeFiles/Global_Illumination.dir/RenderPass.cpp.o: ../RenderPass.h
@@ -141,15 +188,28 @@ CMakeFiles/Global_Illumination.dir/Sampler.cpp.o: ../Sampler.cpp
 CMakeFiles/Global_Illumination.dir/Sampler.cpp.o: ../Sampler.h
 CMakeFiles/Global_Illumination.dir/Sampler.cpp.o: ../VulkanHelper.h
 
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Attachment.h
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Camera.h
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Command.h
 CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../CommandPool.h
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../ComputePass.h
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../DescriptorPool.h
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Framebuffer.h
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../GBuffer.h
 CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Image.h
 CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Mesh.h
 CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Model.h
 CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../ModelPBR.h
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Operation.h
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Pipeline.h
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../RenderPass.h
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Renderer.h
 CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Sampler.h
 CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../SceneManager.cpp
 CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../SceneManager.h
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Semaphore.h
 CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../Texture.h
+CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../UniformBufferObject.h
 CMakeFiles/Global_Illumination.dir/SceneManager.cpp.o: ../VulkanHelper.h
 
 CMakeFiles/Global_Illumination.dir/Semaphore.cpp.o: ../Semaphore.cpp
@@ -163,10 +223,13 @@ CMakeFiles/Global_Illumination.dir/SwapChain.cpp.o: ../SwapChain.h
 CMakeFiles/Global_Illumination.dir/SwapChain.cpp.o: ../VulkanHelper.h
 
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../Attachment.h
+CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../Camera.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../Command.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../CommandPool.h
+CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../ComputePass.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../DescriptorPool.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../Framebuffer.h
+CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../GBuffer.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../GameManager.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../Image.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../LoadingManager.h
@@ -174,6 +237,7 @@ CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../Mesh.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../Model.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../Model2DTextured.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../ModelPBR.h
+CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../Operation.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../Pipeline.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../RenderPass.h
 CMakeFiles/Global_Illumination.dir/SystemManager.cpp.o: ../Renderer.h
@@ -210,10 +274,13 @@ CMakeFiles/Global_Illumination.dir/WindowManager.cpp.o: ../WindowManager.cpp
 CMakeFiles/Global_Illumination.dir/WindowManager.cpp.o: ../WindowManager.h
 
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../Attachment.h
+CMakeFiles/Global_Illumination.dir/main.cpp.o: ../Camera.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../Command.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../CommandPool.h
+CMakeFiles/Global_Illumination.dir/main.cpp.o: ../ComputePass.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../DescriptorPool.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../Framebuffer.h
+CMakeFiles/Global_Illumination.dir/main.cpp.o: ../GBuffer.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../GameManager.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../Image.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../LoadingManager.h
@@ -221,6 +288,7 @@ CMakeFiles/Global_Illumination.dir/main.cpp.o: ../Mesh.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../Model.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../Model2DTextured.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../ModelPBR.h
+CMakeFiles/Global_Illumination.dir/main.cpp.o: ../Operation.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../Pipeline.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../RenderPass.h
 CMakeFiles/Global_Illumination.dir/main.cpp.o: ../Renderer.h

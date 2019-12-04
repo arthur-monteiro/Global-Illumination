@@ -25,6 +25,7 @@ public:
 	void cleanup(VkDevice device);
 
     float getLoadingState() { return m_loadingState; }
+    VkSemaphore getLastRenderFinishedSemaphore();
 
 private:
     float m_loadingState = 0.0f;
@@ -44,5 +45,6 @@ private:
 
 	std::vector<Image*> m_swapchainImages;
 	Command m_copyResultToSwapchainCommand;
-	std::vector<Operation> m_copyResultToSwapchainOperations;
+	std::vector<std::vector<Operation>> m_copyResultToSwapchainOperations;
+	Semaphore m_copyFinishedSemaphore;
 };

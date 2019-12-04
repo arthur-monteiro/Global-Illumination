@@ -57,7 +57,10 @@ bool SwapChain::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkS
 	vkGetSwapchainImagesKHR(device, m_swapChain, &imageCount, temporarySwapChainImages.data());
 
 	for (int i(0); i < imageCount; ++i)
-		m_images[i].createFromImage(device, temporarySwapChainImages[i], surfaceFormat.format, VK_IMAGE_ASPECT_COLOR_BIT, extent);
+    {
+        m_images[i].createFromImage(device, temporarySwapChainImages[i], surfaceFormat.format, VK_IMAGE_ASPECT_COLOR_BIT, extent);
+        m_images[i].setImageLayoutWithoutOperation(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    }
 
 	m_imageAvailableSemaphore.initialize(device);
 	m_imageAvailableSemaphore.setPipelineStage(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);

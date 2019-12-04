@@ -31,7 +31,7 @@ public:
 
 private:
     std::vector<MeshPBR> m_meshes;
-	glm::mat4 m_transformationMatrix = glm::mat4(1.0f);
+	glm::mat4 m_transformationMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f));
 
 private:
     static std::string getTexName(std::string texName, std::string folder);

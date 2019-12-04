@@ -13,5 +13,5 @@ void main()
 {	
     vec3 albedo = imageLoad(inAlbedo, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
     
-    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(albedo.rgb, 1.0));
+    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(albedo.bgr, 1.0));
 }

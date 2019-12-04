@@ -94,6 +94,12 @@
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Attachment.h">
 			<Option target="Global_Illumination"/>
 		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Camera.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Camera.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Command.cpp">
 			<Option target="Global_Illumination"/>
 		</Unit>
@@ -104,6 +110,12 @@
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/CommandPool.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ComputePass.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ComputePass.h">
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/DescriptorPool.cpp">
@@ -164,6 +176,12 @@
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ModelPBR.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Operation.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Operation.h">
 			<Option target="Global_Illumination"/>
 		</Unit>
 		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Pipeline.cpp">

@@ -70,7 +70,7 @@ void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, VkRende
 		throw std::runtime_error("Error : end command buffer");
 }
 
-void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, Operation& operation)
+void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, std::vector<Operation> operations)
 {
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -78,27 +78,38 @@ void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, Operati
 
 	vkBeginCommandBuffer(m_commandBuffers[commandBufferID], &beginInfo);
 
-	std::vector<CopyImageOperation> copyImageOperations = operation.getCopyImageOperation();
-	for (int i(0); i < copyImageOperations.size(); ++i)
-	{
-		VkImageCopy copyRegion = {};
-		copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		copyRegion.srcSubresource.mipLevel = 0;
-		copyRegion.srcSubresource.baseArrayLayer = 0;
-		copyRegion.srcSubresource.layerCount = 1;
-		copyRegion.srcOffset = { 0, 0, 0 };
-		copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		copyRegion.dstSubresource.mipLevel = 0;
-		copyRegion.dstSubresource.baseArrayLayer = 0;
-		copyRegion.dstSubresource.layerCount = 1;
-		copyRegion.dstOffset = { 0, 0, 0 };
-		copyRegion.extent = { copyImageOperations[i].srcImage->getExtent().width, copyImageOperations[i].srcImage->getExtent().height, 1 };
+	for(int i(0); i < operations.size(); ++i)
+    {
+	    int operationType = operations[i].getOperationType();
 
-		vkCmdCopyImage(m_commandBuffers[commandBufferID],
-			copyImageOperations[i].srcImage->getImage(), copyImageOperations[i].srcImage->getImageLayout(),
-			copyImageOperations[i].dstImage->getImage(), copyImageOperations[i].dstImage->getImageLayout(),
-			1, &copyRegion);
-	}
+	    if(operationType == OPERATION_TYPE_COPY_IMAGE)
+        {
+            VkImageCopy copyRegion = {};
+            copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            copyRegion.srcSubresource.mipLevel = 0;
+            copyRegion.srcSubresource.baseArrayLayer = 0;
+            copyRegion.srcSubresource.layerCount = 1;
+            copyRegion.srcOffset = { 0, 0, 0 };
+            copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            copyRegion.dstSubresource.mipLevel = 0;
+            copyRegion.dstSubresource.baseArrayLayer = 0;
+            copyRegion.dstSubresource.layerCount = 1;
+            copyRegion.dstOffset = { 0, 0, 0 };
+            copyRegion.extent = { operations[i].getSourceImage()->getExtent().width, operations[i].getSourceImage()->getExtent().height, 1 };
+
+            vkCmdCopyImage(m_commandBuffers[commandBufferID],
+                           operations[i].getSourceImage()->getImage(), operations[i].getSourceLayout(),
+                           operations[i].getDestinationImage()->getImage(), operations[i].getDestinationLayout(),
+                           1, &copyRegion);
+        }
+	    else if(operationType == OPERATION_TYPE_TRANSIT_IMAGE_LAYOUT)
+        {
+	        Image::transitionImageLayoutUsingCommandBuffer(device, m_commandBuffers[commandBufferID], operations[i].getSourceImage()->getImage(),
+                                                           operations[i].getSourceImage()->getFormat(), operations[i].getSourceLayout(),
+                                                           operations[i].getDestinationLayout(), 1, operations[i].getSourceStage(),
+                                                           operations[i].getDestinationStage(), 0);
+        }
+    }
 
 	if (vkEndCommandBuffer(m_commandBuffers[commandBufferID]) != VK_SUCCESS)
 		throw std::runtime_error("Error : end command buffer");
@@ -112,7 +123,7 @@ void Command::submit(VkDevice device, VkQueue graphicsQueue, std::vector<Semapho
 	submitInfo.signalSemaphoreCount = signalSemaphores.size();
 	submitInfo.pSignalSemaphores = signalSemaphores.data();
 
-	VkCommandBuffer commandBuffer = m_commandBuffers[0];
+	VkCommandBuffer commandBuffer = m_commandBuffers[commandBufferID];
 	submitInfo.pCommandBuffers = &commandBuffer;
 	submitInfo.commandBufferCount = 1;
 

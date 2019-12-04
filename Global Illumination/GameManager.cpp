@@ -18,14 +18,17 @@ void GameManager::submit(VkDevice device, GLFWwindow* window, VkQueue graphicsQu
 {
     if(m_gameState == GAME_STATE::LOADING)
     {
-        graphicsQueueMutex->lock();
-        m_loadingManager.submit(device, graphicsQueue, swapChainImageIndex, imageAvailableSemaphore);
-		graphicsQueueMutex->unlock();
-
         if(m_sceneManager.getLoadingState() == 1.0f)
         {
             m_gameState = GAME_STATE::RUNNING;
             m_sceneLoadingThread.join();
+            m_sceneManager.submit(device, window, graphicsQueue, computeQueue, swapChainImageIndex, imageAvailableSemaphore);
+        }
+        else
+        {
+            graphicsQueueMutex->lock();
+            m_loadingManager.submit(device, graphicsQueue, swapChainImageIndex, imageAvailableSemaphore);
+            graphicsQueueMutex->unlock();
         }
     }
     else if(m_gameState == GAME_STATE::RUNNING)
@@ -49,5 +52,5 @@ VkSemaphore GameManager::getLastRenderFinishedSemaphore()
 	if (m_gameState == GAME_STATE::LOADING)
 		return m_loadingManager.getLastRenderFinishedSemaphore();
 
-	return m_loadingManager.getLastRenderFinishedSemaphore();
+	return m_sceneManager.getLastRenderFinishedSemaphore();
 }

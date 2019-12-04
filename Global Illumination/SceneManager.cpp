@@ -73,12 +73,16 @@ void SceneManager::load(VkDevice device, VkPhysicalDevice physicalDevice, VkQueu
 	m_copyResultToSwapchainOperations.resize(m_swapchainImages.size());
 	for (int i(0); i < m_swapchainImages.size(); ++i)
 	{
-		m_swapchainImages[i]->setImageLayout(device, m_commandPool.getCommandPool(), graphicsQueue, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 
-			VK_PIPELINE_STAGE_TRANSFER_BIT);
-
-		m_copyResultToSwapchainOperations[i].addCopyImage(m_finalResultTexture.getImage(), m_swapchainImages[i]);
+        m_copyResultToSwapchainOperations[i].resize(3);
+        m_copyResultToSwapchainOperations[i][0].transitImageLayout(m_swapchainImages[i], VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+		m_copyResultToSwapchainOperations[i][1].copyImage(m_finalResultTexture.getImage(), VK_IMAGE_LAYOUT_GENERAL,
+                                                          m_swapchainImages[i], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        m_copyResultToSwapchainOperations[i][2].transitImageLayout(m_swapchainImages[i], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 		m_copyResultToSwapchainCommand.fillCommandBuffer(device, i, m_copyResultToSwapchainOperations[i]);
 	}
+    m_copyFinishedSemaphore.initialize(device);
 
     m_loadingState = 1.0f;
 }
@@ -86,10 +90,12 @@ void SceneManager::load(VkDevice device, VkPhysicalDevice physicalDevice, VkQueu
 void SceneManager::submit(VkDevice device, GLFWwindow* window, VkQueue graphicsQueue, VkQueue computeQueue, uint32_t swapChainImageIndex, Semaphore * imageAvailableSemaphore)
 {
 	m_camera.update(window);
-	m_gbuffer.submit(device, graphicsQueue);
+    glm::mat4 mvp = m_camera.getProjection() * m_camera.getViewMatrix() * m_model.getTransformation();
+	m_gbuffer.submit(device, graphicsQueue, mvp, m_model.getTransformation());
 	m_computePassFinalRender.submit(device, computeQueue, { m_gbuffer.getRenderCompleteSemaphore() });
 
-	m_copyResultToSwapchainCommand.submit(device, graphicsQueue, { &m_computePassFinalRender.getRenderFinishedSemaphore() }, {}, swapChainImageIndex);
+	Semaphore computePassSemaphore = m_computePassFinalRender.getRenderFinishedSemaphore();
+	m_copyResultToSwapchainCommand.submit(device, graphicsQueue, { &computePassSemaphore, imageAvailableSemaphore }, { m_copyFinishedSemaphore.getSemaphore() }, swapChainImageIndex);
 }
 
 void SceneManager::cleanup(VkDevice device)
@@ -98,4 +104,9 @@ void SceneManager::cleanup(VkDevice device)
 	m_gbuffer.cleanup(device, m_commandPool.getCommandPool(), m_descriptorPool.getDescriptorPool());
 	m_commandPool.cleanup(device);
 	m_descriptorPool.cleanup(device);
+}
+
+VkSemaphore SceneManager::getLastRenderFinishedSemaphore()
+{
+    return m_copyFinishedSemaphore.getSemaphore();
 }

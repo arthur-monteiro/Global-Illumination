@@ -18,11 +18,10 @@ layout(location = 3) out vec4 outRoughnessMetalAO;
 
 void main() 
 {
-	outWorldPos = vec4(inWorldPos, 1.0);
-
 	outAlbedo = texture(texAlbedo, inTexCoord);
 	vec3 normal = (texture(texNormal, inTexCoord).rgb * 2.0 - vec3(1.0)) * inTBN;
-	normal = normalize(normal); 
+	normal = normalize(normal);
 	outNormal = vec4(normal, 1.0);
 	outRoughnessMetalAO = vec4(texture(texRoughness, inTexCoord).r, texture(texMetal, inTexCoord).r, texture(texAO, inTexCoord).r, 1.0);
+	outWorldPos = vec4(inWorldPos, 1.0);
 }

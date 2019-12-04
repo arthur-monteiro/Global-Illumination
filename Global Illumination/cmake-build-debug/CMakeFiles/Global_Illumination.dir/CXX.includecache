@@ -12,20 +12,6 @@ VulkanHelper.h
 Image.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Image.h
 
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Camera.h
-glm/glm.hpp
--
-glm/gtc/matrix_transform.hpp
--
-glm/gtx/hash.hpp
--
-GLFW/glfw3.h
--
-chrono
--
-iostream
--
-
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Command.h
 array
 -
@@ -38,51 +24,21 @@ Operation.h
 Semaphore.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Semaphore.h
 
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/CommandPool.h
-VulkanHelper.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
-
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ComputePass.h
-Image.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Image.h
-Semaphore.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Semaphore.h
-Command.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Command.h
-Pipeline.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Pipeline.h
-
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/DescriptorPool.h
-array
--
-VulkanHelper.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
-
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Framebuffer.h
 VulkanHelper.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
 Attachment.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Attachment.h
 
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GBuffer.cpp
+GBuffer.h
+/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GBuffer.h
+
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GBuffer.h
 RenderPass.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.h
 ModelPBR.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ModelPBR.h
-
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GameManager.cpp
-GameManager.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GameManager.h
-
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GameManager.h
-thread
--
-mutex
--
-LoadingManager.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/LoadingManager.h
-SceneManager.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneManager.h
 
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Image.h
 iostream
@@ -93,24 +49,6 @@ cstring
 -
 VulkanHelper.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
-
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/LoadingManager.h
-chrono
--
-math.h
--
-RenderPass.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.h
-CommandPool.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/CommandPool.h
-DescriptorPool.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/DescriptorPool.h
-Model2DTextured.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model2DTextured.h
-Renderer.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Renderer.h
-UniformBufferObject.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/UniformBufferObject.h
 
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh.h
 VulkanHelper.h
@@ -124,12 +62,6 @@ glm/gtc/matrix_transform.hpp
 glm/gtx/hash.hpp
 -
 
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model.h
-Mesh.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh.h
-
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model2DTextured.h
-Model.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model.h
 Mesh.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh.h
@@ -191,26 +123,6 @@ Texture.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Sampler.h
 VulkanHelper.h
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h
-
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneManager.h
-mutex
--
-ModelPBR.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ModelPBR.h
-CommandPool.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/CommandPool.h
-DescriptorPool.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/DescriptorPool.h
-GBuffer.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GBuffer.h
-Camera.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Camera.h
-ComputePass.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ComputePass.h
-Command.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Command.h
-Operation.h
-/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Operation.h
 
 /home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Semaphore.h
 VulkanHelper.h

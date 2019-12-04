@@ -15,7 +15,7 @@ void Sampler::initialize(VkDevice device, VkSamplerAddressMode addressMode, floa
 	samplerInfo.addressModeV = addressMode;
 	samplerInfo.addressModeW = addressMode;
 
-	samplerInfo.anisotropyEnable = VK_FALSE;
+	samplerInfo.anisotropyEnable = VK_TRUE;
 	samplerInfo.maxAnisotropy = 16;
 
 	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -26,7 +26,7 @@ void Sampler::initialize(VkDevice device, VkSamplerAddressMode addressMode, floa
 	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samplerInfo.mipLodBias = 0.0f;
 	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = mipLevels;
+	samplerInfo.maxLod = 1.0f;
 
 	if (vkCreateSampler(device, &samplerInfo, nullptr, &m_textureSampler) != VK_SUCCESS)
 		throw std::runtime_error("Error : create sampler");

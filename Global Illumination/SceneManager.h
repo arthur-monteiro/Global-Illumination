@@ -43,6 +43,16 @@ private:
 	ComputePass m_computePassFinalRender;
 	Texture m_finalResultTexture;
 
+	struct LightingUBO
+    {
+        glm::vec4 cameraPosition;
+
+        glm::vec4 directionDirectionalLight;
+        glm::vec4 colorDirectionalLight;
+    };
+	UniformBufferObject m_uboLighting;
+	LightingUBO m_uboLightingData;
+
 	std::vector<Image*> m_swapchainImages;
 	Command m_copyResultToSwapchainCommand;
 	std::vector<std::vector<Operation>> m_copyResultToSwapchainOperations;

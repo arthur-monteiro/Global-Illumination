@@ -33,7 +33,7 @@ void main() {
 	mat3 usedModelMatrix = transpose(inverse(mat3(uboMVP.model)));
     vec3 n = normalize(usedModelMatrix * inNormal);
 	vec3 t = normalize(usedModelMatrix * inTangent);
-	//t = normalize(t - dot(t, n) * n);
+	t = normalize(t - dot(t, n) * n);
 	vec3 b = normalize(cross(t, n));
 	outTBN = inverse(mat3(t, b, n));
 

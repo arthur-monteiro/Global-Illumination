@@ -63,9 +63,18 @@ void SceneManager::load(VkDevice device, VkPhysicalDevice physicalDevice, VkQueu
 	textureLayout.binding = gbufferImages.size() - 1;
 	texturesForComputePass.push_back({ &m_finalResultTexture, textureLayout });
 
+    m_uboLightingData.cameraPosition = glm::vec4(m_camera.getPosition(), 1.0f);
+    m_uboLightingData.colorDirectionalLight = glm::vec4(10.0f);
+    m_uboLightingData.directionDirectionalLight = glm::vec4(1.5f, -5.0f, -1.0f, 1.0f);
+    m_uboLighting.initialize(device, physicalDevice, &m_uboLightingData, sizeof(m_uboLightingData));
+
+    UniformBufferObjectLayout uboLightingLayout;
+    uboLightingLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
+    uboLightingLayout.binding = 5;
+
 	graphicsQueueMutex->lock();
 	m_computePassFinalRender.initialize(device, physicalDevice, m_commandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), graphicsQueue, computeQueue, swapChainImages[0]->getExtent(),
-		{ 16, 16, 1 }, "Shaders/compute/comp.spv", {}, texturesForComputePass);
+		{ 16, 16, 1 }, "Shaders/compute/comp.spv", { { &m_uboLighting, uboLightingLayout} }, texturesForComputePass);
 	graphicsQueueMutex->unlock();
 
 	// Copy result to swapchain
@@ -92,6 +101,9 @@ void SceneManager::submit(VkDevice device, GLFWwindow* window, VkQueue graphicsQ
 	m_camera.update(window);
     glm::mat4 mvp = m_camera.getProjection() * m_camera.getViewMatrix() * m_model.getTransformation();
 	m_gbuffer.submit(device, graphicsQueue, mvp, m_model.getTransformation());
+
+    m_uboLightingData.cameraPosition = glm::vec4(m_camera.getPosition(), 1.0f);
+    m_uboLighting.updateData(device, &m_uboLightingData);
 	m_computePassFinalRender.submit(device, computeQueue, { m_gbuffer.getRenderCompleteSemaphore() });
 
 	Semaphore computePassSemaphore = m_computePassFinalRender.getRenderFinishedSemaphore();

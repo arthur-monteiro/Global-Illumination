@@ -11,7 +11,8 @@ void SceneManager::load(VkDevice device, VkPhysicalDevice physicalDevice, VkQueu
 	m_swapchainImages = swapChainImages;
 
 	// Command Pool + Descriptor Pool
-    m_commandPool.initialize(device, physicalDevice, surface);
+    m_graphicsCommandPool.initializeForGraphicsQueue(device, physicalDevice, surface);
+	m_computeCommandPool.initializeForComputeQueue(device, physicalDevice, surface);
 	m_descriptorPool.initialize(device);
 
 	// Camera
@@ -19,19 +20,19 @@ void SceneManager::load(VkDevice device, VkPhysicalDevice physicalDevice, VkQueu
 		swapChainImages[0]->getExtent().width / (float)swapChainImages[0]->getExtent().height);
 
 	// Model
-    m_model.loadFromFile(device, physicalDevice, m_commandPool.getCommandPool(), graphicsQueue, graphicsQueueMutex,
+    m_model.loadFromFile(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), graphicsQueue, graphicsQueueMutex,
             "Models/sponza/sponza.obj", "Models/sponza");
 
 	// GBuffer
 	glm::mat4 mvp = m_camera.getProjection() * m_camera.getViewMatrix() * m_model.getTransformation();
-    m_gbuffer.initialize(device, physicalDevice, surface, m_commandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), swapChainImages[0]->getExtent(), &m_model, mvp);
+    m_gbuffer.initialize(device, physicalDevice, surface, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), swapChainImages[0]->getExtent(), &m_model, mvp);
 
 	// Compute pass
 	m_finalResultTexture.create(device, physicalDevice, swapChainImages[0]->getExtent(), VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
 		VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
 
 	graphicsQueueMutex->lock();
-	m_finalResultTexture.setImageLayout(device, m_commandPool.getCommandPool(), graphicsQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+	m_finalResultTexture.setImageLayout(device, m_graphicsCommandPool.getCommandPool(), graphicsQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 	graphicsQueueMutex->unlock();
 
 	m_finalResultTexture.createSampler(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 1.0f, VK_FILTER_LINEAR);
@@ -41,7 +42,7 @@ void SceneManager::load(VkDevice device, VkPhysicalDevice physicalDevice, VkQueu
 	for (int i(1); i < gbufferImages.size(); ++i)
 	{
 		graphicsQueueMutex->lock();
-		gbufferImages[i]->setImageLayout(device, m_commandPool.getCommandPool(), graphicsQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+		gbufferImages[i]->setImageLayout(device, m_graphicsCommandPool.getCommandPool(), graphicsQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 		graphicsQueueMutex->unlock();
 
 		m_gbufferTextures[i - 1].createFromImage(device, gbufferImages[i]);
@@ -73,12 +74,12 @@ void SceneManager::load(VkDevice device, VkPhysicalDevice physicalDevice, VkQueu
     uboLightingLayout.binding = 5;
 
 	graphicsQueueMutex->lock();
-	m_computePassFinalRender.initialize(device, physicalDevice, m_commandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), graphicsQueue, computeQueue, swapChainImages[0]->getExtent(),
+	m_computePassFinalRender.initialize(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), swapChainImages[0]->getExtent(),
 		{ 16, 16, 1 }, "Shaders/compute/comp.spv", { { &m_uboLighting, uboLightingLayout} }, texturesForComputePass);
 	graphicsQueueMutex->unlock();
 
 	// Copy result to swapchain
-	m_copyResultToSwapchainCommand.allocateCommandBuffers(device, m_commandPool.getCommandPool(), m_swapchainImages.size());
+	m_copyResultToSwapchainCommand.allocateCommandBuffers(device, m_graphicsCommandPool.getCommandPool(), m_swapchainImages.size());
 	m_copyResultToSwapchainOperations.resize(m_swapchainImages.size());
 	for (int i(0); i < m_swapchainImages.size(); ++i)
 	{
@@ -113,8 +114,8 @@ void SceneManager::submit(VkDevice device, GLFWwindow* window, VkQueue graphicsQ
 void SceneManager::cleanup(VkDevice device)
 {
 	m_model.cleanup(device);
-	m_gbuffer.cleanup(device, m_commandPool.getCommandPool(), m_descriptorPool.getDescriptorPool());
-	m_commandPool.cleanup(device);
+	m_gbuffer.cleanup(device, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool());
+	m_graphicsCommandPool.cleanup(device);
 	m_descriptorPool.cleanup(device);
 }
 

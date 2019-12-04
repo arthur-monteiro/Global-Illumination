@@ -8,7 +8,8 @@ public:
 	CommandPool() = default;
 	~CommandPool();
 
-	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+	void initializeForGraphicsQueue(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+	void initializeForComputeQueue(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 
 	void cleanup(VkDevice device);
 

@@ -1,6 +1,6 @@
 #include "ComputePass.h"
 
-void ComputePass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue, VkQueue computeQueue,
+void ComputePass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool,
 	VkExtent2D extent, VkExtent3D dispatchGroups, std::string computeShader,
 	std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures)
 {
@@ -102,8 +102,6 @@ void ComputePass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, V
 	vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 
 	/* Fill command buffer */
-	vkQueueWaitIdle(computeQueue);
-
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;

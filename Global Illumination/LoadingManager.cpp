@@ -6,7 +6,7 @@ LoadingManager::~LoadingManager()
 bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkQueue graphicsQueue, std::vector<Image*> swapChainImages)
 {
 	// Command Pool + Descriptor Pool
-	m_uniqueCommandPool.initialize(device, physicalDevice, surface);
+	m_uniqueCommandPool.initializeForGraphicsQueue(device, physicalDevice, surface);
 	m_uniqueDescriptorPool.initialize(device);
 
 	// Textures
@@ -19,10 +19,10 @@ bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 	// Quads
 	m_fullScreenQuad.addMeshFromVertices(device, physicalDevice, m_uniqueCommandPool.getCommandPool(), graphicsQueue,
 		{
-			{ glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 0.0f) }, // bot left
-			{ glm::vec2(-1.0f, 1.0f), glm::vec2(0.0f, 1.0f) }, // top left
-			{ glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 0.0f) }, // bot right
-			{ glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 1.0f) } // top right
+			{ glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 0.0f) }, // top left
+			{ glm::vec2(-1.0f, 1.0f), glm::vec2(0.0f, 1.0f) }, // bot left
+			{ glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 0.0f) }, // top right
+			{ glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 1.0f) } // bot right
 		},
 		{
 			0, 1, 2,
@@ -37,8 +37,8 @@ bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 			{ glm::vec2(1.0f, 1.0f - m_logoWidth), glm::vec2(1.0f, 0.0f) } // top right
 		},
 		{
-			0, 1, 2,
-			1, 3, 2
+			1, 0, 3,
+			0, 2, 3
 		});
 
 	// Quad renderer

@@ -30,7 +30,8 @@ public:
 private:
     float m_loadingState = 0.0f;
 
-    CommandPool m_commandPool;
+    CommandPool m_graphicsCommandPool;
+	CommandPool m_computeCommandPool;
 	DescriptorPool m_descriptorPool;
 
 	Camera m_camera;

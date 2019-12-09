@@ -3,6 +3,7 @@
 #include <mutex>
 
 #include "ModelPBR.h"
+#include "Model2DTextured.h"
 #include "CommandPool.h"
 #include "DescriptorPool.h"
 #include "GBuffer.h"
@@ -41,8 +42,11 @@ private:
     GBuffer m_gbuffer;
 	std::vector<Texture> m_gbufferTextures;
 
-	ComputePass m_computePassFinalRender;
-	Texture m_finalResultTexture;
+	std::vector<ComputePass> m_computePasses;
+	Semaphore m_computePassFinishedSemaphore;
+	std::vector<Texture> m_swapchainTextures;
+	std::vector<Operation> m_transitSwapchainToLayoutGeneral;
+	std::vector<Operation> m_transitSwapchainToLayoutPresent;
 
 	struct LightingUBO
     {
@@ -53,9 +57,4 @@ private:
     };
 	UniformBufferObject m_uboLighting;
 	LightingUBO m_uboLightingData;
-
-	std::vector<Image*> m_swapchainImages;
-	Command m_copyResultToSwapchainCommand;
-	std::vector<std::vector<Operation>> m_copyResultToSwapchainOperations;
-	Semaphore m_copyFinishedSemaphore;
 };

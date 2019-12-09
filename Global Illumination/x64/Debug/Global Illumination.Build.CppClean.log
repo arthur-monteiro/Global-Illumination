@@ -1,0 +1,50 @@
+f:\code\global illumination\global illumination\x64\debug\vc142.pdb
+f:\code\global illumination\global illumination\x64\debug\vc142.idb
+f:\code\global illumination\global illumination\x64\debug\renderer.obj
+f:\code\global illumination\global illumination\x64\debug\pipeline.obj
+f:\code\global illumination\global illumination\x64\debug\operation.obj
+f:\code\global illumination\global illumination\x64\debug\modelpbr.obj
+f:\code\global illumination\global illumination\x64\debug\model2dtextured.obj
+f:\code\global illumination\global illumination\x64\debug\model2d.obj
+f:\code\global illumination\global illumination\x64\debug\model.obj
+f:\code\global illumination\global illumination\x64\debug\mesh.obj
+f:\code\global illumination\global illumination\x64\debug\main.obj
+f:\code\global illumination\global illumination\x64\debug\loadingmanager.obj
+f:\code\global illumination\global illumination\x64\debug\image.obj
+f:\code\global illumination\global illumination\x64\debug\gbuffer.obj
+f:\code\global illumination\global illumination\x64\debug\gamemanager.obj
+f:\code\global illumination\global illumination\x64\debug\framebuffer.obj
+f:\code\global illumination\global illumination\x64\debug\descriptorpool.obj
+f:\code\global illumination\global illumination\x64\debug\computepass.obj
+f:\code\global illumination\global illumination\x64\debug\commandpool.obj
+f:\code\global illumination\global illumination\x64\debug\command.obj
+f:\code\global illumination\global illumination\x64\debug\camera.obj
+f:\code\global illumination\global illumination\x64\debug\attachment.obj
+f:\code\global illumination\global illumination\x64\debug\windowmanager.obj
+f:\code\global illumination\global illumination\x64\debug\vulkanhelper.obj
+f:\code\global illumination\global illumination\x64\debug\vulkan.obj
+f:\code\global illumination\global illumination\x64\debug\uniformbufferobject.obj
+f:\code\global illumination\global illumination\x64\debug\texture.obj
+f:\code\global illumination\global illumination\x64\debug\systemmanager.obj
+f:\code\global illumination\global illumination\x64\debug\swapchain.obj
+f:\code\global illumination\global illumination\x64\debug\semaphore.obj
+f:\code\global illumination\global illumination\x64\debug\scenemanager.obj
+f:\code\global illumination\global illumination\x64\debug\sampler.obj
+f:\code\global illumination\global illumination\x64\debug\renderpass.obj
+f:\code\global illumination\x64\debug\global illumination.exe
+f:\code\global illumination\x64\debug\global illumination.ilk
+f:\code\global illumination\x64\debug\global illumination.pdb
+f:\code\global illumination\global illumination\x64\debug\instance.obj
+f:\code\global illumination\global illumination\x64\debug\menu.obj
+f:\code\global illumination\global illumination\x64\debug\sceneelement.obj
+f:\code\global illumination\global illumination\x64\debug\system.obj
+f:\code\global illumination\global illumination\x64\debug\text.obj
+f:\code\global illumination\global illumination\x64\debug\pipeline.obj.enc
+f:\code\global illumination\global illumination\x64\debug\renderpass.new.obj.enc
+f:\code\global illumination\global illumination\x64\debug\system.new.obj.enc
+f:\code\global illumination\global illumination\x64\debug\global i.cd459397.tlog\cl.command.1.tlog
+f:\code\global illumination\global illumination\x64\debug\global i.cd459397.tlog\cl.read.1.tlog
+f:\code\global illumination\global illumination\x64\debug\global i.cd459397.tlog\cl.write.1.tlog
+f:\code\global illumination\global illumination\x64\debug\global i.cd459397.tlog\link.command.1.tlog
+f:\code\global illumination\global illumination\x64\debug\global i.cd459397.tlog\link.read.1.tlog
+f:\code\global illumination\global illumination\x64\debug\global i.cd459397.tlog\link.write.1.tlog

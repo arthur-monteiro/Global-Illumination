@@ -18,7 +18,6 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
 		throw std::runtime_error("Error : create pipeline layout");
 
-
 	/* Shaders */
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 

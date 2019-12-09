@@ -57,7 +57,7 @@ void Image::createFromPixels(VkDevice device, VkPhysicalDevice physicalDevice, V
 	vkDestroyBuffer(device, stagingBuffer, nullptr);
 	vkFreeMemory(device, stagingBufferMemory, nullptr);
 
-	m_imageView = createImageView(device, m_image, m_imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, VK_IMAGE_VIEW_TYPE_2D);
+	m_imageView = createImageView(device, m_image, m_imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, m_mipLevels, VK_IMAGE_VIEW_TYPE_2D);
 }
 
 void Image::setImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImageLayout newLayout, VkPipelineStageFlags sourceStage, VkPipelineStageFlags destinationStage)
@@ -139,7 +139,7 @@ void Image::transitionImageLayout(VkDevice device, VkCommandPool commandPool, Vk
 	{
 		VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
 
-		transitionImageLayoutUsingCommandBuffer(device, commandBuffer, image, format, oldLayout, newLayout, mipLevels,
+		transitionImageLayoutUsingCommandBuffer(commandBuffer, image, format, oldLayout, newLayout, mipLevels,
 		        sourceStage, destinationStage, arrayLayer);
 
 		endSingleTimeCommands(device, graphicsQueue, commandBuffer, commandPool);
@@ -268,7 +268,7 @@ void Image::generateMipmaps(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 	endSingleTimeCommands(device, graphicsQueue, commandBuffer, commandPool);
 }
 
-void Image::transitionImageLayoutUsingCommandBuffer(VkDevice device, VkCommandBuffer commandBuffer,
+void Image::transitionImageLayoutUsingCommandBuffer(VkCommandBuffer commandBuffer,
                                                     VkImage image, VkFormat format, VkImageLayout oldLayout,
                                                     VkImageLayout newLayout, uint32_t mipLevels,
                                                     VkPipelineStageFlags sourceStage,
@@ -329,6 +329,10 @@ void Image::transitionImageLayoutUsingCommandBuffer(VkDevice device, VkCommandBu
         case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
             barrier.srcAccessMask = 0;
             break;
+
+		case VK_IMAGE_LAYOUT_GENERAL:
+			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			break;
 
         default:
             throw std::runtime_error("Error : image layout transition not supported");

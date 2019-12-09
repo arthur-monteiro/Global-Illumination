@@ -2,7 +2,8 @@
 
 void ComputePass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool,
 	VkExtent2D extent, VkExtent3D dispatchGroups, std::string computeShader,
-	std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures)
+	std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures,
+	std::vector<Operation> operationsBefore, std::vector<Operation> operationsAfter)
 {
 	/* Create command buffer */
 	m_command.allocateCommandBuffers(device, commandPool, 1);
@@ -82,7 +83,7 @@ void ComputePass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, V
 	std::vector<VkDescriptorImageInfo> imageInfo(textures.size());
 	for (int i(0); i < textures.size(); ++i)
 	{
-		imageInfo[i].imageLayout = textures[i].first->getImageLayout();
+		imageInfo[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 		imageInfo[i].imageView = textures[i].first->getImageView();
 		imageInfo[i].sampler = textures[i].first->getSampler();
 
@@ -108,25 +109,25 @@ void ComputePass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, V
 
 	vkBeginCommandBuffer(m_command.getCommandBuffer(0), &beginInfo);
 
+	fillCommandBufferWithOperation(m_command.getCommandBuffer(0), operationsBefore);
+
 	vkCmdBindPipeline(m_command.getCommandBuffer(0), VK_PIPELINE_BIND_POINT_COMPUTE, m_pipeline.getPipeline());
 	vkCmdBindDescriptorSets(m_command.getCommandBuffer(0), VK_PIPELINE_BIND_POINT_COMPUTE, m_pipeline.getPipelineLayout(), 0, 1, &descriptorSet, 0, 0);
 	uint32_t groupSizeX = extent.width % dispatchGroups.width != 0 ? extent.width / dispatchGroups.width + 1 : extent.width / dispatchGroups.width;
 	uint32_t groupSizeY = extent.height % dispatchGroups.height != 0 ? extent.height / dispatchGroups.height + 1 : extent.height / dispatchGroups.height;
 	vkCmdDispatch(m_command.getCommandBuffer(0), groupSizeX, groupSizeY, dispatchGroups.depth);
 
-	vkEndCommandBuffer(m_command.getCommandBuffer(0));
+	fillCommandBufferWithOperation(m_command.getCommandBuffer(0), operationsAfter);
 
-	/* Semaphore creation */
-	m_renderCompleteSemaphore.initialize(device);
-	m_renderCompleteSemaphore.setPipelineStage(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+	vkEndCommandBuffer(m_command.getCommandBuffer(0));
 }
 
-void ComputePass::submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> waitSemaphores)
+void ComputePass::submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> waitSemaphores, VkSemaphore signalSemaphore)
 {
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-	VkSemaphore signalSemaphores[] = { m_renderCompleteSemaphore.getSemaphore() };
+	VkSemaphore signalSemaphores[] = { signalSemaphore };
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -151,4 +152,40 @@ void ComputePass::submit(VkDevice device, VkQueue computeQueue, std::vector<Sema
 
 void ComputePass::cleanup(VkDevice device)
 {
+}
+
+void ComputePass::fillCommandBufferWithOperation(VkCommandBuffer commandBuffer, std::vector<Operation> operations)
+{
+	for (int i(0); i < operations.size(); ++i)
+	{
+		int operationType = operations[i].getOperationType();
+
+		if (operationType == OPERATION_TYPE_COPY_IMAGE)
+		{
+			VkImageCopy copyRegion = {};
+			copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			copyRegion.srcSubresource.mipLevel = 0;
+			copyRegion.srcSubresource.baseArrayLayer = 0;
+			copyRegion.srcSubresource.layerCount = 1;
+			copyRegion.srcOffset = { 0, 0, 0 };
+			copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			copyRegion.dstSubresource.mipLevel = 0;
+			copyRegion.dstSubresource.baseArrayLayer = 0;
+			copyRegion.dstSubresource.layerCount = 1;
+			copyRegion.dstOffset = { 0, 0, 0 };
+			copyRegion.extent = { operations[i].getSourceImage()->getExtent().width, operations[i].getSourceImage()->getExtent().height, 1 };
+
+			vkCmdCopyImage(commandBuffer,
+				operations[i].getSourceImage()->getImage(), operations[i].getSourceLayout(),
+				operations[i].getDestinationImage()->getImage(), operations[i].getDestinationLayout(),
+				1, &copyRegion);
+		}
+		else if (operationType == OPERATION_TYPE_TRANSIT_IMAGE_LAYOUT)
+		{
+			Image::transitionImageLayoutUsingCommandBuffer(commandBuffer, operations[i].getSourceImage()->getImage(),
+				operations[i].getSourceImage()->getFormat(), operations[i].getSourceLayout(),
+				operations[i].getDestinationLayout(), 1, operations[i].getSourceStage(),
+				operations[i].getDestinationStage(), 0);
+		}
+	}
 }

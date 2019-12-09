@@ -104,7 +104,7 @@ void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, std::ve
         }
 	    else if(operationType == OPERATION_TYPE_TRANSIT_IMAGE_LAYOUT)
         {
-	        Image::transitionImageLayoutUsingCommandBuffer(device, m_commandBuffers[commandBufferID], operations[i].getSourceImage()->getImage(),
+	        Image::transitionImageLayoutUsingCommandBuffer(m_commandBuffers[commandBufferID], operations[i].getSourceImage()->getImage(),
                                                            operations[i].getSourceImage()->getFormat(), operations[i].getSourceLayout(),
                                                            operations[i].getDestinationLayout(), 1, operations[i].getSourceStage(),
                                                            operations[i].getDestinationStage(), 0);

@@ -25,6 +25,7 @@ public:
 	VkSampleCountFlagBits getSampleCount() { return m_sampleCount; }
 	VkExtent2D getExtent() { return m_extent; }
 	VkImageLayout getImageLayout() { return m_imageLayout; }
+	uint32_t getMipLevels() { return m_mipLevels; }
 
 private:
 	VkImage m_image;
@@ -50,7 +51,7 @@ private:
 		int32_t texHeight, uint32_t mipLevels, uint32_t baseArrayLayer);
 
 public:
-    static void transitionImageLayoutUsingCommandBuffer(VkDevice device, VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout,
+    static void transitionImageLayoutUsingCommandBuffer(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout,
                                                         uint32_t mipLevels, VkPipelineStageFlags sourceStage, VkPipelineStageFlags destinationStage,
                                                         uint32_t arrayLayer);
 };

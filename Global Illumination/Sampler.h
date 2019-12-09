@@ -14,6 +14,6 @@ public:
 	VkSampler getSampler() { return m_textureSampler; }
 
 private:
-	VkSampler m_textureSampler = NULL;
+	VkSampler m_textureSampler = VK_NULL_HANDLE;
 };
 

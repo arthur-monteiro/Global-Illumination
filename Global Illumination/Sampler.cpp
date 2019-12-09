@@ -26,7 +26,9 @@ void Sampler::initialize(VkDevice device, VkSamplerAddressMode addressMode, floa
 	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samplerInfo.mipLodBias = 0.0f;
 	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = 1.0f;
+	samplerInfo.maxLod = mipLevels;
+
+	samplerInfo.pNext = VK_NULL_HANDLE;
 
 	if (vkCreateSampler(device, &samplerInfo, nullptr, &m_textureSampler) != VK_SUCCESS)
 		throw std::runtime_error("Error : create sampler");

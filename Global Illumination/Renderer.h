@@ -35,7 +35,7 @@ private:
 	std::vector<VkVertexInputAttributeDescription> m_attributeInputDescription;
 	std::vector<bool> m_alphaBlending;
 
-	VkDescriptorSetLayout m_descriptorSetLayout;
+	VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
 
 	std::vector<std::pair<VertexBuffer, VkDescriptorSet>> m_meshes;
 

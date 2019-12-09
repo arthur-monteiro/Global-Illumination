@@ -34,6 +34,7 @@ public:
 	VkImageView getImageView() { return m_imagePtr == nullptr ? m_image.getImageView() : m_imagePtr->getImageView(); }
 	VkImageLayout getImageLayout() { return m_imagePtr == nullptr ? m_image.getImageLayout() : m_imagePtr->getImageLayout(); }
 	VkSampler getSampler() { return m_sampler.getSampler(); }
+	uint32_t getMipLevels() { return m_imagePtr == nullptr ? m_image.getMipLevels() : m_imagePtr->getMipLevels(); }
 
 private:
 	Image m_image;

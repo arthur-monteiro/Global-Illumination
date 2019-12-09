@@ -71,7 +71,7 @@ void main()
     color = vec3(1.0) - exp(-color * exposure);
   	color = pow(color, vec3(1.0 / 2.2));
 
-    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color.bgr, 1.0));
+    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color, 1.0));
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)

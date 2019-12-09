@@ -11,10 +11,10 @@ bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 
 	// Textures
 	m_fullScreenLoadingTexture.createFromFile(device, physicalDevice, m_uniqueCommandPool.getCommandPool(), graphicsQueue, "Textures/loading_screen.png");
-	m_fullScreenLoadingTexture.createSampler(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 1.0f, VK_FILTER_LINEAR);
+	m_fullScreenLoadingTexture.createSampler(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, m_fullScreenLoadingTexture.getMipLevels(), VK_FILTER_LINEAR);
 
 	m_loadingLogoTexture.createFromFile(device, physicalDevice, m_uniqueCommandPool.getCommandPool(), graphicsQueue, "Textures/loading_logo.jpg");
-	m_loadingLogoTexture.createSampler(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 1.0f, VK_FILTER_LINEAR);
+	m_loadingLogoTexture.createSampler(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, m_fullScreenLoadingTexture.getMipLevels(), VK_FILTER_LINEAR);
 
 	// Quads
 	m_fullScreenQuad.addMeshFromVertices(device, physicalDevice, m_uniqueCommandPool.getCommandPool(), graphicsQueue,
@@ -125,7 +125,7 @@ void LoadingManager::resize(VkDevice device, VkPhysicalDevice physicalDevice, st
 void LoadingManager::cleanup(VkDevice device)
 {
 	m_mainRenderPass.cleanup(device, m_uniqueCommandPool.getCommandPool());
-	m_fullScreenQuadRenderer.cleanup(device, m_uniqueDescriptorPool.getDescriptorPool());
+	m_fullScreenQuadRenderer.cleanup(device, m_uniqueDescriptorPool.getDescriptorPool());	
 	m_fullScreenLoadingTexture.cleanup(device);
 	m_uniqueCommandPool.cleanup(device);
 	m_uniqueDescriptorPool.cleanup(device);

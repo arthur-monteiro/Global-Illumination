@@ -56,6 +56,15 @@ bool SwapChain::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkS
 	
 	vkGetSwapchainImagesKHR(device, m_swapChain, &imageCount, temporarySwapChainImages.data());
 
+	VkFormatProperties swapchainFormatProperties;
+	vkGetPhysicalDeviceFormatProperties(physicalDevice, surfaceFormat.format, &swapchainFormatProperties);
+
+	if (!(swapchainFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT))
+	{
+		m_invertColors = true;
+		surfaceFormat.format = VK_FORMAT_R8G8B8A8_UNORM;
+	}
+
 	for (int i(0); i < imageCount; ++i)
     {
         m_images[i].createFromImage(device, temporarySwapChainImages[i], surfaceFormat.format, VK_IMAGE_ASPECT_COLOR_BIT, extent);

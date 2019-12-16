@@ -155,12 +155,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AccelerationStructure.cpp" />
     <ClCompile Include="Attachment.cpp" />
+    <ClCompile Include="BottomLevelASGenerator.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="ComputePass.cpp" />
     <ClCompile Include="DescriptorPool.cpp" />
+    <ClCompile Include="DescriptorSetGenerator.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="GBuffer.cpp" />
@@ -174,6 +177,7 @@
     <ClCompile Include="ModelPBR.cpp" />
     <ClCompile Include="Operation.cpp" />
     <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="RayTracingPass.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="Sampler.cpp" />
@@ -182,18 +186,23 @@
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="SystemManager.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TopLevelASGenerator.cpp" />
     <ClCompile Include="UniformBufferObject.cpp" />
     <ClCompile Include="Vulkan.cpp" />
     <ClCompile Include="VulkanHelper.cpp" />
+    <ClCompile Include="vulkan_raytracing.cpp" />
     <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AccelerationStructure.h" />
     <ClInclude Include="Attachment.h" />
+    <ClInclude Include="BottomLevelASGenerator.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="CommandPool.h" />
     <ClInclude Include="ComputePass.h" />
     <ClInclude Include="DescriptorPool.h" />
+    <ClInclude Include="DescriptorSetGenerator.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GBuffer.h" />
@@ -206,6 +215,7 @@
     <ClInclude Include="ModelPBR.h" />
     <ClInclude Include="Operation.h" />
     <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="RayTracingPass.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="Sampler.h" />
@@ -214,6 +224,7 @@
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="SystemManager.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="TopLevelASGenerator.h" />
     <ClInclude Include="UniformBufferObject.h" />
     <ClInclude Include="Vulkan.h" />
     <ClInclude Include="VulkanHelper.h" />

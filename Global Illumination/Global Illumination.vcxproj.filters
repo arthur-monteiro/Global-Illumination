@@ -36,6 +36,12 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ComputePass.cpp" />
     <ClCompile Include="Operation.cpp" />
+    <ClCompile Include="RayTracingPass.cpp" />
+    <ClCompile Include="AccelerationStructure.cpp" />
+    <ClCompile Include="BottomLevelASGenerator.cpp" />
+    <ClCompile Include="TopLevelASGenerator.cpp" />
+    <ClCompile Include="vulkan_raytracing.cpp" />
+    <ClCompile Include="DescriptorSetGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -70,6 +76,11 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ComputePass.h" />
     <ClInclude Include="Operation.h" />
+    <ClInclude Include="RayTracingPass.h" />
+    <ClInclude Include="AccelerationStructure.h" />
+    <ClInclude Include="BottomLevelASGenerator.h" />
+    <ClInclude Include="TopLevelASGenerator.h" />
+    <ClInclude Include="DescriptorSetGenerator.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

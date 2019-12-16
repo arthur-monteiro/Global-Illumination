@@ -18,6 +18,7 @@ void Vulkan::initialize(GLFWwindow* glfwWindowPointer)
 		throw std::runtime_error("Error : window surface creation");
 	pickPhysicalDevice();
 	m_deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+	m_raytracingDeviceExtentions = { VK_NV_RAY_TRACING_EXTENSION_NAME, VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME };
 	createDevice();
 }
 
@@ -84,14 +85,18 @@ void Vulkan::pickPhysicalDevice()
 	{
 		if (isDeviceSuitable(device, m_surface, m_deviceExtensions))
 		{
+			m_raytracingAvailable = isDeviceSuitable(device, m_surface, m_raytracingDeviceExtentions);
+
 			m_physicalDevice = device;
 			m_maxMsaaSamples = getMaxUsableSampleCount(m_physicalDevice);
+			if(m_raytracingAvailable)
+				m_raytracingProperties = getPhysicalDeviceRayTracingProperties(m_physicalDevice);
 			break;
 		}
 	}
 
 	if (m_physicalDevice == VK_NULL_HANDLE)
-		throw std::runtime_error("Error : No suitable GPU found !");
+		throw std::runtime_error("Error : No suitable GPU found :(");
 }
 
 void Vulkan::createDevice()

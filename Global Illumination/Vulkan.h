@@ -78,6 +78,11 @@ private:
 	std::vector<const char*> m_deviceExtensions = std::vector<const char*>();
 	VkDebugReportCallbackEXT m_debugCallback;
 
+	/* Ray Tracing Availability */
+	bool m_raytracingAvailable = false;
+	std::vector<const char*> m_raytracingDeviceExtentions = std::vector<const char*>();
+	VkPhysicalDeviceRayTracingPropertiesNV m_raytracingProperties = {};
+
 	/* Properties */
 	VkSampleCountFlagBits m_maxMsaaSamples = VK_SAMPLE_COUNT_1_BIT;
 };

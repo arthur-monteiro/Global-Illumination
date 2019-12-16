@@ -274,3 +274,21 @@ bool hasStencilComponent(VkFormat format)
 {
 	return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
+
+VkPhysicalDeviceRayTracingPropertiesNV getPhysicalDeviceRayTracingProperties(VkPhysicalDevice physicalDevice)
+{
+	VkPhysicalDeviceRayTracingPropertiesNV raytracingProperties {};
+
+	// Query the values of shaderHeaderSize and maxRecursionDepth in current implementation
+	raytracingProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PROPERTIES_NV;
+	raytracingProperties.pNext = nullptr;
+	raytracingProperties.maxRecursionDepth = 0;
+	raytracingProperties.shaderGroupHandleSize = 0;
+	VkPhysicalDeviceProperties2 props;
+	props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+	props.pNext = &raytracingProperties;
+	props.properties = {};
+	vkGetPhysicalDeviceProperties2(physicalDevice, &props);
+
+	return raytracingProperties;
+}

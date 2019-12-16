@@ -147,6 +147,7 @@ namespace std
 struct VertexBuffer
 {
 	VkBuffer vertexBuffer;
+	unsigned int nbVertices;
 	VkBuffer indexBuffer;
 	unsigned int nbIndices;
 };
@@ -179,7 +180,7 @@ public:
 		vkFreeMemory(device, m_indexBufferMemory, nullptr);
 	}
 
-	VertexBuffer getVertexBuffer() { return { m_vertexBuffer, m_indexBuffer, static_cast<unsigned int>(m_indices.size()) }; }
+	VertexBuffer getVertexBuffer() { return { m_vertexBuffer, static_cast<unsigned int>(m_vertices.size()), m_indexBuffer, static_cast<unsigned int>(m_indices.size()) }; }
 
 private:
     // Vertex

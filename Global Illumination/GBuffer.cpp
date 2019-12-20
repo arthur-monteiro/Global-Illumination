@@ -29,7 +29,7 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSur
 
 	m_uboMVP.initialize(device, physicalDevice, &ubo, sizeof(MVP_UBO));
 
-	std::vector<TextureLayout> textureLayouts(5);
+	std::vector<TextureLayout> textureLayouts(120);
 	for (int i(0); i < textureLayouts.size(); ++i)
 	{
 		textureLayouts[i].accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;

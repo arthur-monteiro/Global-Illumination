@@ -94,6 +94,10 @@ void SceneManager::load(VkDevice device, VkPhysicalDevice physicalDevice, VkQueu
 	m_computePassFinishedSemaphore.initialize(device);
 	m_computePassFinishedSemaphore.setPipelineStage(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 
+	graphicsQueueMutex->lock();
+	m_rtShadowPass.initialize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), graphicsQueue, &m_model, mvp);
+	graphicsQueueMutex->unlock();
+
     m_loadingState = 1.0f;
 }
 

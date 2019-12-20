@@ -11,10 +11,12 @@ layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
 layout(location = 2) in vec3 inTangent;
 layout(location = 3) in vec2 inTexCoord;
+layout(location = 4) in uint inMaterialID;
 
 layout(location = 0) out vec3 outWorldPos;
 layout(location = 1) out vec2 outTexCoord;
-layout(location = 2) out mat3 outTBN;
+layout(location = 2) out uint outMaterialID;
+layout(location = 3) out mat3 outTBN;
 
 out gl_PerVertex
 {
@@ -39,4 +41,5 @@ void main() {
 
 	outWorldPos = vec3(uboMVP.model * vec4(inPosition, 1.0));
     outTexCoord = inTexCoord;
+	outMaterialID = inMaterialID;
 } 

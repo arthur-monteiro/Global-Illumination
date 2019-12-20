@@ -87,6 +87,7 @@ struct VertexPBR
     glm::vec3 normal;
     glm::vec3 tangent;
     glm::vec2 texCoord;
+	glm::uint materialID;
 
     static VkVertexInputBindingDescription getBindingDescription(uint32_t binding)
     {
@@ -100,7 +101,7 @@ struct VertexPBR
 
     static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions(uint32_t binding)
     {
-        std::vector<VkVertexInputAttributeDescription> attributeDescriptions(4);
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions(5);
 
         attributeDescriptions[0].binding = binding;
         attributeDescriptions[0].location = 0;
@@ -121,6 +122,11 @@ struct VertexPBR
         attributeDescriptions[3].location = 3;
         attributeDescriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
         attributeDescriptions[3].offset = offsetof(VertexPBR, texCoord);
+
+		attributeDescriptions[4].binding = binding;
+		attributeDescriptions[4].location = 4;
+		attributeDescriptions[4].format = VK_FORMAT_R32_UINT;
+		attributeDescriptions[4].offset = offsetof(VertexPBR, materialID);
 
         return attributeDescriptions;
     }
@@ -205,7 +211,7 @@ private:
 		std::memcpy(tData, data, (size_t)size);
 		vkUnmapMemory(device, stagingBufferMemory);
 
-		createBuffer(device, physicalDevice, size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
+		createBuffer(device, physicalDevice, size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
 
 		copyBuffer(device, commandPool, graphicsQueue, stagingBuffer, m_vertexBuffer, size);
 
@@ -226,7 +232,7 @@ private:
 		memcpy(data, m_indices.data(), (size_t)bufferSize);
 		vkUnmapMemory(device, stagingBufferMemory);
 
-		createBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
+		createBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
 
 		copyBuffer(device, commandPool, graphicsQueue, stagingBuffer, m_indexBuffer, bufferSize);
 

@@ -11,6 +11,7 @@
 #include "ComputePass.h"
 #include "Command.h"
 #include "Operation.h"
+#include "RayTracingPass.h"
 
 class SceneManager
 {
@@ -41,6 +42,8 @@ private:
 
     GBuffer m_gbuffer;
 	std::vector<Texture> m_gbufferTextures;
+
+	RayTracingPass m_rtShadowPass;
 
 	std::vector<ComputePass> m_computePasses;
 	Semaphore m_computePassFinishedSemaphore;

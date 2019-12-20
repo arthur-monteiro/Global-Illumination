@@ -16,9 +16,11 @@ void Vulkan::initialize(GLFWwindow* glfwWindowPointer)
 #endif
 	if (glfwCreateWindowSurface(m_instance, glfwWindowPointer, nullptr, &m_surface) != VK_SUCCESS)
 		throw std::runtime_error("Error : window surface creation");
-	pickPhysicalDevice();
+
 	m_deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-	m_raytracingDeviceExtentions = { VK_NV_RAY_TRACING_EXTENSION_NAME, VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME };
+	m_raytracingDeviceExtensions = { VK_NV_RAY_TRACING_EXTENSION_NAME, VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME };
+
+	pickPhysicalDevice();
 	createDevice();
 }
 
@@ -45,6 +47,7 @@ void Vulkan::createInstance()
 	createInfo.pApplicationInfo = &appInfo;
 
 	std::vector<const char*> extensions = getRequiredExtensions();
+	extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 	createInfo.ppEnabledExtensionNames = extensions.data();
 
@@ -85,7 +88,11 @@ void Vulkan::pickPhysicalDevice()
 	{
 		if (isDeviceSuitable(device, m_surface, m_deviceExtensions))
 		{
-			m_raytracingAvailable = isDeviceSuitable(device, m_surface, m_raytracingDeviceExtentions);
+			m_raytracingAvailable = isDeviceSuitable(device, m_surface, m_raytracingDeviceExtensions);
+
+			if (m_raytracingAvailable)
+				for (int i(0); i < m_raytracingDeviceExtensions.size(); ++i)
+					m_deviceExtensions.push_back(m_raytracingDeviceExtensions[i]);
 
 			m_physicalDevice = device;
 			m_maxMsaaSamples = getMaxUsableSampleCount(m_physicalDevice);
@@ -117,9 +124,18 @@ void Vulkan::createDevice()
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
 
-	VkPhysicalDeviceFeatures deviceFeatures = {};
+	/*VkPhysicalDeviceFeatures deviceFeatures = {};
 	deviceFeatures.samplerAnisotropy = VK_TRUE;
 	deviceFeatures.sampleRateShading = VK_TRUE;
+	deviceFeatures.shaderSampledImageArrayDynamicIndexing = VK_TRUE;*/
+
+	VkPhysicalDeviceDescriptorIndexingFeaturesEXT descIndexFeatures = {};
+	descIndexFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
+
+	VkPhysicalDeviceFeatures2 supportedFeatures = {};
+	supportedFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+	supportedFeatures.pNext = &descIndexFeatures;
+	vkGetPhysicalDeviceFeatures2(m_physicalDevice, &supportedFeatures);
 
 	VkDeviceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -127,7 +143,8 @@ void Vulkan::createDevice()
 	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 	createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
-	createInfo.pEnabledFeatures = &deviceFeatures;
+	createInfo.pEnabledFeatures = &(supportedFeatures.features);
+	createInfo.pNext = &descIndexFeatures;
 
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(m_deviceExtensions.size());
 	createInfo.ppEnabledExtensionNames = m_deviceExtensions.data();

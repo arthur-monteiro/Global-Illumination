@@ -182,5 +182,5 @@ void AccelerationStructure::destroyAccelerationStructure(VkDevice device, const 
 	vkFreeMemory(device, as.resultMem, nullptr);
 	vkDestroyBuffer(device, as.instancesBuffer, nullptr);
 	vkFreeMemory(device, as.instancesMem, nullptr);
-	vkDestroyAccelerationStructureNV(device, as.structure, nullptr);
+	//vkDestroyAccelerationStructureNV(device, as.structure, nullptr);
 }

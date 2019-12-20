@@ -71,13 +71,13 @@ void Renderer::createDescriptorSetLayout(VkDevice device, std::vector<UniformBuf
 		bindings.push_back(uboLayoutBinding);
 	}
 
-	for (int i(0); i < textureLayouts.size(); ++i)
+	if(textureLayouts.size() > 0)
 	{
 		VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
-		samplerLayoutBinding.binding = textureLayouts[i].binding;
-		samplerLayoutBinding.descriptorCount = 1;
+		samplerLayoutBinding.binding = textureLayouts[0].binding;
+		samplerLayoutBinding.descriptorCount = static_cast<uint32_t>(textureLayouts.size());
 		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		samplerLayoutBinding.stageFlags = textureLayouts[i].accessibility;
+		samplerLayoutBinding.stageFlags = textureLayouts[0].accessibility;
 		samplerLayoutBinding.pImmutableSamplers = nullptr;
 
 		bindings.push_back(samplerLayoutBinding);
@@ -135,15 +135,18 @@ VkDescriptorSet Renderer::createDescriptorSet(VkDevice device, VkDescriptorPool 
 		imageInfo[i].imageLayout = textures[i].first->getImageLayout();
 		imageInfo[i].imageView = textures[i].first->getImageView();
 		imageInfo[i].sampler = textures[i].first->getSampler();
+	}
 
+	if (textures.size() > 0)
+	{
 		VkWriteDescriptorSet descriptorWrite;
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrite.dstSet = descriptorSet;
-		descriptorWrite.dstBinding = textures[i].second.binding;
+		descriptorWrite.dstBinding = textures[0].second.binding;
 		descriptorWrite.dstArrayElement = 0;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pImageInfo = &imageInfo[i];
+		descriptorWrite.descriptorCount = static_cast<uint32_t>(imageInfo.size());
+		descriptorWrite.pImageInfo = imageInfo.data();
 		descriptorWrite.pNext = NULL;
 
 		descriptorWrites.push_back(descriptorWrite);

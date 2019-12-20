@@ -4,8 +4,8 @@
 
 #include "VulkanHelper.h"
 #include "Model.h"
-#include "BottomLevelASGenerator.h"
-#include "TopLevelASGenerator.h"
+#include "vulkannv/nv_helpers_vk/BottomLevelASGenerator.h"
+#include "vulkannv/nv_helpers_vk/TopLevelASGenerator.h"
 
 struct GeometryInstance
 {
@@ -38,6 +38,8 @@ public:
 
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::vector<GeometryInstance> geometryInstances);
 	void cleanup(VkDevice device);
+
+	VkAccelerationStructureNV getToLevelAccelerationStructure() { return m_topLevelAS.structure; }
 		
 private:
 	AccelerationStructureData createBottomLevelAS(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandBuffer commandBuffer, std::vector<GeometryInstance> geometryInstances);

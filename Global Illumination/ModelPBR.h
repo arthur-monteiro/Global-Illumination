@@ -30,7 +30,9 @@ public:
 	glm::mat4 getTransformation() { return m_transformationMatrix; }
 
 private:
-    std::vector<MeshPBR> m_meshes;
+    //std::vector<MeshPBR> m_meshes;
+	Mesh<VertexPBR> m_mesh;
+	std::vector<Texture> m_textures;
 	glm::mat4 m_transformationMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f));
 
 private:

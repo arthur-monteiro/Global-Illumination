@@ -1,6 +1,8 @@
-﻿  SwapChain.cpp
+﻿  GameManager.cpp
+  RayTracingPass.cpp
+  SceneManager.cpp
   SystemManager.cpp
   main.cpp
   Generating Code...
-F:\Code\Global Illumination\Global Illumination\SwapChain.cpp(68,19): warning C4018:  '<': signed/unsigned mismatch
+F:\Code\Global Illumination\Global Illumination\SceneManager.cpp(83,42): warning C4267:  '=': conversion from 'size_t' to 'uint32_t', possible loss of data
   Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe

@@ -80,7 +80,7 @@ private:
 
 	/* Ray Tracing Availability */
 	bool m_raytracingAvailable = false;
-	std::vector<const char*> m_raytracingDeviceExtentions = std::vector<const char*>();
+	std::vector<const char*> m_raytracingDeviceExtensions = std::vector<const char*>();
 	VkPhysicalDeviceRayTracingPropertiesNV m_raytracingProperties = {};
 
 	/* Properties */

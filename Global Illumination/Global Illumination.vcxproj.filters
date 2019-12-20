@@ -38,10 +38,13 @@
     <ClCompile Include="Operation.cpp" />
     <ClCompile Include="RayTracingPass.cpp" />
     <ClCompile Include="AccelerationStructure.cpp" />
-    <ClCompile Include="BottomLevelASGenerator.cpp" />
-    <ClCompile Include="TopLevelASGenerator.cpp" />
-    <ClCompile Include="vulkan_raytracing.cpp" />
-    <ClCompile Include="DescriptorSetGenerator.cpp" />
+    <ClCompile Include="vulkannv\vulkan_raytracing.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\BottomLevelASGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\DescriptorSetGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\RaytracingPipelineGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\ShaderBindingTableGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\TopLevelASGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\VKHelpers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -78,9 +81,12 @@
     <ClInclude Include="Operation.h" />
     <ClInclude Include="RayTracingPass.h" />
     <ClInclude Include="AccelerationStructure.h" />
-    <ClInclude Include="BottomLevelASGenerator.h" />
-    <ClInclude Include="TopLevelASGenerator.h" />
-    <ClInclude Include="DescriptorSetGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\BottomLevelASGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\DescriptorSetGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\RaytracingPipelineGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\ShaderBindingTableGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\TopLevelASGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\VKHelpers.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

@@ -27,14 +27,14 @@ void ModelPBR::loadFromFile(VkDevice device, VkPhysicalDevice physicalDevice, Vk
         std::cout << "[Loading objet file]  Warning : " << warn << " for " << filename << " !" << std::endl;
 #endif // !NDEBUG
 
-    m_meshes.resize(materials.size());
+    //m_meshes.resize(materials.size());
 
-    std::vector<std::unordered_map<VertexPBR, uint32_t>> uniqueVertices = {};
-    uniqueVertices.resize(materials.size());
-    std::vector<std::vector<VertexPBR>> vertices;
-    vertices.resize(materials.size());
-    std::vector<std::vector<uint32_t>> indices;
-    indices.resize(materials.size());
+    std::unordered_map<VertexPBR, uint32_t> uniqueVertices = {};
+    //uniqueVertices.resize(materials.size());
+    std::vector<VertexPBR> vertices;
+    //vertices.resize(materials.size());
+    std::vector<uint32_t> indices;
+    //indices.resize(materials.size());
 
     for (const auto& shape : shapes)
     {
@@ -66,50 +66,49 @@ void ModelPBR::loadFromFile(VkDevice device, VkPhysicalDevice physicalDevice, Vk
                             attrib.normals[3 * index.normal_index + 2]
                     };
 
-            if (uniqueVertices[shape.mesh.material_ids[numVertex / 3]].count(vertex) == 0)
+			vertex.materialID = shape.mesh.material_ids[numVertex / 3];
+
+            if (uniqueVertices.count(vertex) == 0)
             {
-                uniqueVertices[shape.mesh.material_ids[numVertex / 3]][vertex] = static_cast<uint32_t>(vertices[shape.mesh.material_ids[numVertex / 3]].size());
-                vertices[shape.mesh.material_ids[numVertex / 3]].push_back(vertex);
+                uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+                vertices.push_back(vertex);
             }
 
-            indices[shape.mesh.material_ids[numVertex / 3]].push_back(uniqueVertices[shape.mesh.material_ids[numVertex / 3]][vertex]);
+            indices.push_back(uniqueVertices[vertex]);
 
             numVertex++;
         }
     }
 
     std::array<VertexPBR, 3> tempTriangle{};
-    for (int k(0); k < indices.size(); ++k)
+    for (int i(0); i <= indices.size(); ++i)
     {
-        for (int i(0); i <= indices[k].size(); ++i)
+        if (i != 0 && i % 3 == 0)
         {
-            if (i != 0 && i % 3 == 0)
-            {
-                glm::vec3 edge1 = tempTriangle[1].pos - tempTriangle[0].pos;
-                glm::vec3 edge2 = tempTriangle[2].pos - tempTriangle[0].pos;
-                glm::vec2 deltaUV1 = tempTriangle[1].texCoord - tempTriangle[0].texCoord;
-                glm::vec2 deltaUV2 = tempTriangle[2].texCoord - tempTriangle[0].texCoord;
+            glm::vec3 edge1 = tempTriangle[1].pos - tempTriangle[0].pos;
+            glm::vec3 edge2 = tempTriangle[2].pos - tempTriangle[0].pos;
+            glm::vec2 deltaUV1 = tempTriangle[1].texCoord - tempTriangle[0].texCoord;
+            glm::vec2 deltaUV2 = tempTriangle[2].texCoord - tempTriangle[0].texCoord;
 
-                float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+            float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 
-                glm::vec3 tangent;
-                tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-                tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-                tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
-                tangent = glm::normalize(tangent);
+            glm::vec3 tangent;
+            tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+            tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+            tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+            tangent = glm::normalize(tangent);
 
-                for (int j(i - 1); j > i - 4; --j)
-                    vertices[k][indices[k][j]].tangent = tangent;
-            }
-
-            if (i == indices[k].size())
-                break;
-
-            tempTriangle[i % 3] = vertices[k][indices[k][i]];
+            for (int j(i - 1); j > i - 4; --j)
+                vertices[indices[j]].tangent = tangent;
         }
+
+        if (i == indices.size())
+            break;
+
+        tempTriangle[i % 3] = vertices[indices[i]];
     }
 
-    for (int i(0); i < vertices.size(); ++i)
+    /*for (int i(0); i < vertices.size(); ++i)
     {
         graphicsQueueMutex->lock();
 
@@ -130,37 +129,56 @@ void ModelPBR::loadFromFile(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 
         for(int j(0); j < 5; ++j)
             m_meshes[i].textures[j].createSampler(device, VK_SAMPLER_ADDRESS_MODE_REPEAT, static_cast<float>(m_meshes[i].textures[j].getMipLevels()), VK_FILTER_LINEAR);
-    }
+    }*/
 
-    int nTriangles = 0;
-    for (int k(0); k < indices.size(); ++k)
-        nTriangles += indices[k].size() / 3;
-    std::cout << "Model loaded with " << nTriangles << " triangles" << std::endl;
+	graphicsQueueMutex->lock();
+	m_mesh.loadFromVertices(device, physicalDevice, commandPool, graphicsQueue, vertices, indices);
+	graphicsQueueMutex->unlock();
+
+	m_textures.resize(materials.size() * 5);
+	int indexTexture = 0;
+	for (int i(0); i < materials.size(); ++i)
+	{
+		graphicsQueueMutex->lock();
+
+		m_textures[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].diffuse_texname, mtlFolder));
+		m_textures[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].bump_texname, mtlFolder));
+		m_textures[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].specular_highlight_texname, mtlFolder));
+		m_textures[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].ambient_texname, mtlFolder));
+		m_textures[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].ambient_texname, mtlFolder));
+
+		graphicsQueueMutex->unlock();
+	}
+
+	for (int i(0); i < m_textures.size(); ++i)
+	{
+		m_textures[i].createSampler(device, VK_SAMPLER_ADDRESS_MODE_REPEAT, static_cast<float>(m_textures[i].getMipLevels()), VK_FILTER_LINEAR);
+	}
+
+    std::cout << "Model loaded with " << indices.size() / 3 << " triangles" << std::endl;
 }
 
 void ModelPBR::cleanup(VkDevice device)
 {
-    for (auto & mesh : m_meshes)
-        mesh.mesh.cleanup(device);
+    m_mesh.cleanup(device);
 }
 
 std::vector<VertexBuffer> ModelPBR::getVertexBuffers()
 {
     std::vector<VertexBuffer> vertexBuffers;
 
-    for (auto & mesh : m_meshes)
-        vertexBuffers.push_back(mesh.mesh.getVertexBuffer());
+    vertexBuffers.push_back(m_mesh.getVertexBuffer());
 
     return vertexBuffers;
 }
 
 std::vector<Texture*> ModelPBR::getTextures(int meshID)
 {
-	std::vector<Texture*> textures(m_meshes[meshID].textures.size());
-	for (int i(0); i < textures.size(); ++i)
-		textures[i] = &m_meshes[meshID].textures[i];
+	std::vector<Texture*> r(m_textures.size());
 
-	return textures;
+	std::transform(m_textures.begin(), m_textures.end(), r.begin(), [](Texture& t) { return &t; });
+
+	return r;
 }
 
 std::string ModelPBR::getTexName(std::string texName, std::string folder)

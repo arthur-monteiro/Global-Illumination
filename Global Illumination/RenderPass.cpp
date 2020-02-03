@@ -4,13 +4,13 @@ RenderPass::~RenderPass()
 {
 }
 
-bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, const std::vector<Attachment>& attachments, std::vector<VkExtent2D> extents)
+bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, const std::vector<Attachment>& attachments, std::vector<VkExtent2D> extents)
 {
 	if (attachments.empty())
 		throw std::runtime_error("Can't create RenderPass without attachment");
 
 	m_renderPass = createRenderPass(device, attachments);
-	m_command.initialize(device, physicalDevice, surface);
+	//m_command.initialize(device, physicalDevice, surface);
     m_command.allocateCommandBuffers(device, commandPool, extents.size());
 
     m_framebuffers.resize(extents.size());
@@ -25,13 +25,13 @@ bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 	return true;
 }
 
-bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, const std::vector<Attachment>& attachments, std::vector<Image*> images)
+bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, const std::vector<Attachment>& attachments, std::vector<Image*> images)
 {
 	if (attachments.empty())
 		throw std::runtime_error("Can't create RenderPass without attachment");
 
 	m_renderPass = createRenderPass(device, attachments);
-	m_command.initialize(device, physicalDevice, surface);
+	//m_command.initialize(device, physicalDevice, surface);
 	m_command.allocateCommandBuffers(device, commandPool, images.size());
 
     m_framebuffers.resize(images.size());

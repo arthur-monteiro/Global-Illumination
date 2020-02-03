@@ -15,12 +15,12 @@ enum GAME_STATE
 class GameManager
 {
 public:
-	GameManager() {}
+	GameManager() = default;
 	~GameManager();
 
 	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkQueue graphicsQueue, std::mutex* graphicsQueueMutex, 
 		VkQueue computeQueue, std::mutex* computeQueueMutex, std::vector<Image*> swapChainImages);
-	void submit(VkDevice device, GLFWwindow* window, VkQueue graphicsQueue, std::mutex* graphicsQueueMutex,
+	void submit(VkDevice device, VkPhysicalDevice physicalDevice, GLFWwindow* window, VkQueue graphicsQueue, std::mutex* graphicsQueueMutex,
 		VkQueue computeQueue, std::mutex* computeQueueMutex, uint32_t swapChainImageIndex, Semaphore* imageAvailableSemaphore);
 	void resize(VkDevice device, VkPhysicalDevice physicalDevice, std::vector<Image*> swapChainImages);
 

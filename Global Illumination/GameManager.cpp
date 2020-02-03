@@ -13,7 +13,7 @@ bool GameManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice, V
 	return true;
 }
 
-void GameManager::submit(VkDevice device, GLFWwindow* window, VkQueue graphicsQueue, std::mutex * graphicsQueueMutex,
+void GameManager::submit(VkDevice device, VkPhysicalDevice physicalDevice, GLFWwindow* window, VkQueue graphicsQueue, std::mutex * graphicsQueueMutex,
 	VkQueue computeQueue, std::mutex* computeQueueMutex, uint32_t swapChainImageIndex, Semaphore * imageAvailableSemaphore)
 {
     if(m_gameState == GAME_STATE::LOADING)
@@ -22,7 +22,7 @@ void GameManager::submit(VkDevice device, GLFWwindow* window, VkQueue graphicsQu
         {
             m_gameState = GAME_STATE::RUNNING;
             m_sceneLoadingThread.join();
-            m_sceneManager.submit(device, window, graphicsQueue, computeQueue, swapChainImageIndex, imageAvailableSemaphore);
+            m_sceneManager.submit(device, physicalDevice, window, graphicsQueue, computeQueue, swapChainImageIndex, imageAvailableSemaphore);
         }
         else
         {
@@ -33,7 +33,7 @@ void GameManager::submit(VkDevice device, GLFWwindow* window, VkQueue graphicsQu
     }
     else if(m_gameState == GAME_STATE::RUNNING)
     {
-		m_sceneManager.submit(device, window, graphicsQueue, computeQueue, swapChainImageIndex, imageAvailableSemaphore);
+		m_sceneManager.submit(device, physicalDevice, window, graphicsQueue, computeQueue, swapChainImageIndex, imageAvailableSemaphore);
     }
 }
 

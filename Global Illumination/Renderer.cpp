@@ -1,5 +1,7 @@
 #include "Renderer.h"
 
+#include <utility>
+
 Renderer::~Renderer()
 {
 }
@@ -8,13 +10,13 @@ void Renderer::initialize(VkDevice device, std::string vertexShader, std::string
 	std::vector<VkVertexInputAttributeDescription> attributeInputDescription, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, 
 	std::vector<TextureLayout> textureLayouts, std::vector<bool> alphaBlending)
 {
-	m_vertexShader = vertexShader;
-	m_fragmentShader = fragmentShader;
-	m_vertexInputDescription = vertexInputDescription;
-	m_attributeInputDescription = attributeInputDescription;
-	m_alphaBlending = alphaBlending;
+	m_vertexShader = std::move(vertexShader);
+	m_fragmentShader = std::move(fragmentShader);
+	m_vertexInputDescription = std::move(vertexInputDescription);
+	m_attributeInputDescription = std::move(attributeInputDescription);
+	m_alphaBlending = std::move(alphaBlending);
 
-	createDescriptorSetLayout(device, uniformBufferObjectLayouts, textureLayouts);
+	createDescriptorSetLayout(device, std::move(uniformBufferObjectLayouts), std::move(textureLayouts));
 }
 
 void Renderer::createPipeline(VkDevice device, VkRenderPass renderPass, VkExtent2D extent, VkSampleCountFlagBits msaa)
@@ -43,6 +45,20 @@ int Renderer::addMesh(VkDevice device, VkDescriptorPool descriptorPool, VertexBu
 	return m_meshes.size() - 1;
 }
 
+int Renderer::addMeshInstancied(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer,
+	InstanceBuffer instanceBuffer, std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos,
+	std::vector<std::pair<Texture*, TextureLayout>> textures)
+{
+	m_meshesInstancied.push_back({ vertexBuffer, instanceBuffer, createDescriptorSet(device, descriptorPool, ubos, textures) });
+
+	return m_meshesInstancied.size() - 1;
+}
+
+void Renderer::reloadMeshVertexBuffer(VkDevice device, VertexBuffer vertexBuffer, int meshID)
+{
+	m_meshes[meshID].first = vertexBuffer;
+}
+
 void Renderer::cleanup(VkDevice device, VkDescriptorPool descriptorPool)
 {
 	for (int i(0); i < m_meshes.size(); ++i)
@@ -54,6 +70,11 @@ void Renderer::cleanup(VkDevice device, VkDescriptorPool descriptorPool)
 std::vector<std::pair<VertexBuffer, VkDescriptorSet>> Renderer::getMeshes()
 {
 	return m_meshes;
+}
+
+std::vector<std::tuple<VertexBuffer, InstanceBuffer, VkDescriptorSet>> Renderer::getMeshesInstancied()
+{
+	return m_meshesInstancied;
 }
 
 void Renderer::createDescriptorSetLayout(VkDevice device, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, std::vector<TextureLayout> textureLayouts)

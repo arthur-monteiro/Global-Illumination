@@ -4,11 +4,6 @@ Command::~Command()
 {
 }
 
-bool Command::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
-{
-	return true;
-}
-
 void Command::allocateCommandBuffers(VkDevice device, VkCommandPool commandPool, size_t size)
 {
 	m_commandBuffers.resize(size);
@@ -62,6 +57,19 @@ void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, VkRende
 			vkCmdDrawIndexed(m_commandBuffers[commandBufferID], meshesToRender[j].first.nbIndices, 1, 0, 0, 0);
 		}
 
+		std::vector<std::tuple<VertexBuffer, InstanceBuffer, VkDescriptorSet>> meshesInstancied = renderers[i]->getMeshesInstancied();
+		for(int j(0); j < meshesInstancied.size(); ++j)
+		{
+			vkCmdBindVertexBuffers(m_commandBuffers[commandBufferID], 0, 1, &std::get<0>(meshesInstancied[j]).vertexBuffer, offsets);
+			vkCmdBindIndexBuffer(m_commandBuffers[commandBufferID], std::get<0>(meshesInstancied[j]).indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+			vkCmdBindVertexBuffers(m_commandBuffers[commandBufferID], 1, 1, &std::get<1>(meshesInstancied[j]).instanceBuffer, offsets);
+
+			vkCmdBindDescriptorSets(m_commandBuffers[commandBufferID], VK_PIPELINE_BIND_POINT_GRAPHICS,
+				renderers[i]->getPipelineLayout(), 0, 1, &std::get<2>(meshesInstancied[j]), 0, nullptr);
+
+			vkCmdDrawIndexed(m_commandBuffers[commandBufferID], std::get<0>(meshesInstancied[j]).nbIndices, std::get<1>(meshesInstancied[j]).nInstances, 0, 0, 0);
+		}
 	}
 
 	vkCmdEndRenderPass(m_commandBuffers[commandBufferID]);

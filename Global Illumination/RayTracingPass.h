@@ -5,6 +5,9 @@
 #include "AccelerationStructure.h"
 #include "vulkannv/nv_helpers_vk/DescriptorSetGenerator.h"
 #include "UniformBufferObject.h"
+#include "RayTracingPipeline.h"
+#include "vulkannv/nv_helpers_vk/ShaderBindingTableGenerator.h"
+#include "Command.h"
 
 class RayTracingPass
 {
@@ -13,20 +16,25 @@ public:
 	~RayTracingPass();
 
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, ModelPBR* model, glm::mat4 mvp);
+	void submit(VkDevice device, VkQueue queue, std::vector<Semaphore*> waitSemaphores, VkSemaphore signalSemaphore, glm::mat4 viewInverse, glm::mat4 projInverse);
 
-	void cleanup(VkDevice device);
+	void cleanup(VkDevice device, VkCommandPool commandPool);
+
+	Image* getImage() { return &m_imageTarget; }
 
 private:
 	void createRaytracingDescriptorSet(VkDevice device, std::vector<Texture*> textures, VkBuffer vertexBuffer, VkBuffer indexBuffer);
+	void updateRaytracingRenderTarget(VkDevice device, VkImageView target);
+	void createShaderBindingTable(VkDevice device, VkPhysicalDevice physicalDevice);
 
 private:
-	struct MVP_UBO
+	struct MVP_INV_UBO
 	{
-		glm::mat4 mvp;
-		glm::mat4 model;
+		glm::mat4 viewInverse;
+		glm::mat4 projInverse;
 	};
 
-	UniformBufferObject m_uboMVP;
+	UniformBufferObject m_uboInvMVP;
 
 	AccelerationStructure m_accelerationStructure;
 
@@ -35,6 +43,13 @@ private:
 	VkDescriptorSetLayout m_rtDescriptorSetLayout;
 	VkDescriptorSet m_rtDescriptorSet;
 
+	RayTracingPipeline m_pipeline;
+
+	nv_helpers_vk::ShaderBindingTableGenerator m_sbtGen;
+	VkBuffer m_shaderBindingTableBuffer;
+	VkDeviceMemory m_shaderBindingTableMem;
+
 	Image m_imageTarget;
+	Command m_command;
 };
 

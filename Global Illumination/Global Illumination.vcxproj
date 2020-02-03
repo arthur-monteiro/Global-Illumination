@@ -105,6 +105,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(STB_IMAGE_PATH)\stb_image;$(TINYOBJ_PATH);$(FREETYPE_PATH)\include\freetype2;$(VULKAN_SDK)\Include;$(GLM_PATH);$(GLFW_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ControlFlowGuard>false</ControlFlowGuard>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,6 +113,9 @@
       <AdditionalLibraryDirectories>$(FREETYPE_PATH)\lib\x64;$(VULKAN_SDK)\Lib;$(GLFW_PATH)\lib-vc2019;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>vulkan-1.lib;glfw3.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -162,12 +166,16 @@
     <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="ComputePass.cpp" />
     <ClCompile Include="DescriptorPool.cpp" />
+    <ClCompile Include="Font.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="GBuffer.cpp" />
+    <ClCompile Include="HUD.cpp" />
     <ClCompile Include="Image.cpp" />
+    <ClCompile Include="Instance.cpp" />
     <ClCompile Include="LoadingManager.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Menu.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Model2D.cpp" />
@@ -176,6 +184,7 @@
     <ClCompile Include="Operation.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="RayTracingPass.cpp" />
+    <ClCompile Include="RayTracingPipeline.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="Sampler.cpp" />
@@ -183,6 +192,7 @@
     <ClCompile Include="Semaphore.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="SystemManager.cpp" />
+    <ClCompile Include="Text.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="UniformBufferObject.cpp" />
     <ClCompile Include="Vulkan.cpp" />
@@ -204,11 +214,15 @@
     <ClInclude Include="CommandPool.h" />
     <ClInclude Include="ComputePass.h" />
     <ClInclude Include="DescriptorPool.h" />
+    <ClInclude Include="Font.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GBuffer.h" />
+    <ClInclude Include="HUD.h" />
     <ClInclude Include="Image.h" />
+    <ClInclude Include="Instance.h" />
     <ClInclude Include="LoadingManager.h" />
+    <ClInclude Include="Menu.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Model2D.h" />
@@ -217,6 +231,7 @@
     <ClInclude Include="Operation.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="RayTracingPass.h" />
+    <ClInclude Include="RayTracingPipeline.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="Sampler.h" />
@@ -224,6 +239,7 @@
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="SystemManager.h" />
+    <ClInclude Include="Text.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="UniformBufferObject.h" />
     <ClInclude Include="Vulkan.h" />

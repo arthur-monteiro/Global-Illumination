@@ -29,7 +29,7 @@ bool SystemManager::run()
         glfwPollEvents();
 
         uint32_t swapChainImageIndex = m_swapChain.getCurrentImage(m_vulkan.getDevice());
-        m_gameManager.submit(m_vulkan.getDevice(), m_windowManager.getWindow(), m_vulkan.getGraphicsQueue(), m_vulkan.getGraphicsQueueMutex(),
+        m_gameManager.submit(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_windowManager.getWindow(), m_vulkan.getGraphicsQueue(), m_vulkan.getGraphicsQueueMutex(),
 			m_vulkan.getComputeQueue(), m_vulkan.getComputeQueueMutex(), swapChainImageIndex, m_swapChain.getImageAvailableSemaphore());
 
 		m_vulkan.getPresentQueueMutex()->lock();

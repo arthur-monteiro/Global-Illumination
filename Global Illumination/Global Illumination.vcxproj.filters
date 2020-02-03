@@ -45,6 +45,12 @@
     <ClCompile Include="vulkannv\nv_helpers_vk\ShaderBindingTableGenerator.cpp" />
     <ClCompile Include="vulkannv\nv_helpers_vk\TopLevelASGenerator.cpp" />
     <ClCompile Include="vulkannv\nv_helpers_vk\VKHelpers.cpp" />
+    <ClCompile Include="RayTracingPipeline.cpp" />
+    <ClCompile Include="Font.cpp" />
+    <ClCompile Include="Text.cpp" />
+    <ClCompile Include="HUD.cpp" />
+    <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="Instance.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -87,6 +93,12 @@
     <ClInclude Include="vulkannv\nv_helpers_vk\ShaderBindingTableGenerator.h" />
     <ClInclude Include="vulkannv\nv_helpers_vk\TopLevelASGenerator.h" />
     <ClInclude Include="vulkannv\nv_helpers_vk\VKHelpers.h" />
+    <ClInclude Include="RayTracingPipeline.h" />
+    <ClInclude Include="Font.h" />
+    <ClInclude Include="Text.h" />
+    <ClInclude Include="HUD.h" />
+    <ClInclude Include="Menu.h" />
+    <ClInclude Include="Instance.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

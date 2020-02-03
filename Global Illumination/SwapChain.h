@@ -24,6 +24,7 @@ public:
 public:
     std::vector<Image*> getImages();
     Semaphore * getImageAvailableSemaphore() { return &m_imageAvailableSemaphore; }
+	bool getInvertColors() { return m_invertColors; }
 
 private:
 	VkSwapchainKHR m_swapChain;

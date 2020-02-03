@@ -17,7 +17,7 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSur
     m_attachments[3].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
     m_attachments[4].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
-    m_renderPass.initialize(device, physicalDevice, surface, commandPool, m_attachments, { extent });
+    m_renderPass.initialize(device, physicalDevice, commandPool, m_attachments, { extent });
 
 	UniformBufferObjectLayout mvpLayout;
 	mvpLayout.accessibility = VK_SHADER_STAGE_VERTEX_BIT;

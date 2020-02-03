@@ -70,7 +70,7 @@ void AccelerationStructure::createTopLevelAS(VkDevice device, VkPhysicalDevice p
 		// hit group to be executed when hitting this instance. We set this index
 		// to i due to the use of 1 type of rays in the scene: the camera rays
 		m_topLevelASGenerator.AddInstance(instances[i].first, instances[i].second,
-			static_cast<uint32_t>(i), static_cast<uint32_t>(i));
+			static_cast<uint32_t>(i), static_cast<uint32_t>(2 * i));
 	}
 
 	// Once all instances have been added, we can create the handle for the TLAS

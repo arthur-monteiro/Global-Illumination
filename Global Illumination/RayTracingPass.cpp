@@ -22,23 +22,91 @@ void RayTracingPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 
 	m_accelerationStructure.initialize(device, physicalDevice, commandPool, graphicsQueue, geometryInstances);
 
-	MVP_UBO uboData;
-	uboData.model = model->getTransformation();
-	uboData.mvp = mvp;
-	m_uboMVP.initialize(device, physicalDevice, &uboData, sizeof(MVP_UBO));
+	MVP_INV_UBO uboData;
+	//uboData.model = model->getTransformation();
+	//uboData.mvp = mvp;
+	m_uboInvMVP.initialize(device, physicalDevice, &uboData, sizeof(MVP_INV_UBO));
 
 	m_imageTarget.create(device, physicalDevice, { 1280, 720 }, VK_IMAGE_USAGE_STORAGE_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
-	m_imageTarget.setImageLayout(device, commandPool, graphicsQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+	m_imageTarget.setImageLayout(device, commandPool, graphicsQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_ACCESS_SHADER_WRITE_BIT);
 
 	std::vector<VertexBuffer> vertexBuffers = model->getVertexBuffers();
 	createRaytracingDescriptorSet(device, model->getTextures(0), vertexBuffers[0].vertexBuffer, vertexBuffers[0].indexBuffer);
+
+	m_pipeline.initialize(device, m_rtDescriptorSetLayout, "Shaders/rtShadows/rgen.spv", "Shaders/rtShadows/rmiss.spv", "Shaders/rtShadows/rchit.spv");
+	createShaderBindingTable(device, physicalDevice);
+
+	m_command.allocateCommandBuffers(device, commandPool, 1);
+
+	/* Fill command buffer */
+	VkCommandBufferBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+
+	vkBeginCommandBuffer(m_command.getCommandBuffer(0), &beginInfo);
+
+	vkCmdBindPipeline(m_command.getCommandBuffer(0), VK_PIPELINE_BIND_POINT_RAY_TRACING_NV, m_pipeline.getPipeline());
+	vkCmdBindDescriptorSets(m_command.getCommandBuffer(0), VK_PIPELINE_BIND_POINT_RAY_TRACING_NV,
+		m_pipeline.getPipelineLayout(), 0, 1, &m_rtDescriptorSet,
+		0, nullptr);
+
+	VkDeviceSize rayGenOffset = m_sbtGen.GetRayGenOffset();
+	VkDeviceSize missOffset = m_sbtGen.GetMissOffset();
+	VkDeviceSize missStride = m_sbtGen.GetMissEntrySize();
+	VkDeviceSize hitGroupOffset = m_sbtGen.GetHitGroupOffset();
+	VkDeviceSize hitGroupStride = m_sbtGen.GetHitGroupEntrySize();
+
+	vkCmdTraceRaysNV(m_command.getCommandBuffer(0), m_shaderBindingTableBuffer, rayGenOffset,
+		m_shaderBindingTableBuffer, missOffset, missStride,
+		m_shaderBindingTableBuffer, hitGroupOffset, hitGroupStride,
+		VK_NULL_HANDLE, 0, 0,  1280, 720, 1);
+
+	vkEndCommandBuffer(m_command.getCommandBuffer(0));
 }
 
-void RayTracingPass::cleanup(VkDevice device)
+void RayTracingPass::submit(VkDevice device, VkQueue queue, std::vector<Semaphore*> waitSemaphores,
+	VkSemaphore signalSemaphore, glm::mat4 viewInverse, glm::mat4 projInverse)
 {
+	MVP_INV_UBO uboData;
+	uboData.viewInverse = viewInverse;
+	uboData.projInverse = projInverse;
+	m_uboInvMVP.updateData(device, &uboData);
+	
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	VkSemaphore signalSemaphores[] = { signalSemaphore };
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	VkCommandBuffer commandBuffer = m_command.getCommandBuffer(0);
+	submitInfo.pCommandBuffers = &commandBuffer;
+	submitInfo.commandBufferCount = 1;
+
+	submitInfo.waitSemaphoreCount = waitSemaphores.size();
+	std::vector<VkSemaphore> semaphores;
+	std::vector<VkPipelineStageFlags> stages;
+	for (int i(0); i < waitSemaphores.size(); ++i)
+	{
+		semaphores.push_back(waitSemaphores[i]->getSemaphore());
+		stages.push_back(waitSemaphores[i]->getPipelineStage());
+	}
+	submitInfo.pWaitSemaphores = semaphores.data();
+	submitInfo.pWaitDstStageMask = stages.data();
+
+	if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+		throw std::runtime_error("Error : submit to compute queue");
+}
+
+void RayTracingPass::cleanup(VkDevice device, VkCommandPool commandPool)
+{
+	m_command.cleanup(device, commandPool);
 	vkDestroyDescriptorSetLayout(device, m_rtDescriptorSetLayout, nullptr);
 	vkDestroyDescriptorPool(device, m_rtDescriptorPool, nullptr);
 	m_accelerationStructure.cleanup(device);
+	vkDestroyBuffer(device, m_shaderBindingTableBuffer, nullptr);
+	vkFreeMemory(device, m_shaderBindingTableMem, nullptr);
+	m_pipeline.cleanup(device);
 }
 
 void RayTracingPass::createRaytracingDescriptorSet(VkDevice device, std::vector<Texture*> textures, VkBuffer vertexBuffer, VkBuffer indexBuffer)
@@ -46,7 +114,7 @@ void RayTracingPass::createRaytracingDescriptorSet(VkDevice device, std::vector<
 	// Add the bindings to the resources
 	// Top-level acceleration structure, usable by both the ray generation and the
 	// closest hit (to shoot shadow rays)
-	m_rtDSG.AddBinding(0, 1, VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV, VK_SHADER_STAGE_RAYGEN_BIT_NV);
+	m_rtDSG.AddBinding(0, 1, VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV, VK_SHADER_STAGE_RAYGEN_BIT_NV | VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV);
 	// Raytracing output
 	m_rtDSG.AddBinding(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_NV);
 	// Camera information
@@ -80,9 +148,9 @@ void RayTracingPass::createRaytracingDescriptorSet(VkDevice device, std::vector<
 
 	// Camera matrices
 	VkDescriptorBufferInfo camInfo = {};
-	camInfo.buffer = m_uboMVP.getUniformBuffer();
+	camInfo.buffer = m_uboInvMVP.getUniformBuffer();
 	camInfo.offset = 0;
-	camInfo.range = sizeof(MVP_UBO);
+	camInfo.range = sizeof(MVP_INV_UBO);
 
 	m_rtDSG.Bind(m_rtDescriptorSet, 2, { camInfo });
 
@@ -127,4 +195,48 @@ void RayTracingPass::createRaytracingDescriptorSet(VkDevice device, std::vector<
 
 	// Copy the bound resource handles into the descriptor set
 	m_rtDSG.UpdateSetContents(device, m_rtDescriptorSet);
+}
+
+void RayTracingPass::updateRaytracingRenderTarget(VkDevice device, VkImageView target)
+{
+	// Output buffer
+	VkDescriptorImageInfo descriptorOutputImageInfo;
+	descriptorOutputImageInfo.sampler = nullptr;
+	descriptorOutputImageInfo.imageView = target;
+	descriptorOutputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+	m_rtDSG.Bind(m_rtDescriptorSet, 1, { descriptorOutputImageInfo });
+	// Copy the bound resource handles into the descriptor set
+	m_rtDSG.UpdateSetContents(device, m_rtDescriptorSet);
+}
+
+void RayTracingPass::createShaderBindingTable(VkDevice device, VkPhysicalDevice physicalDevice)
+{
+	// Add the entry point, the ray generation program
+	m_sbtGen.AddRayGenerationProgram(m_pipeline.getRayGenIndex(), {});
+	// Add the miss shader for the camera rays
+	m_sbtGen.AddMissProgram(m_pipeline.getMissIndex(), {});
+
+	m_sbtGen.AddMissProgram(m_pipeline.getShadowMissIndex(), {});
+
+	// For each instance, we will have 1 hit group for the camera rays.
+	// When setting the instances in the top-level acceleration structure we indicated the index
+	// of the hit group in the shader binding table that will be invoked.
+
+	// Add the hit group defining the behavior upon hitting a surface with a camera ray
+	m_sbtGen.AddHitGroup(m_pipeline.getHitGroupIndex(), {});
+
+	m_sbtGen.AddHitGroup(m_pipeline.getShadowHitGroupIndex(), {});
+
+	// Compute the required size for the SBT
+	VkDeviceSize shaderBindingTableSize = m_sbtGen.ComputeSBTSize(getPhysicalDeviceRayTracingProperties(physicalDevice));
+
+	// Allocate mappable memory to store the SBT
+	createBuffer(device, physicalDevice, shaderBindingTableSize,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, m_shaderBindingTableBuffer, m_shaderBindingTableMem);
+
+	// Generate the SBT using mapping. For further performance a staging buffer should be used, so
+	// that the SBT is guaranteed to reside on GPU memory without overheads.
+	m_sbtGen.Generate(device, m_pipeline.getPipeline(), m_shaderBindingTableBuffer,
+		m_shaderBindingTableMem);
 }

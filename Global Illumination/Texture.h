@@ -21,6 +21,7 @@ public:
 
 	void create(VkDevice device, VkPhysicalDevice physicalDevice, VkExtent2D extent, VkImageUsageFlags usage, VkFormat format, VkSampleCountFlagBits sampleCount, VkImageAspectFlags aspect);
 	void createFromImage(VkDevice device, Image* image);
+	void createFromPixels(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkExtent3D extent, VkFormat format, unsigned char* pixels);
 	bool createFromFile(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::string filename);
 	void createSampler(VkDevice device, VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter);
 

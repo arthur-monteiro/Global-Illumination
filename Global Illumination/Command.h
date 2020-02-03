@@ -13,7 +13,6 @@ public:
 	Command() {};
 	~Command();
 
-	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 	void allocateCommandBuffers(VkDevice device, VkCommandPool commandPool, size_t size);
 	void fillCommandBuffer(VkDevice device, size_t commandBufferID, VkRenderPass renderPass, VkFramebuffer framebuffer, VkExtent2D extent, std::vector<VkClearValue> clearValues, 
 		std::vector<Renderer*> renderers);

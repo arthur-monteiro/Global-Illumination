@@ -43,6 +43,44 @@ struct Vertex2D
 	}
 };
 
+struct Vertex2DWithMaterial
+{
+	glm::vec2 pos;
+	glm::uvec3 IDs;
+
+	static VkVertexInputBindingDescription getBindingDescription(uint32_t binding)
+	{
+		VkVertexInputBindingDescription bindingDescription = {};
+		bindingDescription.binding = binding;
+		bindingDescription.stride = sizeof(Vertex2DWithMaterial);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		return bindingDescription;
+	}
+
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions(uint32_t binding)
+	{
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
+
+		attributeDescriptions[0].binding = binding;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(Vertex2DWithMaterial, pos);
+
+		attributeDescriptions[1].binding = binding;
+		attributeDescriptions[1].location = 0;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_UINT;
+		attributeDescriptions[1].offset = offsetof(Vertex2DWithMaterial, IDs);
+
+		return attributeDescriptions;
+	}
+
+	bool operator==(const Vertex2D& other) const
+	{
+		return pos == other.pos;
+	}
+};
+
 struct Vertex2DTextured
 {
 	glm::vec2 pos;
@@ -78,6 +116,50 @@ struct Vertex2DTextured
 	bool operator==(const Vertex2DTextured& other) const
 	{
 		return pos == other.pos && texCoord == other.texCoord;
+	}
+};
+
+struct Vertex2DTexturedWithMaterial
+{
+	glm::vec2 pos;
+	glm::vec2 texCoord;
+	glm::uvec3 IDs;
+
+	static VkVertexInputBindingDescription getBindingDescription(uint32_t binding)
+	{
+		VkVertexInputBindingDescription bindingDescription = {};
+		bindingDescription.binding = binding;
+		bindingDescription.stride = sizeof(Vertex2DTexturedWithMaterial);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		return bindingDescription;
+	}
+
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions(uint32_t binding)
+	{
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(3);
+
+		attributeDescriptions[0].binding = binding;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(Vertex2DTexturedWithMaterial, pos);
+
+		attributeDescriptions[1].binding = binding;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(Vertex2DTexturedWithMaterial, texCoord);
+
+		attributeDescriptions[2].binding = binding;
+		attributeDescriptions[2].location = 2;
+		attributeDescriptions[2].format = VK_FORMAT_R32G32B32_UINT;
+		attributeDescriptions[2].offset = offsetof(Vertex2DTexturedWithMaterial, IDs);
+
+		return attributeDescriptions;
+	}
+
+	bool operator==(const Vertex2DTexturedWithMaterial& other) const
+	{
+		return pos == other.pos && texCoord == other.texCoord && IDs == other.IDs;
 	}
 };
 

@@ -85,7 +85,7 @@ bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 	m_attachments[1].initialize(swapChainImages[0]->getFormat(), VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 
 	// Init with swapchain images
-	m_mainRenderPass.initialize(device, physicalDevice, surface, m_uniqueCommandPool.getCommandPool(), m_attachments, swapChainImages);
+	m_mainRenderPass.initialize(device, physicalDevice, m_uniqueCommandPool.getCommandPool(), m_attachments, swapChainImages);
 
 	// Fill command buffers
 	m_clearValues.resize(2);

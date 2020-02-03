@@ -7,15 +7,22 @@ layout (binding = 0, rgba32f) uniform readonly image2D inWorldPos;
 layout (binding = 1, rgba32f) uniform readonly image2D inAlbedo;
 layout (binding = 2, rgba32f) uniform readonly image2D inNormal;
 layout (binding = 3, rgba32f) uniform readonly image2D inRoughnessMetalAO;
-layout (binding = 4, rgba8) uniform image2D resultImage;
+layout (binding = 4, rgba32f) uniform readonly image2D inShadowMask;
+layout (binding = 5, rgba32f) uniform readonly image2D inHUD;
+layout (binding = 6, rgba8) uniform image2D resultImage;
 
-layout(binding = 5, std140) uniform readonly UniformBufferObjectLighting
+layout(binding = 7, std140) uniform readonly UniformBufferObjectLighting
 {
 	vec4 cameraPosition;
 
 	vec4 directionDirectionalLight;
 	vec4 colorDirectionalLight;
 } uboLighting;
+
+layout(binding = 8, std140) uniform readonly UniformBufferObjectParams
+{
+	uint drawHUD;
+} uboParams;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -32,6 +39,7 @@ void main()
     float roughness = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).r;
     float metallic = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).g;
     float ambientOcclusion = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).b;
+    vec3 shadowMask = imageLoad(inShadowMask, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
 
     vec3 V = normalize(uboLighting.cameraPosition.xyz - worldPos);
     vec3 R = reflect(-V, normal);
@@ -42,34 +50,42 @@ void main()
     vec3 Lo = vec3(0.0);
 
     // calculate per-light radiance
-  	vec3 L = normalize(-uboLighting.directionDirectionalLight.xyz);
-  	vec3 H = normalize(V + L);
-  	vec3 radiance = uboLighting.colorDirectionalLight.xyz;
+    vec3 L = normalize(-uboLighting.directionDirectionalLight.xyz);
+    vec3 H = normalize(V + L);
+    vec3 radiance = uboLighting.colorDirectionalLight.xyz;
 
     // cook-torrance brdf
-  	float NDF = DistributionGGX(normal, H, roughness);
-  	float G   = GeometrySmith(normal, V, L, roughness);
-  	vec3 F    = fresnelSchlickRoughness(max(dot(H, V), 0.0), F0, roughness);
+    float NDF = DistributionGGX(normal, H, roughness);
+    float G   = GeometrySmith(normal, V, L, roughness);
+    vec3 F    = fresnelSchlickRoughness(max(dot(H, V), 0.0), F0, roughness);
 
-  	vec3 kS = F;
-  	vec3 kD = vec3(1.0) - kS;
-  	kD *= 1.0 - metallic;
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= 1.0 - metallic;
 
-  	vec3 nominator    = NDF * G * F;
-  	float denominator = 4 * max(dot(normal, V), 0.0) * max(dot(normal, L), 0.0);
-  	vec3 specular     = nominator / max(denominator, 0.001);
+    vec3 nominator    = NDF * G * F;
+    float denominator = 4 * max(dot(normal, V), 0.0) * max(dot(normal, L), 0.0);
+    vec3 specular     = nominator / max(denominator, 0.001);
 
-  	// add to outgoing radiance Lo
-  	float NdotL = max(dot(normal, L), 0.0);
-  	Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+    // add to outgoing radiance Lo
+    float NdotL = max(dot(normal, L), 0.0);
+    Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 
-  	vec3 ambient = vec3(0.0) * albedo;
+    vec3 ambient = vec3(0.0) * albedo;
 
     vec3 color = ambient + Lo;
 
     float exposure = 0.5;
     color = vec3(1.0) - exp(-color * exposure);
-  	color = pow(color, vec3(1.0 / 2.2));
+    color = pow(color, vec3(1.0 / 2.2));
+
+    color *= shadowMask.x;
+
+    if(uboParams.drawHUD == 1)
+    {
+        vec4 hud = imageLoad(inHUD, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgba;
+        color = color * (1.0 - hud.a) + hud.rgb * hud.a; 
+    }
 
     imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color, 1.0));
 }

@@ -81,8 +81,8 @@ bool SwapChain::cleanup(VkDevice device)
 {
 	vkDestroySwapchainKHR(device, m_swapChain, nullptr);
 
-	/*for (int i(0); i < m_images.size(); ++i)
-		m_images[i].cleanup(device);*/
+	/*for (int i(0); i < m_textures.size(); ++i)
+		m_textures[i].cleanup(device);*/
 
 	m_imageAvailableSemaphore.cleanup(device);
 

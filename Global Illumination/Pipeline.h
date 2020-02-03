@@ -24,7 +24,7 @@ private:
 	VkPipelineLayout m_pipelineLayout;
 	VkPipeline m_pipeline;
 
-private:
+public:
 	static std::vector<char> readFile(const std::string& filename);
 	static VkShaderModule createShaderModule(const std::vector<char>& code, VkDevice device);
 };

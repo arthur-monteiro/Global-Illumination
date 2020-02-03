@@ -5,6 +5,7 @@
 #include "Model.h"
 #include "UniformBufferObject.h"
 #include "Texture.h"
+#include "Instance.h"
 
 class Renderer
 {
@@ -20,11 +21,15 @@ public:
 
 	int addMesh(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer, 
 		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures);
+	int addMeshInstancied(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer, InstanceBuffer instanceBuffer,
+		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures);
+	void reloadMeshVertexBuffer(VkDevice device, VertexBuffer vertexBuffer, int meshID);
 
 	void cleanup(VkDevice device, VkDescriptorPool descriptorPool);
 
 	VkPipeline getPipeline() { return m_pipeline.getPipeline(); }
 	std::vector<std::pair<VertexBuffer, VkDescriptorSet>> getMeshes();
+	std::vector<std::tuple<VertexBuffer, InstanceBuffer, VkDescriptorSet>> getMeshesInstancied();
 	VkPipelineLayout getPipelineLayout() { return m_pipeline.getPipelineLayout(); }
 
 private:
@@ -38,7 +43,8 @@ private:
 	VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
 
 	std::vector<std::pair<VertexBuffer, VkDescriptorSet>> m_meshes;
-
+	std::vector<std::tuple<VertexBuffer, InstanceBuffer, VkDescriptorSet>> m_meshesInstancied;
+	
 	Pipeline m_pipeline;
 	bool m_pipelineCreated = false;
 

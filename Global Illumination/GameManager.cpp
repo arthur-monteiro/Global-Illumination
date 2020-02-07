@@ -37,14 +37,18 @@ void GameManager::submit(VkDevice device, VkPhysicalDevice physicalDevice, GLFWw
     }
 }
 
-void GameManager::resize(VkDevice device, VkPhysicalDevice physicalDevice, std::vector<Image*> swapChainImages)
+void GameManager::resize(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue graphicsQueue, VkQueue computeQueue, std::vector<Image*> swapChainImages)
 {
-	m_loadingManager.resize(device, physicalDevice, swapChainImages);
+	if (m_gameState == GAME_STATE::LOADING)
+		m_loadingManager.resize(device, physicalDevice, swapChainImages);
+	else if (m_gameState == GAME_STATE::RUNNING)
+		m_sceneManager.resize(device, physicalDevice, graphicsQueue, computeQueue, swapChainImages);
 }
 
 void GameManager::cleanup(VkDevice device)
 {
 	m_loadingManager.cleanup(device);
+	m_sceneManager.cleanup(device);
 }
 
 VkSemaphore GameManager::getLastRenderFinishedSemaphore()

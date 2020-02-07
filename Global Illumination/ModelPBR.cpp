@@ -161,6 +161,10 @@ void ModelPBR::loadFromFile(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 void ModelPBR::cleanup(VkDevice device)
 {
     m_mesh.cleanup(device);
+	for(Texture& texture : m_textures)
+	{
+		texture.cleanup(device);
+	}
 }
 
 std::vector<VertexBuffer> ModelPBR::getVertexBuffers()

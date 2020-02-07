@@ -5,17 +5,17 @@ GBuffer::~GBuffer()
 
 }
 
-bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkExtent2D extent, ModelPBR* model,
+bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkExtent2D extent, ModelPBR* model,
 	glm::mat4 mvp)
 {
     /* Main Render Pass */
     // Attachments -> depth + world pos + albedo + normal + (rougness + metal + ao)
     m_attachments.resize(5);
-    m_attachments[0].initialize(findDepthFormat(physicalDevice), VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
-	m_attachments[1].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-    m_attachments[2].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-    m_attachments[3].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-    m_attachments[4].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    m_attachments[0].initialize(findDepthFormat(physicalDevice), m_sampleCount, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	m_attachments[1].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, m_sampleCount, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    m_attachments[2].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, m_sampleCount, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    m_attachments[3].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, m_sampleCount, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    m_attachments[4].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, m_sampleCount, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
     m_renderPass.initialize(device, physicalDevice, commandPool, m_attachments, { extent });
 
@@ -55,12 +55,12 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSur
 
 	m_clearValues.resize(5);
 	m_clearValues[0] = { 1.0f };
-	m_clearValues[1] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	m_clearValues[2] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	m_clearValues[3] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	m_clearValues[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	m_clearValues[1] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	m_clearValues[2] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	m_clearValues[3] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	m_clearValues[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 
-	m_renderPass.fillCommandBuffer(device, 0, m_clearValues, { &m_renderer });
+	m_renderPass.fillCommandBuffer(device, 0, m_clearValues, { &m_renderer }, m_sampleCount);
 
     return true;
 }
@@ -77,13 +77,35 @@ bool GBuffer::submit(VkDevice device, VkQueue graphicsQueue, glm::mat4 mvp, glm:
     return true;
 }
 
-void GBuffer::resize(VkDevice device, VkPhysicalDevice physicalDevice, int width, int height)
+void GBuffer::resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent)
 {
+	recreate(device, physicalDevice, commandPool, extent, m_sampleCount);
+}
 
+void GBuffer::changeMSAA(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent,
+	VkSampleCountFlagBits sampleCount)
+{
+	for(Attachment& attachment : m_attachments)
+	{
+		attachment.setSampleCount(sampleCount);
+	}
+
+	recreate(device, physicalDevice, commandPool, extent, sampleCount);
 }
 
 void GBuffer::cleanup(VkDevice device, VkCommandPool commandPool, VkDescriptorPool descriptorPool)
 {
 	m_renderPass.cleanup(device, commandPool);
 	m_renderer.cleanup(device, descriptorPool);
+}
+
+void GBuffer::recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
+	VkExtent2D extent, VkSampleCountFlagBits sampleCount)
+{
+	m_renderPass.cleanup(device, commandPool);
+	m_renderPass.initialize(device, physicalDevice, commandPool, m_attachments, { extent });
+
+	m_renderer.setPipelineCreated(false);
+
+	m_renderPass.fillCommandBuffer(device, 0, m_clearValues, { &m_renderer }, sampleCount);
 }

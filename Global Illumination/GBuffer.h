@@ -9,10 +9,11 @@ public:
     GBuffer() = default;
     ~GBuffer();
 
-    bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkExtent2D extent, ModelPBR* model,
+    bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkExtent2D extent, ModelPBR* model,
 		glm::mat4 mvp);
     bool submit(VkDevice device, VkQueue graphicsQueue, glm::mat4 mvp, glm::mat4 model);
-    void resize(VkDevice device, VkPhysicalDevice physicalDevice, int width, int height);
+    void resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent);
+	void changeMSAA(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent, VkSampleCountFlagBits sampleCount);
 
     void cleanup(VkDevice device, VkCommandPool commandPool, VkDescriptorPool descriptorPool);
 
@@ -21,6 +22,9 @@ public:
 	std::vector<Image*> getImages() { return m_renderPass.getImages(0); }
 	Semaphore * getRenderCompleteSemaphore() { return m_renderPass.getRenderCompleteSemaphore(); }
 
+private:
+	void recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent, VkSampleCountFlagBits sampleCount);
+	
 private:
 	struct MVP_UBO
 	{
@@ -33,4 +37,5 @@ private:
     std::vector<VkClearValue> m_clearValues;
 	Renderer m_renderer;
 	UniformBufferObject m_uboMVP;
+	VkSampleCountFlagBits m_sampleCount = VK_SAMPLE_COUNT_1_BIT;
 };

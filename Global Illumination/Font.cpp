@@ -53,6 +53,16 @@ void Font::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkComman
 	FT_Done_FreeType(ft);
 }
 
+void Font::cleanup(VkDevice device)
+{
+	for(Texture& texture : m_textures)
+	{
+		texture.cleanup(device);
+	}
+	m_textures.clear();
+	m_characters.clear();
+}
+
 std::vector<Texture*> Font::getTextures()
 {
 	std::vector<Texture*> r(m_textures.size());

@@ -14,7 +14,7 @@ public:
 		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures,
 		std::vector<Operation> operationsBefore, std::vector<Operation> operationsAfter);
 	void submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> waitSemaphores, VkSemaphore signalSemaphore);
-	void cleanup(VkDevice device);
+	void cleanup(VkDevice device, VkCommandPool commandPool);
 
 private:
 	Command m_command;

@@ -8,25 +8,62 @@ layout(binding = 2, set = 0) uniform CameraProperties
     mat4 viewInverse;
     mat4 projInverse;
 } cam;
+layout(binding = 6, set = 0) uniform Params
+{
+    uint sampleCount;
+} params;
 
 layout(location = 0) rayPayloadNV vec3 hitValue;
 
 void main() 
 {
-    const vec2 pixelCenter = vec2(gl_LaunchIDNV.xy) + vec2(0.5);
-    const vec2 inUV = pixelCenter / vec2(gl_LaunchSizeNV.xy);
-    vec2 d = inUV * 2.0 - 1.0;
+    vec3 shadow = vec3(0.0);
+    vec2 offsets[8];
+    if(params.sampleCount == 1)
+        offsets[0] = vec2(0.5);
+    else if(params.sampleCount == 2)
+    {
+        offsets[0] = vec2(0.25, 0.25);
+        offsets[1] = vec2(0.75, 0.75);
+    }
+    else if(params.sampleCount == 4)
+    {
+        offsets[0] = vec2(0.25, 0.25);
+        offsets[1] = vec2(0.25, 0.75);
+        offsets[2] = vec2(0.75, 0.25);
+        offsets[3] = vec2(0.75, 0.75);
+    }
+    else if(params.sampleCount == 8)
+    {
+        offsets[0] = vec2(0.125, 0.125);
+        offsets[1] = vec2(0.625, 0.125);
+        offsets[2] = vec2(0.375, 0.375);
+        offsets[3] = vec2(0.875, 0.375);
+        offsets[4] = vec2(0.125, 0.625);
+        offsets[5] = vec2(0.625, 0.625);
+        offsets[6] = vec2(0.375, 0.875);
+        offsets[7] = vec2(0.875, 0.875);
+    }
 
-    vec4 origin = cam.viewInverse * vec4(0, 0, 0, 1);
-    vec4 target = cam.projInverse * vec4(d.x, d.y, 1, 1) ;
-    vec4 direction = cam.viewInverse * vec4(normalize(target.xyz), 0);
+    for(int i = 0; i < params.sampleCount; i++)
+    {
+        const vec2 pixelPos = vec2(gl_LaunchIDNV.xy) + offsets[i];
+        const vec2 inUV = pixelPos / vec2(gl_LaunchSizeNV.xy);
+        vec2 d = inUV * 2.0 - 1.0;
 
-    uint rayFlags = gl_RayFlagsOpaqueNV;
-    uint cullMask = 0xff;
-    float tmin = 0.001;
-    float tmax = 10000.0;
+        vec4 origin = cam.viewInverse * vec4(0, 0, 0, 1);
+        vec4 target = cam.projInverse * vec4(d.x, d.y, 1, 1) ;
+        vec4 direction = cam.viewInverse * vec4(normalize(target.xyz), 0);
 
-    traceNV(topLevelAS, rayFlags, cullMask, 0 /*sbtRecordOffset*/, 0 /*sbtRecordStride*/, 0 /*missIndex*/, origin.xyz, tmin, direction.xyz, tmax, 0 /*payload*/);
+        uint rayFlags = gl_RayFlagsOpaqueNV;
+        uint cullMask = 0xff;
+        float tmin = 0.001;
+        float tmax = 10000.0;
 
-    imageStore(image, ivec2(gl_LaunchIDNV.xy), vec4(hitValue, 0.0));
+        traceNV(topLevelAS, rayFlags, cullMask, 0 /*sbtRecordOffset*/, 0 /*sbtRecordStride*/, 0 /*missIndex*/, origin.xyz, tmin, direction.xyz, tmax, 0 /*payload*/);
+
+        shadow += hitValue;
+    }
+
+    imageStore(image, ivec2(gl_LaunchIDNV.xy), vec4(shadow / params.sampleCount, 0.0));
 }

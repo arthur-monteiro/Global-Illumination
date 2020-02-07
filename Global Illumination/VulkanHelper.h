@@ -29,7 +29,6 @@ struct SwapChainSupportDetails
 };
 
 std::vector<const char*> getRequiredExtensions();
-
 bool isDeviceSuitable(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, std::vector<const char*> deviceExtensions);
 QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
 VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physicalDevice);

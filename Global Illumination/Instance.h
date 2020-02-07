@@ -51,6 +51,8 @@ public:
 
 	void loadFromVector(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::vector<T> data);
 
+	void cleanup(VkDevice device);
+
 public: // Getters
 	InstanceBuffer getInstanceBuffer() const { return { m_instanceBuffer, m_instances.size() }; }
 
@@ -82,5 +84,14 @@ void Instance<T>::loadFromVector(VkDevice device, VkPhysicalDevice physicalDevic
 
 	vkDestroyBuffer(device, stagingBuffer, nullptr);
 	vkFreeMemory(device, stagingBufferMemory, nullptr);
+}
+
+template <typename T>
+void Instance<T>::cleanup(VkDevice device)
+{
+	vkDestroyBuffer(device, m_instanceBuffer, nullptr);
+	vkFreeMemory(device, m_instanceBufferMemory, nullptr);
+
+	m_instances.clear();
 }
 

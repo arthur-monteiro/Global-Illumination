@@ -20,27 +20,34 @@ public:
 	Menu() = default;
 	~Menu() = default;
 
-	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkExtent2D outputExtent, std::string fontPath,
+	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkExtent2D outputExtent,
 		std::function<void(void*, VkImageView)> callbackSetImageView, void* instance);
-	int addBooleanItem(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::wstring label, std::function<void(void*, bool)> callback, bool defaultValue, void* instance, std::array<std::string, 2> imageOptions);
-	/*int addPicklistItem(VkDevice device, std::wstring label, std::function<void(void*, std::wstring)> callback, void* instance, int defaultValue,
-		std::vector<std::wstring> options);
-	void addDependency(int itemTypeSrc, int itemIdSrc, int itemTypeDst, int itemIdDst, std::vector<int> activateValues);*/
+	int addBooleanItem(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::wstring label, std::function<void(void*, bool)> callback, 
+		bool defaultValue, void* instance, std::array<std::string, 2> imageOptions, Font* font);
+	int addPicklistItem(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::wstring label, std::function<void(void*, std::wstring)> callback, 
+		void* instance, int defaultValue, std::vector<std::wstring> options, Font* font, glm::vec2 offset = glm::vec2(0.0f));
+	int addDependentPicklistItem(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::wstring label, std::function<void(void*, std::wstring)> callback,
+	                             void* instance, int defaultValue, std::vector<std::wstring> options, Font* font, int itemTypeSrc, int itemIdSrc, std::vector<int> activateValues);
+	/*void addDependency(int itemTypeSrc, int itemIdSrc, int itemTypeDst, int itemIdDst, std::vector<int> activateValues);*/
 
-	void build(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue);
+	void build(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue, Font* font);
 
-	//void update(VkDevice device, int windowWidth, int windowHeight);
+	void update(VkDevice device, GLFWwindow* window, int windowWidth, int windowHeight);
 
-	void cleanup(VkDevice device);
+	void cleanup(VkDevice device, VkDescriptorPool descriptorPool);
 
 	std::vector<Renderer*> getRenderers() { return { &m_quadRenderer, &m_textRenderer}; }
 
 private:	
-	int addQuadItem(int type, int id);
-	//void setFocus(VkDevice device, int id, bool focus);
+	int addQuadItem(int type, int id, glm::vec2 offset = glm::vec2(0.0f));
+	bool setFocus(int id, bool focus); // Returns if a change has been done
+	void updateQuadUBO(VkDevice device);
+	
+	void onClickBooleanItem(VkDevice device, int id);
+	void onClickPicklistItem(VkDevice device, int id);
 
-	//void onClickBooleanItem(VkDevice device, int id);
-	//void onClickPicklistItem(VkDevice device, int id);
+	void hidePicklistItem(VkDevice device, int id);
+	void showPicklistItem(VkDevice device, int id);
 
 private:
 	const float ITEM_X_OFFSET = -0.83f;
@@ -52,6 +59,7 @@ private:
 	const glm::vec3 ITEM_DEACTIVATED_COLOR = glm::vec3(0.2f, 0.2f, 0.2f);
 	const float SPACE_BETWEEN_ITEMS = 0.05f;
 	const float ITEM_VALUE_SIZE = 0.38f;
+	const float DEPENDENT_ITEM_X_OFFSET = 0.1f;
 
 	const float TEXT_X_OFFSET = 0.03f;
 	const float TEXT_SIZE = 0.028f;
@@ -88,7 +96,7 @@ private:
 		std::array<Texture, 2> texturesOptions;
 	};
 
-	/*struct PicklistItem
+	struct PicklistItem
 	{
 		std::vector<std::wstring> options;
 		int selectedOption;
@@ -97,28 +105,35 @@ private:
 		int textID = -1;
 		int quadID = -1;
 
+		std::array<int, 2> textAngleBrackets;
 		std::vector<int> textOptionIDs;
 
-		int activateItemType = MENU_ITEM_TYPE_UNDEFINED;
-		int activateItemID = -1;
-		std::vector<int> valueToActivateItem;
+		//int activateItemType = MENU_ITEM_TYPE_UNDEFINED;
+		//int activateItemID = -1;
 
-		std::vector<Image> imageOptions;
-	};*/
+		int masterItemType = MENU_ITEM_TYPE_UNDEFINED;
+		int masterItemID = -1;
+		std::vector<int> masterValuesActivation;
+
+		std::vector<Texture> texturesOptions;
+
+		bool activated = true;
+	};
 
 	struct QuadItem
 	{
 		glm::vec4 color;
 		glm::mat4 transform;
+		glm::vec2 posOffset = glm::vec2(0.0f);
 
 		bool onFocus = false;
 
 		int type = MENU_ITEM_TYPE_UNDEFINED;
-		int structID = -1;
+		int structID = -1; // id of the "logic" data
 	};
 
 	Text m_text;
-	Font m_font;
+	//Font m_font;
 	Renderer m_textRenderer;
 	
 	Mesh<Vertex2D> m_quad;
@@ -136,7 +151,7 @@ private:
 
 	int m_numberOfItems = 0;
 	std::vector<BooleanItem> m_booleanItems;
-	//std::vector<PicklistItem> m_picklistItems;
+	std::vector<PicklistItem> m_picklistItems;
 
 	std::vector<QuadItem> m_quadItems;
 

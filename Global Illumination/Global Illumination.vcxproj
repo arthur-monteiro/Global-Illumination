@@ -185,11 +185,13 @@
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="RayTracingPass.cpp" />
     <ClCompile Include="RayTracingPipeline.cpp" />
+    <ClCompile Include="RayTracingShadows.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="Sampler.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Semaphore.cpp" />
+    <ClCompile Include="Shadows.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="SystemManager.cpp" />
     <ClCompile Include="Text.cpp" />
@@ -232,11 +234,13 @@
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="RayTracingPass.h" />
     <ClInclude Include="RayTracingPipeline.h" />
+    <ClInclude Include="RayTracingShadows.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="Sampler.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="Semaphore.h" />
+    <ClInclude Include="Shadows.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="SystemManager.h" />
     <ClInclude Include="Text.h" />

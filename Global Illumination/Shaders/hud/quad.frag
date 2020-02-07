@@ -7,5 +7,7 @@ layout(location = 0) out vec4 outColor;
 
 void main() 
 {
+	if(inColor.x < 0.0)
+		discard;
 	outColor = vec4(inColor);
 }

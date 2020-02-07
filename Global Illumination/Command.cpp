@@ -153,4 +153,5 @@ void Command::submit(VkDevice device, VkQueue graphicsQueue, std::vector<Semapho
 void Command::cleanup(VkDevice device, VkCommandPool commandPool)
 {
 	vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
+	m_commandBuffers.clear();
 }

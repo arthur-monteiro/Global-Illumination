@@ -1,7 +1,7 @@
 #pragma once
 
 #include <utility>
-
+#include <array>
 
 #include "VulkanHelper.h"
 #include "Mesh.h"
@@ -23,6 +23,11 @@ public:
 	VertexBuffer getVertexBuffer() { return m_mesh.getVertexBuffer(); }
 	UniformBufferObject* getUBO() { return &m_ubo; }
 
+	void setColor(VkDevice device, unsigned int ID, glm::vec3 color);
+
+private:
+	void updateUBO(VkDevice device);
+	
 private:
 	struct TextStructure
 	{
@@ -36,6 +41,6 @@ private:
 	
 	Mesh<Vertex2DTexturedWithMaterial> m_mesh;
 	UniformBufferObject m_ubo;
-	std::vector<glm::vec4> m_uboData;
+	std::array<glm::vec4, 32> m_uboData;
 };
 

@@ -43,10 +43,10 @@ bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 	return true;
 }
 
-void RenderPass::fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues, std::vector<Renderer*> renderers)
+void RenderPass::fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues, std::vector<Renderer*> renderers, VkSampleCountFlagBits sampleCount)
 {
 	for (int i(0); i < renderers.size(); ++i)
-		renderers[i]->createPipeline(device, m_renderPass, m_framebuffers[framebufferID].getExtent(), VK_SAMPLE_COUNT_1_BIT);
+		renderers[i]->createPipeline(device, m_renderPass, m_framebuffers[framebufferID].getExtent(), sampleCount);
 
     m_command.fillCommandBuffer(device, framebufferID, m_renderPass, m_framebuffers[framebufferID].getFramebuffer(), m_framebuffers[framebufferID].getExtent(),
             std::move(clearValues), renderers);
@@ -145,12 +145,12 @@ VkRenderPass RenderPass::createRenderPass(VkDevice device, std::vector<Attachmen
 	subpass.colorAttachmentCount = colorAttachmentRefs.size();
 	subpass.pColorAttachments = colorAttachmentRefs.data();
 	subpass.pDepthStencilAttachment = &depthAttachmentRef;
-	if(resolveAttachmentRefs.size() > 0)
+	if(!resolveAttachmentRefs.empty())
 		subpass.pResolveAttachments = resolveAttachmentRefs.data();
 
 	// Dependencies
-	std::vector<VkSubpassDependency> dependencies(colorAttachmentRefs.size() > 0 ? 1 : 2);
-	if (colorAttachmentRefs.size() > 0)
+	std::vector<VkSubpassDependency> dependencies(!colorAttachmentRefs.empty() ? 1 : 2);
+	if (!colorAttachmentRefs.empty())
 	{
 		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependencies[0].dstSubpass = 0;

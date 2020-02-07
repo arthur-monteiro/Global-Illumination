@@ -3,8 +3,11 @@
 #include <utility>
 
 void HUD::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue,
-                     VkExtent2D outputExtent)
+                     VkExtent2D outputExtent, std::function<void(void*, std::string, std::wstring)> callback, void* instance)
 {
+	m_callback = callback;
+	m_instanceForCallback = instance;
+	
 	m_outputExtent = outputExtent;
 	m_font.initialize(device, physicalDevice, commandPool, graphicsQueue, 48, "Fonts/arial.ttf");
 
@@ -41,16 +44,14 @@ void HUD::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommand
 	
 	m_fpsCounterIDRenderer = m_renderer.addMesh(device, descriptorPool, fpsCounterVertexBuffer, { { m_fpsCounter.getUBO(), uboLayout } }, rendererTextures);
 
-	m_menu.initialize(device, physicalDevice, commandPool, graphicsQueue, outputExtent, "Fonts/arial.ttf", std::function<void(void*, VkImageView)>(), this);
-	m_menu.addBooleanItem(device, physicalDevice, commandPool, graphicsQueue, L"Draw FPS Counter", std::function<void(void*, bool)>(), true, this, { "", "" });
-	m_menu.build(device, physicalDevice, commandPool, descriptorPool, graphicsQueue);
+	buildMenu(device, physicalDevice, commandPool, descriptorPool, graphicsQueue);
 
 	fillCommandBuffer(device, m_currentDrawMenu);
 }
 
-void HUD::submit(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, int fps, bool drawMenu)
+void HUD::submit(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, GLFWwindow* window, int fps, bool drawMenu)
 {
-	if(fps > 0)
+	if(fps > 0 || m_shouldRefillCommandBuffer)
 	{
 		m_fpsCounter.cleanup(device);
 		
@@ -65,8 +66,53 @@ void HUD::submit(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool
 		fillCommandBuffer(device, drawMenu);
 		m_currentDrawMenu = drawMenu;
 	}
+
+	if (drawMenu)
+		m_menu.update(device, window, m_outputExtent.width, m_outputExtent.height);
 	
 	m_renderPass.submit(device, graphicsQueue, 0, {});
+}
+
+void HUD::resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue, VkExtent2D outputExtent)
+{
+	m_outputExtent = outputExtent;
+	
+	m_renderPass.cleanup(device, commandPool);
+	m_renderPass.initialize(device, physicalDevice, commandPool, m_attachments, { m_outputExtent });
+
+	m_renderer.setPipelineCreated(false);
+
+	m_menu.cleanup(device, descriptorPool);
+	buildMenu(device, physicalDevice, commandPool, descriptorPool, graphicsQueue);
+
+	m_shouldRefillCommandBuffer = true;
+}
+
+void HUD::cleanup(VkDevice device, VkCommandPool commandPool)
+{
+	m_renderPass.cleanup(device, commandPool);
+	m_font.cleanup(device);
+	m_fpsCounter.cleanup(device);
+}
+
+void HUD::drawFPSCounter(bool status)
+{
+	m_drawFPSCounter = status;
+	m_shouldRefillCommandBuffer = true;
+}
+
+void HUD::buildMenu(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue)
+{
+	m_menu.initialize(device, physicalDevice, commandPool, graphicsQueue, m_outputExtent, std::function<void(void*, VkImageView)>(), this);
+	m_menu.addBooleanItem(device, physicalDevice, commandPool, graphicsQueue, L"Draw FPS Counter", drawFPSCounterCallback, true, this, 
+		{ "", "" }, &m_font);
+	m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"MSAA", changeMSAACallback, this, 0,
+		{ L"No", L"2x", L"4x", L"8x" }, &m_font);
+	int shadowMenuItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Shadows", changeShadowsCallback, this, 0, 
+		{ L"No", L"NVidia Ray Tracing" }, &m_font);
+	int rtShadowAAItem = m_menu.addDependentPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Shadow Anti-aliasing", changeRTShadowsAA, this, 0,
+		{ L"No", L"2x", L"4x", L"8x" }, &m_font, MENU_ITEM_TYPE_PICKLIST, shadowMenuItem, { 1 });
+	m_menu.build(device, physicalDevice, commandPool, descriptorPool, graphicsQueue, &m_font);
 }
 
 void HUD::buildFPSCounter(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::wstring textValue)
@@ -88,7 +134,10 @@ void HUD::fillCommandBuffer(VkDevice device, bool drawMenu)
 	if(drawMenu)
 	{
 		renderers = m_menu.getRenderers();
-	} 
-	renderers.push_back(&m_renderer);
+	}
+	if(m_drawFPSCounter)
+		renderers.push_back(&m_renderer);
+	
 	m_renderPass.fillCommandBuffer(device, 0, m_clearValues, renderers);
+	m_shouldRefillCommandBuffer = false;
 }

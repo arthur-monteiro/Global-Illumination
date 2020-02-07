@@ -1,2 +1,17 @@
-﻿  HUD.cpp
+﻿  GameManager.cpp
+  HUD.cpp
+  Menu.cpp
+F:\Code\Global Illumination\Global Illumination\Menu.cpp(33,114): warning C4267:  'argument': conversion from 'size_t' to 'int', possible loss of data
+F:\Code\Global Illumination\Global Illumination\Menu.cpp(46,34): warning C4267:  'return': conversion from 'size_t' to 'int', possible loss of data
+F:\Code\Global Illumination\Global Illumination\Menu.cpp(60,126): warning C4267:  'argument': conversion from 'size_t' to 'int', possible loss of data
+F:\Code\Global Illumination\Global Illumination\Menu.cpp(78,35): warning C4267:  'return': conversion from 'size_t' to 'int', possible loss of data
+  SceneManager.cpp
+F:\Code\Global Illumination\Global Illumination\Menu.cpp(283,31): warning C4267:  'return': conversion from 'size_t' to 'int', possible loss of data
+F:\Code\Global Illumination\Global Illumination\SceneManager.cpp(305,29): warning C4267:  '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+F:\Code\Global Illumination\Global Illumination\SceneManager.cpp(315,51): warning C4267:  '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+F:\Code\Global Illumination\Global Illumination\SceneManager.cpp(324,55): warning C4267:  '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+  SystemManager.cpp
+  main.cpp
+  Generating Code...
+F:\Code\Global Illumination\Global Illumination\SceneManager.cpp(362,42): warning C4267:  '=': conversion from 'size_t' to 'uint32_t', possible loss of data
   Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe

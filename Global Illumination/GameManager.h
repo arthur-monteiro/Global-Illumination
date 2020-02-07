@@ -22,7 +22,7 @@ public:
 		VkQueue computeQueue, std::mutex* computeQueueMutex, std::vector<Image*> swapChainImages);
 	void submit(VkDevice device, VkPhysicalDevice physicalDevice, GLFWwindow* window, VkQueue graphicsQueue, std::mutex* graphicsQueueMutex,
 		VkQueue computeQueue, std::mutex* computeQueueMutex, uint32_t swapChainImageIndex, Semaphore* imageAvailableSemaphore);
-	void resize(VkDevice device, VkPhysicalDevice physicalDevice, std::vector<Image*> swapChainImages);
+	void resize(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue graphicsQueue, VkQueue computeQueue, std::vector<Image*> swapChainImages);
 
 	void cleanup(VkDevice device);
 

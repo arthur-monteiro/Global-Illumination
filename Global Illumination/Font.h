@@ -15,6 +15,7 @@ public:
 	~Font() = default;
 
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, int ySize, std::string path);
+	void cleanup(VkDevice device);
 
 	unsigned int getXSize(const wchar_t character) { return m_characters[character].xSize; }
 	unsigned int getYSize(const wchar_t character) { return m_characters[character].ySize; }

@@ -51,6 +51,8 @@
     <ClCompile Include="HUD.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="Instance.cpp" />
+    <ClCompile Include="RayTracingShadows.cpp" />
+    <ClCompile Include="Shadows.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -99,6 +101,8 @@
     <ClInclude Include="HUD.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="Instance.h" />
+    <ClInclude Include="RayTracingShadows.h" />
+    <ClInclude Include="Shadows.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

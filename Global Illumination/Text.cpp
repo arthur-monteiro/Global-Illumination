@@ -69,7 +69,6 @@ void Text::build(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool
 
 	m_mesh.loadFromVertices(device, physicalDevice, commandPool, graphicsQueue, vertices, indices);
 
-	m_uboData.resize(32);
 	for (int i(0); i < m_texts.size(); ++i)
 	{
 		m_uboData[i] = glm::vec4(m_texts[i].color, 0.0f);
@@ -101,4 +100,19 @@ float Text::simulateSizeX(std::wstring text, VkExtent2D outputExtent, Font* font
 	}
 
 	return scale * offsetX / outputExtent.width;
+}
+
+void Text::setColor(VkDevice device, unsigned ID, glm::vec3 color)
+{
+	m_texts[ID].color = color;
+	updateUBO(device);
+}
+
+void Text::updateUBO(VkDevice device)
+{
+	for (int i(0); i < m_texts.size(); ++i)
+	{
+		m_uboData[i] = glm::vec4(m_texts[i].color, 0.0f);
+	}
+	m_ubo.updateData(device, &m_uboData);
 }

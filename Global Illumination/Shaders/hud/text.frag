@@ -18,8 +18,7 @@ void main()
 {
 	if(ubo.color[inIDs[1]].r < 0)
     {
-        outColor = vec4(0.0);
-        return;
+        discard;
     }
     outColor = vec4(ubo.color[inIDs[1]] * texture(textures[inIDs[0]], inTexCoord).r, texture(textures[inIDs[0]], inTexCoord).r);
 }

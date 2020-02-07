@@ -32,6 +32,8 @@ public:
 	std::vector<std::tuple<VertexBuffer, InstanceBuffer, VkDescriptorSet>> getMeshesInstancied();
 	VkPipelineLayout getPipelineLayout() { return m_pipeline.getPipelineLayout(); }
 
+	void setPipelineCreated(bool status) { m_pipelineCreated = status; }
+
 private:
 	/* Information */
 	std::string m_vertexShader;

@@ -22,6 +22,7 @@ layout(binding = 7, std140) uniform readonly UniformBufferObjectLighting
 layout(binding = 8, std140) uniform readonly UniformBufferObjectParams
 {
 	uint drawHUD;
+    uint drawShadows;
 } uboParams;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
@@ -39,7 +40,6 @@ void main()
     float roughness = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).r;
     float metallic = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).g;
     float ambientOcclusion = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).b;
-    vec3 shadowMask = imageLoad(inShadowMask, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
 
     vec3 V = normalize(uboLighting.cameraPosition.xyz - worldPos);
     vec3 R = reflect(-V, normal);
@@ -79,7 +79,11 @@ void main()
     color = vec3(1.0) - exp(-color * exposure);
     color = pow(color, vec3(1.0 / 2.2));
 
-    color *= shadowMask.x;
+    if(uboParams.drawShadows == 1)
+    {
+         vec3 shadowMask = imageLoad(inShadowMask, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
+        color *= shadowMask.r;
+    }
 
     if(uboParams.drawHUD == 1)
     {

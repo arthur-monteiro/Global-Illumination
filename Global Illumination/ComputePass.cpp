@@ -150,8 +150,10 @@ void ComputePass::submit(VkDevice device, VkQueue computeQueue, std::vector<Sema
 		throw std::runtime_error("Error : submit to compute queue");
 }
 
-void ComputePass::cleanup(VkDevice device)
+void ComputePass::cleanup(VkDevice device, VkCommandPool commandPool)
 {
+	m_command.cleanup(device, commandPool);
+	m_pipeline.cleanup(device);
 }
 
 void ComputePass::fillCommandBufferWithOperation(VkCommandBuffer commandBuffer, std::vector<Operation> operations)

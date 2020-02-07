@@ -12,7 +12,7 @@
 class SystemManager
 {
 public:
-	SystemManager() {}
+	SystemManager();
 	~SystemManager();
 
 	bool initialize();

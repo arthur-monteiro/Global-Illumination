@@ -10,6 +10,7 @@ public:
 	~Attachment();
 
 	void initialize(VkFormat format, VkSampleCountFlagBits sampleCount, VkImageLayout finalLayout, VkAttachmentStoreOp storeOperation, VkImageUsageFlags usageType);
+	void setSampleCount(VkSampleCountFlagBits sampleCount) { m_sampleCount = sampleCount; }
 
 // Getters
 public:

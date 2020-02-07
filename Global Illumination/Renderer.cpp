@@ -65,6 +65,9 @@ void Renderer::cleanup(VkDevice device, VkDescriptorPool descriptorPool)
 		vkFreeDescriptorSets(device, descriptorPool, 1, &m_meshes[i].second);
 	vkDestroyDescriptorSetLayout(device, m_descriptorSetLayout, nullptr);
 	destroyPipeline(device);
+
+	m_meshes.clear();
+	m_meshesInstancied.clear();
 }
 
 std::vector<std::pair<VertexBuffer, VkDescriptorSet>> Renderer::getMeshes()

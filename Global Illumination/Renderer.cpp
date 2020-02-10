@@ -19,6 +19,21 @@ void Renderer::initialize(VkDevice device, std::string vertexShader, std::string
 	createDescriptorSetLayout(device, std::move(uniformBufferObjectLayouts), std::move(textureLayouts));
 }
 
+void Renderer::initialize(VkDevice device, std::string vertexShader,
+	std::vector<VkVertexInputBindingDescription> vertexInputDescription,
+	std::vector<VkVertexInputAttributeDescription> attributeInputDescription,
+	std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, std::vector<TextureLayout> textureLayouts,
+	std::vector<bool> alphaBlending)
+{
+	m_vertexShader = std::move(vertexShader);
+	m_fragmentShader = "";
+	m_vertexInputDescription = std::move(vertexInputDescription);
+	m_attributeInputDescription = std::move(attributeInputDescription);
+	m_alphaBlending = std::move(alphaBlending);
+
+	createDescriptorSetLayout(device, std::move(uniformBufferObjectLayouts), std::move(textureLayouts));
+}
+
 void Renderer::createPipeline(VkDevice device, VkRenderPass renderPass, VkExtent2D extent, VkSampleCountFlagBits msaa)
 {
 	if (m_pipelineCreated)

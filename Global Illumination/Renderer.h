@@ -16,6 +16,9 @@ public:
 	void initialize(VkDevice device, std::string vertexShader, std::string fragmentShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription, 
 		std::vector<VkVertexInputAttributeDescription> attributeInputDescription, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, 
 		std::vector<TextureLayout> textureLayouts, std::vector<bool> alphaBlending);
+	void initialize(VkDevice device, std::string vertexShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
+		std::vector<VkVertexInputAttributeDescription> attributeInputDescription, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts,
+		std::vector<TextureLayout> textureLayouts, std::vector<bool> alphaBlending);
 	void createPipeline(VkDevice device, VkRenderPass renderPass, VkExtent2D extent, VkSampleCountFlagBits msaa);
 	void destroyPipeline(VkDevice device);
 

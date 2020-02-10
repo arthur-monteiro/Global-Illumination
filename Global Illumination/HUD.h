@@ -22,6 +22,7 @@ public:
 
 	static void drawFPSCounterCallback(void* instance, bool status) { reinterpret_cast<HUD*>(instance)->drawFPSCounter(status); }
 	static void changeShadowsCallback(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("shadow", option); }
+	static void changeUpscaleCallback(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("upscale", option); }
 	static void changeMSAACallback(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("msaa", option); }
 	static void changeRTShadowsAA(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("rtshadow_sample_count", option); }
 

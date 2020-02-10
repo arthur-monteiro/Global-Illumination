@@ -11,7 +11,7 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCom
     /* Main Render Pass */
     // Attachments -> depth + world pos + albedo + normal + (rougness + metal + ao)
     m_attachments.resize(5);
-    m_attachments[0].initialize(findDepthFormat(physicalDevice), m_sampleCount, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    m_attachments[0].initialize(findDepthFormat(physicalDevice), m_sampleCount, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
 	m_attachments[1].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, m_sampleCount, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
     m_attachments[2].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, m_sampleCount, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
     m_attachments[3].initialize(VK_FORMAT_R32G32B32A32_SFLOAT, m_sampleCount, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
@@ -23,11 +23,11 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCom
 	mvpLayout.accessibility = VK_SHADER_STAGE_VERTEX_BIT;
 	mvpLayout.binding = 0;
 
-	MVP_UBO ubo;
+	MatricesUBO ubo;
 	ubo.mvp = mvp;
 	ubo.model = model->getTransformation();
 
-	m_uboMVP.initialize(device, physicalDevice, &ubo, sizeof(MVP_UBO));
+	m_uboMVP.initialize(device, physicalDevice, &ubo, sizeof(MatricesUBO));
 
 	std::vector<TextureLayout> textureLayouts(120);
 	for (int i(0); i < textureLayouts.size(); ++i)
@@ -67,7 +67,7 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCom
 
 bool GBuffer::submit(VkDevice device, VkQueue graphicsQueue, glm::mat4 mvp, glm::mat4 model)
 {
-    MVP_UBO ubo {};
+    MatricesUBO ubo {};
     ubo.mvp = mvp;
     ubo.model = model;
     m_uboMVP.updateData(device, &ubo);
@@ -82,7 +82,7 @@ void GBuffer::resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommand
 	recreate(device, physicalDevice, commandPool, extent, m_sampleCount);
 }
 
-void GBuffer::changeMSAA(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent,
+void GBuffer::changeSampleCount(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent,
 	VkSampleCountFlagBits sampleCount)
 {
 	for(Attachment& attachment : m_attachments)

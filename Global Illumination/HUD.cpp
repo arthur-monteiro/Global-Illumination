@@ -106,6 +106,8 @@ void HUD::buildMenu(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandP
 	m_menu.initialize(device, physicalDevice, commandPool, graphicsQueue, m_outputExtent, std::function<void(void*, VkImageView)>(), this);
 	m_menu.addBooleanItem(device, physicalDevice, commandPool, graphicsQueue, L"Draw FPS Counter", drawFPSCounterCallback, true, this, 
 		{ "", "" }, &m_font);
+	m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Upscale", changeUpscaleCallback, this, 0,
+		{ L"No", L"2x", L"4x", L"8x" }, &m_font);
 	m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"MSAA", changeMSAACallback, this, 0,
 		{ L"No", L"2x", L"4x", L"8x" }, &m_font);
 	int shadowMenuItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Shadows", changeShadowsCallback, this, 0, 

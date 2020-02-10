@@ -165,6 +165,7 @@
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="ComputePass.cpp" />
+    <ClCompile Include="DepthPass.cpp" />
     <ClCompile Include="DescriptorPool.cpp" />
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
@@ -182,7 +183,9 @@
     <ClCompile Include="Model2DTextured.cpp" />
     <ClCompile Include="ModelPBR.cpp" />
     <ClCompile Include="Operation.cpp" />
+    <ClCompile Include="PBRCompute.cpp" />
     <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="PostProcessAA.cpp" />
     <ClCompile Include="RayTracingPass.cpp" />
     <ClCompile Include="RayTracingPipeline.cpp" />
     <ClCompile Include="RayTracingShadows.cpp" />
@@ -215,6 +218,7 @@
     <ClInclude Include="Command.h" />
     <ClInclude Include="CommandPool.h" />
     <ClInclude Include="ComputePass.h" />
+    <ClInclude Include="DepthPass.h" />
     <ClInclude Include="DescriptorPool.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="Framebuffer.h" />
@@ -231,7 +235,9 @@
     <ClInclude Include="Model2DTextured.h" />
     <ClInclude Include="ModelPBR.h" />
     <ClInclude Include="Operation.h" />
+    <ClInclude Include="PBRCompute.h" />
     <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="PostProcessAA.h" />
     <ClInclude Include="RayTracingPass.h" />
     <ClInclude Include="RayTracingPipeline.h" />
     <ClInclude Include="RayTracingShadows.h" />

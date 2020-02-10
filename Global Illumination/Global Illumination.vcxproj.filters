@@ -53,6 +53,9 @@
     <ClCompile Include="Instance.cpp" />
     <ClCompile Include="RayTracingShadows.cpp" />
     <ClCompile Include="Shadows.cpp" />
+    <ClCompile Include="DepthPass.cpp" />
+    <ClCompile Include="PostProcessAA.cpp" />
+    <ClCompile Include="PBRCompute.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -103,6 +106,9 @@
     <ClInclude Include="Instance.h" />
     <ClInclude Include="RayTracingShadows.h" />
     <ClInclude Include="Shadows.h" />
+    <ClInclude Include="DepthPass.h" />
+    <ClInclude Include="PostProcessAA.h" />
+    <ClInclude Include="PBRCompute.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

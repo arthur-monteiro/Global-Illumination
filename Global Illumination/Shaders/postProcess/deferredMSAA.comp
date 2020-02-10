@@ -1,0 +1,39 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout (binding = 0, rgba8) uniform readonly image2D inImage;
+layout (binding = 1, r32f) uniform readonly image2D inDepthFromGBuffer;
+layout (binding = 2, r32f) uniform readonly image2DMS inDepthMS;
+layout (binding = 3, rgba8) uniform image2D resultImage;
+
+void main()
+{
+    vec3 color = imageLoad(inImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
+    int nColor = 1;
+
+    vec2 offsets[] = 
+	{
+		vec2(0.380f, 0.141f),
+		vec2(0.859f, 0.380f),
+		vec2(0.141f, 0.620f),
+		vec2(0.620f, 0.859f)			
+	};
+
+    vec2 posOffset = vec2(0.0);
+    float gbufferDepth = imageLoad(inDepthFromGBuffer, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).r;
+    for(int i = 0; i < 4; i++)
+    {
+        float diff =  abs(gbufferDepth - imageLoad(inDepthMS, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), i).r);
+
+        float threshold = 0.00005;
+        if(diff > threshold)
+        {
+            color += imageLoad(inImage, ivec2(gl_GlobalInvocationID.xy + (offsets[i] - vec2(0.5)) * 2)).rgb;
+            nColor++;
+        }
+    }
+    
+    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color.rgb / nColor, 1.0));
+}

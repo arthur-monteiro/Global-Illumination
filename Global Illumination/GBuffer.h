@@ -13,7 +13,7 @@ public:
 		glm::mat4 mvp);
     bool submit(VkDevice device, VkQueue graphicsQueue, glm::mat4 mvp, glm::mat4 model);
     void resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent);
-	void changeMSAA(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent, VkSampleCountFlagBits sampleCount);
+	void changeSampleCount(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent, VkSampleCountFlagBits sampleCount);
 
     void cleanup(VkDevice device, VkCommandPool commandPool, VkDescriptorPool descriptorPool);
 
@@ -26,7 +26,7 @@ private:
 	void recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent, VkSampleCountFlagBits sampleCount);
 	
 private:
-	struct MVP_UBO
+	struct MatricesUBO
 	{
 		glm::mat4 mvp;
 		glm::mat4 model;

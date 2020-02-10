@@ -35,16 +35,19 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 
 	shaderStages.push_back(vertShaderStageInfo);
 
-	std::vector<char> fragShaderCode = readFile(fragmentShader);
-	fragShaderModule = createShaderModule(fragShaderCode, device);
+	if(!fragmentShader.empty())
+	{
+		std::vector<char> fragShaderCode = readFile(fragmentShader);
+		fragShaderModule = createShaderModule(fragShaderCode, device);
 
-	VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
-	fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	fragShaderStageInfo.module = fragShaderModule;
-	fragShaderStageInfo.pName = "main";
+		VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
+		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+		fragShaderStageInfo.module = fragShaderModule;
+		fragShaderStageInfo.pName = "main";
 
-	shaderStages.push_back(fragShaderStageInfo);
+		shaderStages.push_back(fragShaderStageInfo);
+	}
 
 	/* Input */
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
@@ -64,8 +67,8 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width = (float)extent.width;
-	viewport.height = (float)extent.height;
+	viewport.width = static_cast<float>(extent.width);
+	viewport.height = static_cast<float>(extent.height);
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
@@ -160,7 +163,8 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 		throw std::runtime_error("Error : graphic pipeline creation");
 
 	vkDestroyShaderModule(device, vertShaderModule, nullptr);
-	vkDestroyShaderModule(device, fragShaderModule, nullptr);
+	if(!fragmentShader.empty())
+		vkDestroyShaderModule(device, fragShaderModule, nullptr);
 }
 
 void Pipeline::initialize(VkDevice device, std::string computeShader, VkDescriptorSetLayout* descriptorSetLayout)

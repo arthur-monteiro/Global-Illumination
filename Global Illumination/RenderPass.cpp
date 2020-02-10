@@ -20,7 +20,10 @@ bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
     }
 
 	m_renderCompleteSemaphore.initialize(device);
-	m_renderCompleteSemaphore.setPipelineStage(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+	if(attachments.size() > 1)
+		m_renderCompleteSemaphore.setPipelineStage(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+	else 
+		m_renderCompleteSemaphore.setPipelineStage(VK_PIPELINE_STAGE_VERTEX_SHADER_BIT);
 
 	return true;
 }

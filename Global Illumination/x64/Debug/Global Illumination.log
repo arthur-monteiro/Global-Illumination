@@ -1,6 +1,2 @@
-﻿  Renderer.cpp
-F:\Code\Global Illumination\Global Illumination\Renderer.cpp(60,28): warning C4267:  'return': conversion from 'size_t' to 'int', possible loss of data
-  Shadows.cpp
-  Generating Code...
-F:\Code\Global Illumination\Global Illumination\Renderer.cpp(69,38): warning C4267:  'return': conversion from 'size_t' to 'int', possible loss of data
+﻿  DescriptorPool.cpp
   Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe

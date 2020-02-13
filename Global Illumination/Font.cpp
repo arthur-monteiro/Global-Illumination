@@ -15,11 +15,8 @@ void Font::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkComman
 
 	FT_Set_Pixel_Sizes(face, 0, ySize);
 
-	for (wchar_t c = 0; c < 127; ++c)
+	for (wchar_t c = 33; c < 123; ++c)
 	{
-		if (c == 160 || c == 32)
-			c++;
-
 		if (FT_Load_Char(face, c, FT_LOAD_RENDER))
 			throw std::runtime_error(&"Error : character loading "[c]);
 
@@ -40,35 +37,37 @@ void Font::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkComman
 		m_characters[c].bearingX = face->glyph->bitmap_left;
 		m_characters[c].bearingY = texHeight - face->glyph->bitmap_top;
 
-		m_textures.emplace_back();
-		m_textures[m_textures.size() - 1].createFromPixels(device, physicalDevice, commandPool, graphicsQueue, { texWidth, texHeight, 1 }, VK_FORMAT_R8_UNORM, pixels);
-		m_textures[m_textures.size() - 1].createSampler(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 1.0f, VK_FILTER_LINEAR);
+		m_images.emplace_back();
+		m_images[m_images.size() - 1].createFromPixels(device, physicalDevice, commandPool, graphicsQueue, { texWidth, texHeight, 1 }, VK_FORMAT_R8_UNORM, pixels);
 
-		m_characters[c].textureID = m_textures.size() - 1;
+		m_characters[c].textureID = m_images.size() - 1;
 
 		delete[] pixels;
 	}
 
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
+
+	m_sampler.initialize(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 1.0f, VK_FILTER_LINEAR);
 }
 
 void Font::cleanup(VkDevice device)
 {
-	for(Texture& texture : m_textures)
+	for(Image& texture : m_images)
 	{
 		texture.cleanup(device);
 	}
-	m_textures.clear();
+	m_images.clear();
 	m_characters.clear();
+	m_sampler.cleanup(device);
 }
 
-std::vector<Texture*> Font::getTextures()
+std::vector<Image*> Font::getImages()
 {
-	std::vector<Texture*> r(m_textures.size());
+	std::vector<Image*> r(m_images.size());
 
-	for (int i(0); i < m_textures.size(); ++i)
-		r[i] = &m_textures[i];
+	for (int i(0); i < m_images.size(); ++i)
+		r[i] = &m_images[i];
 
 	return r;
 }

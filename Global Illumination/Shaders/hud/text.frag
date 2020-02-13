@@ -2,7 +2,8 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_EXT_nonuniform_qualifier : enable
 
-layout (binding = 1) uniform sampler2D[] textures;
+layout (binding = 1) uniform sampler textureSampler;
+layout (binding = 2) uniform texture2D[] textures;
 
 layout(location = 0) in vec2 inTexCoord;
 layout(location = 1) in vec3 inColor;
@@ -16,5 +17,5 @@ void main()
     {
         discard;
     }
-    outColor = vec4(inColor/* * texture(textures[inIDs[0]], inTexCoord).r*/, texture(textures[inIDs[0]], inTexCoord).r);
+    outColor = vec4(inColor/* * texture(textures[inIDs[0]], inTexCoord).r*/, texture(sampler2D(textures[inIDs[0]], textureSampler), inTexCoord).r);
 }

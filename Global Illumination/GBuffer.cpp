@@ -51,7 +51,7 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCom
 	}
 
 	m_renderer.initialize(device, "Shaders/gbuffer/vert.spv", "Shaders/gbuffer/frag.spv", { VertexPBR::getBindingDescription(0) }, VertexPBR::getAttributeDescriptions(0),
-		{ mvpLayout }, textureLayouts, { false, false, false, false });
+		{ mvpLayout }, textureLayouts, {}, {}, { false, false, false, false });
 
 	std::vector<VertexBuffer> vertexBuffers = model->getVertexBuffers();
 	for (int i(0); i < vertexBuffers.size(); ++i)
@@ -64,7 +64,7 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCom
 			rendererTextures[j].second = textureLayouts[j];
 		}
 
-		m_renderer.addMesh(device, descriptorPool, vertexBuffers[i], { { &m_uboMVP, mvpLayout } }, rendererTextures);
+		m_renderer.addMesh(device, descriptorPool, vertexBuffers[i], { { &m_uboMVP, mvpLayout } }, rendererTextures, {}, {});
 	}
 
 	m_clearValues.resize(5);

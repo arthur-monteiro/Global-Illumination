@@ -104,31 +104,37 @@ void Menu::build(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool
 	// Texts
 	m_text.build(device, physicalDevice, commandPool, graphicsQueue, m_outputExtent, font, TEXT_SIZE);
 
-	std::vector<Texture*> textures = font->getTextures();
+	std::vector<Image*> images = font->getImages();
+	Sampler* sampler = font->getSampler();
 
-	std::vector<TextureLayout> textureLayouts(textures.size());
-	for (int i(0); i < textureLayouts.size(); ++i)
+	SamplerLayout samplerLayout;
+	samplerLayout.accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerLayout.binding = 1;
+
+	std::vector<ImageLayout> imageLayouts(images.size());
+	for (int i(0); i < imageLayouts.size(); ++i)
 	{
-		textureLayouts[i].accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
-		textureLayouts[i].binding = i + 1;
+		imageLayouts[i].accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
+		imageLayouts[i].binding = i + 2;
 	}
 
 	UniformBufferObjectLayout uboLayout;
 	uboLayout.accessibility = VK_SHADER_STAGE_VERTEX_BIT;
 	uboLayout.binding = 0;
 
-	m_textRenderer.initialize(device, "Shaders/hud/textVert.spv", "Shaders/hud/textFrag.spv", { Vertex2DTexturedWithMaterial::getBindingDescription(0) }, Vertex2DTexturedWithMaterial::getAttributeDescriptions(0),
-		{ uboLayout }, textureLayouts, { true });
+	m_textRenderer.initialize(device, "Shaders/hud/textVert.spv", "Shaders/hud/textFrag.spv", { Vertex2DTexturedWithMaterial::getBindingDescription(0) },
+		Vertex2DTexturedWithMaterial::getAttributeDescriptions(0), { uboLayout }, {}, imageLayouts, { samplerLayout }, { true });
 	
-	const VertexBuffer fpsCounterVertexBuffer = m_text.getVertexBuffer();
-	std::vector<std::pair<Texture*, TextureLayout>> rendererTextures(textures.size());
-	for (int j(0); j < rendererTextures.size(); ++j)
+	const VertexBuffer textVertexBuffer = m_text.getVertexBuffer();
+	std::vector<std::pair<Image*, ImageLayout>> rendererImages(images.size());
+	for (int j(0); j < rendererImages.size(); ++j)
 	{
-		rendererTextures[j].first = textures[j];
-		rendererTextures[j].second = textureLayouts[j];
+		rendererImages[j].first = images[j];
+		rendererImages[j].second = imageLayouts[j];
 	}
 
-	m_textRenderer.addMesh(device, descriptorPool, fpsCounterVertexBuffer, { { m_text.getUBO(), uboLayout } }, rendererTextures);
+	m_textRenderer.addMesh(device, descriptorPool, textVertexBuffer, { { m_text.getUBO(), uboLayout } }, {}, rendererImages,
+		{ { sampler, samplerLayout} });
 
 	// Quads
 	std::vector<VkVertexInputAttributeDescription> quadVertexAttributeDescriptions = Vertex2D::getAttributeDescriptions(0);
@@ -143,7 +149,7 @@ void Menu::build(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool
 	uboLayoutQuad.binding = 0;
 	
 	m_quadRenderer.initialize(device, "Shaders/hud/quadVert.spv", "Shaders/hud/quadFrag.spv", { Vertex2D::getBindingDescription(0), InstanceSingleID::getBindingDescription(1) },
-		quadVertexAttributeDescriptions, { uboLayoutQuad }, {}, { true });
+		quadVertexAttributeDescriptions, { uboLayoutQuad }, {}, {}, {}, { true });
 
 	m_quad.loadFromVertices(device, physicalDevice, commandPool, graphicsQueue, VERTEX_QUAD, INDICES_QUAD);
 

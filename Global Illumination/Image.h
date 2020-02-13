@@ -6,6 +6,12 @@
 
 #include "VulkanHelper.h"
 
+struct ImageLayout
+{
+	VkShaderStageFlags accessibility;
+	uint32_t binding;
+};
+
 class Image
 {
 public:

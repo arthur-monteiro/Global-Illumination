@@ -48,11 +48,11 @@ bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 
 	{
 		m_fullScreenQuadRenderer.initialize(device, "Shaders/loading/fullScreenQuadVertex.spv", "Shaders/loading/fullScreenQuadFragment.spv",
-			{ Vertex2DTextured::getBindingDescription(0) }, Vertex2DTextured::getAttributeDescriptions(0), { }, { textureLayout }, { true });
+			{ Vertex2DTextured::getBindingDescription(0) }, Vertex2DTextured::getAttributeDescriptions(0), { }, { textureLayout }, {}, {}, { true });
 		std::vector<VertexBuffer> modelVertexBuffers = m_fullScreenQuad.getVertexBuffers();
 		for (int i(0); i < modelVertexBuffers.size(); ++i)
 			m_fullScreenQuadRenderer.addMesh(device, m_uniqueDescriptorPool.getDescriptorPool(), modelVertexBuffers[i],
-				{ }, { { &m_fullScreenLoadingTexture, textureLayout } });
+				{ }, { { &m_fullScreenLoadingTexture, textureLayout } }, {}, {});
 	}
 
 	UniformBufferObjectLayout uboLayoutLogoOpacity;
@@ -71,11 +71,11 @@ bool LoadingManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice
 
 	{
 		m_loadingLogoQuadRenderer.initialize(device, "Shaders/loading/logoQuadVertex.spv", "Shaders/loading/logoQuadFragment.spv",
-			{ Vertex2DTextured::getBindingDescription(0) }, Vertex2DTextured::getAttributeDescriptions(0), { uboLayoutLogoOpacity, uboLayoutLogoOffset }, { textureLayout }, { true });
+			{ Vertex2DTextured::getBindingDescription(0) }, Vertex2DTextured::getAttributeDescriptions(0), { uboLayoutLogoOpacity, uboLayoutLogoOffset }, { textureLayout }, {}, {}, { true });
 		std::vector<VertexBuffer> modelVertexBuffers = m_loadingLogoQuad.getVertexBuffers();
 		for (int i(0); i < modelVertexBuffers.size(); ++i)
 			m_loadingLogoQuadRenderer.addMesh(device, m_uniqueDescriptorPool.getDescriptorPool(), modelVertexBuffers[i],
-				{ { &m_uboLogoOpacity, uboLayoutLogoOpacity }, { &m_uboLogoOffset, uboLayoutLogoOffset } }, { { &m_loadingLogoTexture, textureLayout } });
+				{ { &m_uboLogoOpacity, uboLayoutLogoOpacity }, { &m_uboLogoOffset, uboLayoutLogoOffset } }, { { &m_loadingLogoTexture, textureLayout } }, {}, {});
 	}
 
 	/* Main Render Pass */

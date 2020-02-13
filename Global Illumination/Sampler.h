@@ -2,6 +2,12 @@
 
 #include "VulkanHelper.h"
 
+struct SamplerLayout
+{
+	VkShaderStageFlags accessibility;
+	uint32_t binding;
+};
+
 class Sampler
 {
 public:

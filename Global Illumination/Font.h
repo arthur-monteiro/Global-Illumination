@@ -23,7 +23,8 @@ public:
 	unsigned int getBearingY(const wchar_t character) { return m_characters[character].bearingY; }
 	int getMaxSizeY() const { return m_maxYSize; }
 	unsigned int getMaterialID(const wchar_t character) { return m_characters[character].textureID; }
-	std::vector<Texture*> getTextures();
+	std::vector<Image*> getImages();
+	Sampler* getSampler() { return &m_sampler; }
 
 private:
 	struct Character
@@ -37,6 +38,7 @@ private:
 	};
 
 	std::map<wchar_t, Character> m_characters;
-	std::vector<Texture> m_textures;
+	std::vector<Image> m_images;
+	Sampler m_sampler;
 	int m_maxYSize;
 };

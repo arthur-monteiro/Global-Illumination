@@ -18,31 +18,37 @@ void HUD::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommand
 	m_attachments[1].initialize(VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 	m_renderPass.initialize(device, physicalDevice, commandPool, m_attachments, { outputExtent });
 
-	std::vector<Texture*> textures = m_font.getTextures();
+	std::vector<Image*> images = m_font.getImages();
+	Sampler* sampler = m_font.getSampler();
 
-	std::vector<TextureLayout> textureLayouts(textures.size());
-	for (int i(0); i < textureLayouts.size(); ++i)
+	SamplerLayout samplerLayout;
+	samplerLayout.accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerLayout.binding = 1;
+
+	std::vector<ImageLayout> imageLayouts(images.size());
+	for (int i(0); i < imageLayouts.size(); ++i)
 	{
-		textureLayouts[i].accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
-		textureLayouts[i].binding = i + 1;
+		imageLayouts[i].accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
+		imageLayouts[i].binding = i + 2;
 	}
 
 	UniformBufferObjectLayout uboLayout;
 	uboLayout.accessibility = VK_SHADER_STAGE_VERTEX_BIT;
 	uboLayout.binding = 0;
 
-	m_renderer.initialize(device, "Shaders/hud/textVert.spv", "Shaders/hud/textFrag.spv", { Vertex2DTexturedWithMaterial::getBindingDescription(0) }, Vertex2DTexturedWithMaterial::getAttributeDescriptions(0), 
-		{ uboLayout }, textureLayouts, { true });
+	m_renderer.initialize(device, "Shaders/hud/textVert.spv", "Shaders/hud/textFrag.spv", { Vertex2DTexturedWithMaterial::getBindingDescription(0) }, 
+		Vertex2DTexturedWithMaterial::getAttributeDescriptions(0), { uboLayout }, {}, imageLayouts, { samplerLayout }, { true });
 
 	const VertexBuffer fpsCounterVertexBuffer = m_fpsCounter.getVertexBuffer();
-	std::vector<std::pair<Texture*, TextureLayout>> rendererTextures(textures.size());
-	for (int j(0); j < rendererTextures.size(); ++j)
+	std::vector<std::pair<Image*, ImageLayout>> rendererImages(images.size());
+	for (int j(0); j < rendererImages.size(); ++j)
 	{
-		rendererTextures[j].first = textures[j];
-		rendererTextures[j].second = textureLayouts[j];
+		rendererImages[j].first = images[j];
+		rendererImages[j].second = imageLayouts[j];
 	}
 	
-	m_fpsCounterIDRenderer = m_renderer.addMesh(device, descriptorPool, fpsCounterVertexBuffer, { { m_fpsCounter.getUBO(), uboLayout } }, rendererTextures);
+	m_fpsCounterIDRenderer = m_renderer.addMesh(device, descriptorPool, fpsCounterVertexBuffer, { { m_fpsCounter.getUBO(), uboLayout } }, {}, rendererImages, 
+		{ { sampler, samplerLayout} });
 
 	buildMenu(device, physicalDevice, commandPool, descriptorPool, graphicsQueue);
 

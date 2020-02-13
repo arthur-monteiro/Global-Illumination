@@ -26,7 +26,7 @@ void DepthPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkC
 	std::vector<VertexBuffer> vertexBuffers = model->getVertexBuffers();
 	for (int i(0); i < vertexBuffers.size(); ++i)
 	{
-		m_renderer.addMesh(device, descriptorPool, vertexBuffers[i], { { &m_uboMVP, mvpLayout } }, {});
+		m_renderer.addMesh(device, descriptorPool, vertexBuffers[i], { { &m_uboMVP, mvpLayout } }, {}, {}, {});
 	}
 
 	m_clearValues.resize(1);

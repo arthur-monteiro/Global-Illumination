@@ -15,7 +15,7 @@ public:
 
 	void initialize(VkDevice device, std::string vertexShader, std::string fragmentShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription, 
 		std::vector<VkVertexInputAttributeDescription> attributeInputDescription, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, 
-		std::vector<TextureLayout> textureLayouts, std::vector<bool> alphaBlending);
+		std::vector<TextureLayout> textureLayouts, std::vector<ImageLayout> imageLayouts, std::vector<SamplerLayout> samplerLayouts, std::vector<bool> alphaBlending);
 	void initialize(VkDevice device, std::string vertexShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
 		std::vector<VkVertexInputAttributeDescription> attributeInputDescription, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts,
 		std::vector<TextureLayout> textureLayouts, std::vector<bool> alphaBlending);
@@ -23,7 +23,8 @@ public:
 	void destroyPipeline(VkDevice device);
 
 	int addMesh(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer, 
-		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures);
+		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures,
+		std::vector<std::pair<Image*, ImageLayout>> images, std::vector<std::pair<Sampler*, SamplerLayout>> samplers);
 	int addMeshInstancied(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer, InstanceBuffer instanceBuffer,
 		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures);
 	void reloadMeshVertexBuffer(VkDevice device, VertexBuffer vertexBuffer, int meshID);
@@ -54,8 +55,10 @@ private:
 	bool m_pipelineCreated = false;
 
 private:
-	void createDescriptorSetLayout(VkDevice device, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, std::vector<TextureLayout> textureLayouts);
+	void createDescriptorSetLayout(VkDevice device, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, std::vector<TextureLayout> textureLayouts,
+		std::vector<ImageLayout> imageLayouts, std::vector<SamplerLayout> samplerLayouts);
 	VkDescriptorSet createDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool,
-		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures);
+		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures,
+		std::vector<std::pair<Image*, ImageLayout>> images, std::vector<std::pair<Sampler*, SamplerLayout>> samplers);
 };
 

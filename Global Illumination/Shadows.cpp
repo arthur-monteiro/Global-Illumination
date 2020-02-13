@@ -59,7 +59,10 @@ void Shadows::changeRTSampleCount(VkDevice device, unsigned int sampleCount)
 
 void Shadows::cleanup(VkDevice device, VkCommandPool commandPool)
 {
-	m_rtShadows.cleanup(device, commandPool);
+	if (m_shadowType == ShadowType::RTX)
+		m_rtShadows.cleanup(device, commandPool);
+	else
+		m_defaultTexture.cleanup(device);
 }
 
 Texture* Shadows::getTexture()

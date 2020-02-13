@@ -173,7 +173,7 @@ VkDescriptorSet Renderer::createDescriptorSet(VkDevice device, VkDescriptorPool 
 	{
 		imageInfo[i].imageLayout = textures[i].first->getImageLayout();
 		imageInfo[i].imageView = textures[i].first->getImageView();
-		imageInfo[i].sampler = textures[i].first->getSampler();
+		imageInfo[i].sampler = textures[0].first->getSampler();
 	}
 
 	if (textures.size() > 0)

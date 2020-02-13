@@ -15,7 +15,7 @@ void Font::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkComman
 
 	FT_Set_Pixel_Sizes(face, 0, ySize);
 
-	for (wchar_t c = 0; c < 255; ++c)
+	for (wchar_t c = 0; c < 127; ++c)
 	{
 		if (c == 160 || c == 32)
 			c++;

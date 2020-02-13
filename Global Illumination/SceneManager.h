@@ -14,6 +14,7 @@
 #include "DepthPass.h"
 #include "PostProcessAA.h"
 #include "PBRCompute.h"
+#include "AmbientOcclusion.h"
 
 class SceneManager
 {
@@ -47,7 +48,6 @@ private:
 	void createHUD(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue graphicsQueue, std::mutex* graphicsQueueMutex,
 	               const std::vector<Image*>& swapChainImages, bool recreate);
 	void recoverGBufferImages(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue graphicsQueue, std::mutex* graphicsQueueMutex);
-	void creatShadows(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue graphicsQueue, std::mutex* graphicsQueueMutex, VkExtent2D extent, bool recreate);
 	void createPBRComputePass(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue computeQueue, bool recreate);
 	void createPostProcessAAComputePass(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue computeQueue, bool recreate);
 
@@ -70,6 +70,11 @@ private:
 
 	DepthPass m_preDepthPass;
 	Texture m_depthPassTexture;
+	PostProcessAA m_postProcessAA;
+	bool m_postProcessAACreated = false;
+	bool m_usePostProcessAA = false;
+	bool m_needUpdatePostProcessAA = false;
+	VkSampleCountFlagBits m_postProcessAASampleCount = VK_SAMPLE_COUNT_1_BIT;
 
     GBuffer m_gbuffer;
 	std::vector<Texture> m_gbufferTextures;
@@ -81,8 +86,12 @@ private:
 	bool m_drawMenu = false;
 
 	Shadows m_shadows;
-	Texture m_shadowsTexture;
 	unsigned int m_updateRTShadowSampleCount = 0;
+	std::wstring m_shadowAlgorithm = L"";
+
+	AmbientOcclusion m_ambientOcclusion;
+	int m_updateSSAOPower = 0;
+	std::wstring m_aoAlgorithm = L"";
 
 	PBRCompute m_pbrCompute;
 	ParamsUBO m_uboParamsData;
@@ -91,11 +100,6 @@ private:
 	std::vector<Texture> m_swapchainTextures;
 	std::vector<Operation> m_transitSwapchainToLayoutGeneral;
 	std::vector<Operation> m_transitSwapchainToLayoutPresent;
-
-	PostProcessAA m_postProcessAA;
-	bool m_postProcessAACreated = false;
-	bool m_usePostProcessAA = false;
-	bool m_needUpdatePostProcessAA = false;
 
 	int m_oldEscapeState = GLFW_RELEASE;
 };

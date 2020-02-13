@@ -160,7 +160,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AccelerationStructure.cpp" />
+    <ClCompile Include="AmbientOcclusion.cpp" />
     <ClCompile Include="Attachment.cpp" />
+    <ClCompile Include="Blur.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="CommandPool.cpp" />
@@ -195,6 +197,7 @@
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Semaphore.cpp" />
     <ClCompile Include="Shadows.cpp" />
+    <ClCompile Include="SSAO.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="SystemManager.cpp" />
     <ClCompile Include="Text.cpp" />
@@ -213,7 +216,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AccelerationStructure.h" />
+    <ClInclude Include="AmbientOcclusion.h" />
     <ClInclude Include="Attachment.h" />
+    <ClInclude Include="Blur.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="CommandPool.h" />
@@ -247,6 +252,7 @@
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="Shadows.h" />
+    <ClInclude Include="SSAO.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="SystemManager.h" />
     <ClInclude Include="Text.h" />

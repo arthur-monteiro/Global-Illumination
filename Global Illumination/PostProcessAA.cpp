@@ -1,6 +1,6 @@
 #include "PostProcessAA.h"
 
-void PostProcessAA::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, Texture* inputTexture, Texture* inputDepth, 
+void PostProcessAA::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue computeQueue, Texture* inputTexture, Texture* inputDepth,
 	Texture* inputDepthMS, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral, std::vector<Operation> transitSwapChainToLayoutPresent)
 {
 	std::vector<std::pair<Texture*, TextureLayout>> texturesForComputePass;
@@ -29,6 +29,13 @@ void PostProcessAA::initialize(VkDevice device, VkPhysicalDevice physicalDevice,
 		texturesForComputePass.emplace_back(inputDepthMS, textureLayout);
 	}
 
+	glm::int32 sampleCount = inputDepthMS->getImage()->getSampleCount();
+	m_ubo.initialize(device, physicalDevice, &sampleCount, sizeof(glm::int32));
+
+	UniformBufferObjectLayout uboLayout;
+	uboLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
+	uboLayout.binding = 4;
+
 	// Create deferred AA compute pass
 	m_deferredMsaaPasses.resize(swapChainTextures.size());
 	for (size_t i(0); i < m_deferredMsaaPasses.size(); ++i)
@@ -44,7 +51,7 @@ void PostProcessAA::initialize(VkDevice device, VkPhysicalDevice physicalDevice,
 		std::string shaderPath = "Shaders/postProcess/deferredMSAA.spv";
 
 		m_deferredMsaaPasses[i].initialize(device, physicalDevice, commandPool, descriptorPool, swapChainTextures[0]->getImage()->getExtent(),
-			{ 16, 16, 1 }, shaderPath, { },
+			{ 16, 16, 1 }, shaderPath, { { &m_ubo, uboLayout } },
 			textures, { transitSwapChainToLayoutGeneral[i] }, { transitSwapChainToLayoutPresent[i] });
 	}
 
@@ -64,4 +71,6 @@ void PostProcessAA::cleanup(VkDevice device, VkCommandPool commandPool)
 	{
 		m_deferredMsaaPasses[i].cleanup(device, commandPool);
 	}
+	m_deferredMsaaPasses.clear();
+	m_ubo.cleanup(device);
 }

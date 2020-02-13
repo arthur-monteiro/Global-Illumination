@@ -24,6 +24,7 @@ public:
 	UniformBufferObject* getUBO() { return &m_ubo; }
 
 	void setColor(VkDevice device, unsigned int ID, glm::vec3 color);
+	void translate(VkDevice device, unsigned int ID, glm::vec2 offset);
 
 private:
 	void updateUBO(VkDevice device);
@@ -32,6 +33,7 @@ private:
 	struct TextStructure
 	{
 		glm::vec2 position;
+		glm::vec2 posOffset = glm::vec2(0.0f);
 		std::wstring textValue;
 		glm::vec3 color;
 
@@ -41,6 +43,12 @@ private:
 	
 	Mesh<Vertex2DTexturedWithMaterial> m_mesh;
 	UniformBufferObject m_ubo;
-	std::array<glm::vec4, 32> m_uboData;
+
+	struct TextUBO
+	{
+		std::array<glm::vec4, 64> color;
+		std::array<glm::vec4, 64> posOffset;
+	};
+	TextUBO m_uboData;
 };
 

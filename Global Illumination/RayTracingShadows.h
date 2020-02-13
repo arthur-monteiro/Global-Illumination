@@ -23,7 +23,7 @@ public:
 
 	void cleanup(VkDevice device, VkCommandPool commandPool);
 
-	Image* getImage() { return &m_imageTarget; }
+	Texture* getTexture() { return &m_textureTarget; }
 
 private:
 	void fillCommandBuffer(VkExtent2D extent);
@@ -60,7 +60,7 @@ private:
 	VkBuffer m_shaderBindingTableBuffer;
 	VkDeviceMemory m_shaderBindingTableMem;
 
-	Image m_imageTarget;
+	Texture m_textureTarget;
 	Command m_command;
 };
 

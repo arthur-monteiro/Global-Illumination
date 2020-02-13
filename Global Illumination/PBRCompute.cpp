@@ -1,12 +1,12 @@
 #include "PBRCompute.h"
 
 void PBRCompute::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
-	Texture* shadowMask, Texture* hudTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
+	Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
 	std::vector<Operation> transitSwapChainToLayoutPresent, ParamsUBO params)
 {
 	createUBOs(device, physicalDevice, params);
 	
-	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, hudTexture, std::move(swapChainTextures), std::move(transitSwapChainToLayoutGeneral),
+	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, hudTexture, aoTexture, std::move(swapChainTextures), std::move(transitSwapChainToLayoutGeneral),
 		std::move(transitSwapChainToLayoutPresent));
 
 	m_computePassFinishedSemaphore.initialize(device);
@@ -16,12 +16,12 @@ void PBRCompute::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 }
 
 void PBRCompute::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
-	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* hudTexture,
+	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* hudTexture, Texture* aoTexture,
 	VkExtent2D extentOutput, ParamsUBO params, VkQueue computeQueue)
 {
 	createUBOs(device, physicalDevice, params);
 
-	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, hudTexture, computeQueue, extentOutput);
+	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, hudTexture, aoTexture, computeQueue, extentOutput);
 	
 	m_computePassFinishedSemaphore.initialize(device);
 	m_computePassFinishedSemaphore.setPipelineStage(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
@@ -29,9 +29,9 @@ void PBRCompute::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 	m_useSwapChain = false;
 }
 
-void PBRCompute::submit(VkDevice device, VkQueue computeQueue, unsigned int swapChainImageIndex, std::vector<Semaphore*> semaphoresToWait, glm::vec3 cameraPosition)
+void PBRCompute::submit(VkDevice device, VkQueue computeQueue, unsigned int swapChainImageIndex, std::vector<Semaphore*> semaphoresToWait, glm::vec3 lightDirection)
 {
-	m_uboLightingData.cameraPosition = glm::vec4(cameraPosition, 1.0f);
+	m_uboLightingData.directionDirectionalLight = glm::vec4(lightDirection, 1.0f);
 	m_uboLighting.updateData(device, &m_uboLightingData);
 
 	if (swapChainImageIndex >= m_computePasses.size())
@@ -63,7 +63,7 @@ void PBRCompute::createUBOs(VkDevice device, VkPhysicalDevice physicalDevice, Pa
 }
 
 void PBRCompute::createPasses(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
-	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* hudTexture,
+	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* hudTexture, Texture* aoTexture,
 	std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
 	std::vector<Operation> transitSwapChainToLayoutPresent)
 {
@@ -100,14 +100,23 @@ void PBRCompute::createPasses(VkDevice device, VkPhysicalDevice physicalDevice, 
 		texturesForComputePass.emplace_back(hudTexture, textureLayout);
 	}
 
+	// HUD
+	{
+		TextureLayout textureLayout{};
+		textureLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
+		textureLayout.binding = gBufferTextures.size() + 2; // GBuffer + RT Shadow + HUD
+
+		texturesForComputePass.emplace_back(aoTexture, textureLayout);
+	}
+
 	// UBOs
 	UniformBufferObjectLayout uboLightingLayout{};
 	uboLightingLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
-	uboLightingLayout.binding = 7;
+	uboLightingLayout.binding = 8;
 
 	UniformBufferObjectLayout uboParamsLayout{};
 	uboParamsLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
-	uboParamsLayout.binding = 8;
+	uboParamsLayout.binding = 9;
 
 	// Create compute passes
 	m_computePasses.resize(swapChainTextures.size());
@@ -132,7 +141,7 @@ void PBRCompute::createPasses(VkDevice device, VkPhysicalDevice physicalDevice, 
 }
 
 void PBRCompute::createPasses(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
-	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* hudTexture, VkQueue computeQueue,
+	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, VkQueue computeQueue,
 	VkExtent2D extentOutput)
 {
 	m_outputTexture.create(device, physicalDevice, extentOutput, VK_IMAGE_USAGE_STORAGE_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
@@ -171,14 +180,23 @@ void PBRCompute::createPasses(VkDevice device, VkPhysicalDevice physicalDevice, 
 		texturesForComputePass.emplace_back(hudTexture, textureLayout);
 	}
 
+	// HUD
+	{
+		TextureLayout textureLayout{};
+		textureLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
+		textureLayout.binding = gBufferTextures.size() + 2; // GBuffer + RT Shadow + HUD
+
+		texturesForComputePass.emplace_back(aoTexture, textureLayout);
+	}
+
 	// UBOs
 	UniformBufferObjectLayout uboLightingLayout{};
 	uboLightingLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
-	uboLightingLayout.binding = 7;
+	uboLightingLayout.binding = 8;
 
 	UniformBufferObjectLayout uboParamsLayout{};
 	uboParamsLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
-	uboParamsLayout.binding = 8;
+	uboParamsLayout.binding = 9;
 
 	// Create compute passes
 	m_computePasses.resize(1);
@@ -209,22 +227,22 @@ void PBRCompute::cleanup(VkDevice device, VkCommandPool commandPool)
 }
 
 void PBRCompute::recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
-	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* hudTexture,
+	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* hudTexture, Texture* aoTexture,
 	std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
 	std::vector<Operation> transitSwapChainToLayoutPresent)
 {
 	cleanup(device, commandPool);
 
-	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, hudTexture, std::move(swapChainTextures),
+	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, hudTexture, aoTexture, std::move(swapChainTextures),
 		std::move(transitSwapChainToLayoutGeneral), std::move(transitSwapChainToLayoutPresent));
 }
 
 void PBRCompute::recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
-	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* hudTexture,
+	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* hudTexture, Texture* aoTexture,
 	VkExtent2D extent, VkQueue computeQueue)
 {
 	cleanup(device, commandPool);
 
-	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, hudTexture, computeQueue, extent);
+	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, hudTexture, aoTexture, computeQueue, extent);
 }
 

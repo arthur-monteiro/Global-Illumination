@@ -29,6 +29,11 @@ void UniformBufferObject::updateData(VkDevice device, void* data)
 
 void UniformBufferObject::cleanup(VkDevice device)
 {
+	if (m_size <= 0)
+		return;
+
 	vkDestroyBuffer(device, m_uniformBuffer, nullptr);
 	vkFreeMemory(device, m_uniformBufferMemory, nullptr);
+
+	m_size = 0;
 }

@@ -8,6 +8,7 @@ struct ParamsUBO
 	glm::uint drawHUD;
 	glm::uint drawShadows;
 	glm::uint sampleCount = 1;
+	glm::uint useAO = 0;
 };
 
 class PBRCompute
@@ -17,19 +18,19 @@ public:
 	~PBRCompute() = default;
 
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
-		Texture* shadowMask, Texture* hudTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
+		Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
 		std::vector<Operation> transitSwapChainToLayoutPresent, ParamsUBO params);
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
-		Texture* shadowMask, Texture* hudTexture, VkExtent2D extentOutput, ParamsUBO params, VkQueue computeQueue);
+		Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, VkExtent2D extentOutput, ParamsUBO params, VkQueue computeQueue);
 	
-	void submit(VkDevice device, VkQueue computeQueue, unsigned int swapChainImageIndex, std::vector<Semaphore*> semaphoresToWait, glm::vec3 cameraPosition);
+	void submit(VkDevice device, VkQueue computeQueue, unsigned int swapChainImageIndex, std::vector<Semaphore*> semaphoresToWait, glm::vec3 lightDirection);
 	void submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> semaphoresToWait, glm::vec3 cameraPosition);
 	
 	void recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
-		Texture* shadowMask, Texture* hudTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
+		Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
 		std::vector<Operation> transitSwapChainToLayoutPresent);
 	void recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
-		Texture* shadowMask, Texture* hudTexture, VkExtent2D extent, VkQueue computeQueue);
+		Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, VkExtent2D extent, VkQueue computeQueue);
 
 	void cleanup(VkDevice device, VkCommandPool commandPool);
 
@@ -43,10 +44,10 @@ public:
 private:
 	void createUBOs(VkDevice device, VkPhysicalDevice physicalDevice, ParamsUBO params);
 	void createPasses(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
-		Texture* shadowMask, Texture* hudTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
+		Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
 		std::vector<Operation> transitSwapChainToLayoutPresent);
 	void createPasses(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
-		Texture* shadowMask, Texture* hudTexture, VkQueue graphicsQueue, VkExtent2D extentOutput);
+		Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, VkQueue graphicsQueue, VkExtent2D extentOutput);
 	
 private:
 	std::vector<ComputePass> m_computePasses;

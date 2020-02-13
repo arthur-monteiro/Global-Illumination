@@ -25,6 +25,8 @@ public:
 	static void changeUpscaleCallback(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("upscale", option); }
 	static void changeMSAACallback(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("msaa", option); }
 	static void changeRTShadowsAA(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("rtshadow_sample_count", option); }
+	static void changeAO(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("ao", option); }
+	static void changeSSAOPower(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("ssao_power", option); }
 
 	void drawFPSCounter(bool status);
 	void applyCallback(std::string parameter, std::wstring value) const { m_callback(m_instanceForCallback, std::move(parameter), std::move(value)); }

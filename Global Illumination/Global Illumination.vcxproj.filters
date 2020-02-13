@@ -56,6 +56,9 @@
     <ClCompile Include="DepthPass.cpp" />
     <ClCompile Include="PostProcessAA.cpp" />
     <ClCompile Include="PBRCompute.cpp" />
+    <ClCompile Include="AmbientOcclusion.cpp" />
+    <ClCompile Include="SSAO.cpp" />
+    <ClCompile Include="Blur.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -109,6 +112,9 @@
     <ClInclude Include="DepthPass.h" />
     <ClInclude Include="PostProcessAA.h" />
     <ClInclude Include="PBRCompute.h" />
+    <ClInclude Include="AmbientOcclusion.h" />
+    <ClInclude Include="SSAO.h" />
+    <ClInclude Include="Blur.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

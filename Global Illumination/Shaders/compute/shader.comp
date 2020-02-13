@@ -9,9 +9,10 @@ layout (binding = 2, rgba32f) uniform readonly image2D inNormal;
 layout (binding = 3, rgba32f) uniform readonly image2D inRoughnessMetalAO;
 layout (binding = 4, rgba32f) uniform readonly image2D inShadowMask;
 layout (binding = 5, rgba32f) uniform readonly image2D inHUD;
-layout (binding = 6, rgba8) uniform image2D resultImage;
+layout (binding = 6, rgba32f) uniform readonly image2D inAO;
+layout (binding = 7, rgba8) uniform image2D resultImage;
 
-layout(binding = 7, std140) uniform readonly UniformBufferObjectLighting
+layout(binding = 8, std140) uniform readonly UniformBufferObjectLighting
 {
 	vec4 cameraPosition;
 
@@ -19,10 +20,12 @@ layout(binding = 7, std140) uniform readonly UniformBufferObjectLighting
 	vec4 colorDirectionalLight;
 } uboLighting;
 
-layout(binding = 8, std140) uniform readonly UniformBufferObjectParams
+layout(binding = 9, std140) uniform readonly UniformBufferObjectParams
 {
 	uint drawHUD;
     uint drawShadows;
+    uint sampleCount;
+    uint useAO;
 } uboParams;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
@@ -40,8 +43,9 @@ void main()
     float roughness = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).r;
     float metallic = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).g;
     float ambientOcclusion = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).b;
+    float aoCalculated = imageLoad(inAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).r;
 
-    vec3 V = normalize(uboLighting.cameraPosition.xyz - worldPos);
+    vec3 V = normalize(-worldPos);
     vec3 R = reflect(-V, normal);
 
     vec3 F0 = vec3(0.04);
@@ -73,17 +77,22 @@ void main()
 
     vec3 ambient = vec3(0.0) * albedo;
 
-    vec3 color = ambient + Lo;
-
-    float exposure = 0.5;
-    color = vec3(1.0) - exp(-color * exposure);
-    color = pow(color, vec3(1.0 / 2.2));
+    if(uboParams.useAO == 1)
+        ambient = aoCalculated * albedo * 0.15;
+    else
+        ambient = albedo * 0.15;
 
     if(uboParams.drawShadows == 1)
     {
-         vec3 shadowMask = imageLoad(inShadowMask, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
-        color *= shadowMask.r;
+        vec3 shadowMask = imageLoad(inShadowMask, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
+        Lo *= shadowMask.r;
     }
+
+    vec3 color = ambient + Lo;
+
+    float exposure = 0.35;
+    color = vec3(1.0) - exp(-color * exposure);
+    color = pow(color, vec3(1.0 / 2.2));
 
     if(uboParams.drawHUD == 1)
     {

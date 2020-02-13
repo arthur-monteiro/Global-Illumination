@@ -32,8 +32,8 @@ void RayTracingShadows::initialize(VkDevice device, VkPhysicalDevice physicalDev
 	m_uboParamsData.sampleCount = 1;
 	m_uboParams.initialize(device, physicalDevice, &m_uboParamsData, sizeof(m_uboParamsData));
 
-	m_imageTarget.create(device, physicalDevice, extentOutput, VK_IMAGE_USAGE_STORAGE_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
-	m_imageTarget.setImageLayout(device, commandPool, graphicsQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_ACCESS_SHADER_WRITE_BIT);
+	m_textureTarget.create(device, physicalDevice, extentOutput, VK_IMAGE_USAGE_STORAGE_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
+	m_textureTarget.setImageLayout(device, commandPool, graphicsQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_ACCESS_SHADER_WRITE_BIT);
 
 	std::vector<VertexBuffer> vertexBuffers = model->getVertexBuffers();
 	createRaytracingDescriptorSet(device, model->getTextures(0), vertexBuffers[0].vertexBuffer, vertexBuffers[0].indexBuffer);
@@ -84,10 +84,10 @@ void RayTracingShadows::submit(VkDevice device, VkQueue queue, std::vector<Semap
 void RayTracingShadows::resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
 	VkQueue graphicsQueue, ModelPBR* model, VkExtent2D extentOutput)
 {
-	m_imageTarget.cleanup(device);
+	m_textureTarget.cleanup(device);
 
-	m_imageTarget.create(device, physicalDevice, extentOutput, VK_IMAGE_USAGE_STORAGE_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
-	m_imageTarget.setImageLayout(device, commandPool, graphicsQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_ACCESS_SHADER_WRITE_BIT);
+	m_textureTarget.create(device, physicalDevice, extentOutput, VK_IMAGE_USAGE_STORAGE_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
+	m_textureTarget.setImageLayout(device, commandPool, graphicsQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_ACCESS_SHADER_WRITE_BIT);
 
 	m_rtDSG.reset();
 	m_rtDSG = std::make_unique<nv_helpers_vk::DescriptorSetGenerator>();
@@ -108,7 +108,7 @@ void RayTracingShadows::changeSampleCount(VkDevice device, unsigned sampleCount)
 
 void RayTracingShadows::cleanup(VkDevice device, VkCommandPool commandPool)
 {
-	m_imageTarget.cleanup(device);
+	m_textureTarget.cleanup(device);
 	m_command.cleanup(device, commandPool);
 	vkDestroyDescriptorSetLayout(device, m_rtDescriptorSetLayout, nullptr);
 	vkDestroyDescriptorPool(device, m_rtDescriptorPool, nullptr);
@@ -235,7 +235,7 @@ void RayTracingShadows::createRaytracingDescriptorSet(VkDevice device, std::vect
 	// Output buffer
 	VkDescriptorImageInfo descriptorOutputImageInfo;
 	descriptorOutputImageInfo.sampler = nullptr;
-	descriptorOutputImageInfo.imageView = m_imageTarget.getImageView();
+	descriptorOutputImageInfo.imageView = m_textureTarget.getImageView();
 	descriptorOutputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 
 	m_rtDSG->Bind(m_rtDescriptorSet, 1, { descriptorOutputImageInfo });

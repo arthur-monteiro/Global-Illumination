@@ -9,11 +9,12 @@ public:
     GBuffer() = default;
     ~GBuffer();
 
-    bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkExtent2D extent, ModelPBR* model,
-		glm::mat4 mvp);
-    bool submit(VkDevice device, VkQueue graphicsQueue, glm::mat4 mvp, glm::mat4 model);
+	bool initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkExtent2D extent, ModelPBR* model,
+		glm::mat4 view, glm::mat4 projection, bool useDepthAsStorage);
+    bool submit(VkDevice device, VkQueue graphicsQueue, glm::mat4 view, glm::mat4 model, glm::mat4 projection);
     void resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent);
 	void changeSampleCount(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent, VkSampleCountFlagBits sampleCount);
+	void useDepthAsStorage(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkExtent2D extent, bool useDepthAsStorage);
 
     void cleanup(VkDevice device, VkCommandPool commandPool, VkDescriptorPool descriptorPool);
 
@@ -28,8 +29,9 @@ private:
 private:
 	struct MatricesUBO
 	{
-		glm::mat4 mvp;
+		glm::mat4 projection;
 		glm::mat4 model;
+		glm::mat4 view;
 	};
 
     RenderPass m_renderPass;

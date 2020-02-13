@@ -6,7 +6,14 @@ layout(location = 1) in vec2 inTexCoord;
 layout(location = 2) in uvec3 inIDs;
 
 layout(location = 0) out vec2 outTexCoords;
-layout(location = 1) out uvec3 outIDs;
+layout(location = 1) out vec3 outColor;
+layout(location = 2) out uvec3 outIDs;
+
+layout(binding = 0) uniform UniformBufferObject
+{
+	vec3 color[64];
+    vec3 posOffset[64];
+} ubo;
 
 out gl_PerVertex
 {
@@ -15,8 +22,9 @@ out gl_PerVertex
 
 void main()
 {
-    gl_Position = vec4(inPosition, 0.0, 1.0);
+    gl_Position = vec4(inPosition + ubo.posOffset[inIDs[1]].xy, 0.0, 1.0);
 
     outTexCoords = inTexCoord;
+    outColor = ubo.color[inIDs[1]];
     outIDs = inIDs;
 }  

@@ -71,9 +71,10 @@ void Text::build(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool
 
 	for (int i(0); i < m_texts.size(); ++i)
 	{
-		m_uboData[i] = glm::vec4(m_texts[i].color, 0.0f);
+		m_uboData.color[i] = glm::vec4(m_texts[i].color, 0.0f);
+		m_uboData.posOffset[i] = glm::vec4(0.0f);
 	}
-	m_ubo.initialize(device, physicalDevice, m_uboData.data(), m_uboData.size() * sizeof(glm::vec4));
+	m_ubo.initialize(device, physicalDevice, &m_uboData, sizeof(m_uboData));
 }
 
 void Text::cleanup(VkDevice device)
@@ -108,11 +109,18 @@ void Text::setColor(VkDevice device, unsigned ID, glm::vec3 color)
 	updateUBO(device);
 }
 
+void Text::translate(VkDevice device, unsigned ID, glm::vec2 offset)
+{
+	m_texts[ID].posOffset += offset;
+	updateUBO(device);
+}
+
 void Text::updateUBO(VkDevice device)
 {
 	for (int i(0); i < m_texts.size(); ++i)
 	{
-		m_uboData[i] = glm::vec4(m_texts[i].color, 0.0f);
+		m_uboData.color[i] = glm::vec4(m_texts[i].color, 0.0f);
+		m_uboData.posOffset[i] = glm::vec4(m_texts[i].posOffset, 0.0f, 0.0f);
 	}
 	m_ubo.updateData(device, &m_uboData);
 }

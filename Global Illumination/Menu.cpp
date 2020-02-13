@@ -114,7 +114,7 @@ void Menu::build(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool
 	}
 
 	UniformBufferObjectLayout uboLayout;
-	uboLayout.accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
+	uboLayout.accessibility = VK_SHADER_STAGE_VERTEX_BIT;
 	uboLayout.binding = 0;
 
 	m_textRenderer.initialize(device, "Shaders/hud/textVert.spv", "Shaders/hud/textFrag.spv", { Vertex2DTexturedWithMaterial::getBindingDescription(0) }, Vertex2DTexturedWithMaterial::getAttributeDescriptions(0),
@@ -252,6 +252,7 @@ void Menu::cleanup(VkDevice device, VkDescriptorPool descriptorPool)
 
 	m_numberOfItems = 0;
 	m_booleanItems.clear();
+	m_picklistItems.clear();
 	m_quadItems.clear();
 
 	m_quadRenderer.cleanup(device, descriptorPool);
@@ -352,6 +353,30 @@ void Menu::hidePicklistItem(VkDevice device, int id)
 		m_text.setColor(device, text, glm::vec3(-1.0f));
 
 	m_quadItems[m_picklistItems[id].quadID].color = glm::vec4(-1.0f);
+
+	for(int i(m_picklistItems[id].quadID); i < m_quadItems.size(); ++i)
+	{
+		float yTranslation = -(ITEM_Y_SIZE + SPACE_BETWEEN_ITEMS);
+		m_quadItems[i].transform = glm::translate(m_quadItems[i].transform,
+			glm::vec3(0.0f, yTranslation / (ITEM_Y_SIZE / 2.0f), 0.0f));
+		m_quadItems[i].posOffset.y += yTranslation;
+
+		if(m_quadItems[i].type == MENU_ITEM_TYPE_PICKLIST)
+		{
+			m_text.translate(device, m_picklistItems[m_quadItems[i].structID].textID, glm::vec2(0.0f, yTranslation));
+			for (int& text : m_picklistItems[m_quadItems[i].structID].textOptionIDs)
+				m_text.translate(device, text, glm::vec2(0.0f, yTranslation));
+			for (int& text : m_picklistItems[m_quadItems[i].structID].textAngleBrackets)
+				m_text.translate(device, text, glm::vec2(0.0f, yTranslation));
+		}
+		else if(m_quadItems[i].type == MENU_ITEM_TYPE_BOOLEAN)
+		{
+			m_text.translate(device, m_booleanItems[m_quadItems[i].structID].textID, glm::vec2(0.0f, yTranslation));
+			m_text.translate(device, m_booleanItems[m_quadItems[i].structID].textNoID, glm::vec2(0.0f, yTranslation));
+			m_text.translate(device, m_booleanItems[m_quadItems[i].structID].textSeparatorID, glm::vec2(0.0f, yTranslation));
+			m_text.translate(device, m_booleanItems[m_quadItems[i].structID].textYesID, glm::vec2(0.0f, yTranslation));
+		}
+	}
 	updateQuadUBO(device);
 
 	m_picklistItems[id].activated = false;
@@ -368,6 +393,29 @@ void Menu::showPicklistItem(VkDevice device, int id)
 	}
 
 	m_quadItems[m_picklistItems[id].quadID].color = glm::vec4(ITEM_DEFAULT_COLOR, 1.0f);
+	for (int i(m_picklistItems[id].quadID); i < m_quadItems.size(); ++i)
+	{
+		float yTranslation = ITEM_Y_SIZE + SPACE_BETWEEN_ITEMS;
+		m_quadItems[i].transform = glm::translate(m_quadItems[i].transform,
+			glm::vec3(0.0f, yTranslation / (ITEM_Y_SIZE / 2.0f), 0.0f));
+		m_quadItems[i].posOffset.y += yTranslation;
+
+		if (m_quadItems[i].type == MENU_ITEM_TYPE_PICKLIST)
+		{
+			m_text.translate(device, m_picklistItems[m_quadItems[i].structID].textID, glm::vec2(0.0f, yTranslation));
+			for (int& text : m_picklistItems[m_quadItems[i].structID].textOptionIDs)
+				m_text.translate(device, text, glm::vec2(0.0f, yTranslation));
+			for (int& text : m_picklistItems[m_quadItems[i].structID].textAngleBrackets)
+				m_text.translate(device, text, glm::vec2(0.0f, yTranslation));
+		}
+		else if (m_quadItems[i].type == MENU_ITEM_TYPE_BOOLEAN)
+		{
+			m_text.translate(device, m_booleanItems[m_quadItems[i].structID].textID, glm::vec2(0.0f, yTranslation));
+			m_text.translate(device, m_booleanItems[m_quadItems[i].structID].textNoID, glm::vec2(0.0f, yTranslation));
+			m_text.translate(device, m_booleanItems[m_quadItems[i].structID].textSeparatorID, glm::vec2(0.0f, yTranslation));
+			m_text.translate(device, m_booleanItems[m_quadItems[i].structID].textYesID, glm::vec2(0.0f, yTranslation));
+		}
+	}
 	updateQuadUBO(device);
 
 	m_picklistItems[id].activated = true;

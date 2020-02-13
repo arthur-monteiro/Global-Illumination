@@ -28,7 +28,7 @@ void HUD::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommand
 	}
 
 	UniformBufferObjectLayout uboLayout;
-	uboLayout.accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
+	uboLayout.accessibility = VK_SHADER_STAGE_VERTEX_BIT;
 	uboLayout.binding = 0;
 
 	m_renderer.initialize(device, "Shaders/hud/textVert.spv", "Shaders/hud/textFrag.spv", { Vertex2DTexturedWithMaterial::getBindingDescription(0) }, Vertex2DTexturedWithMaterial::getAttributeDescriptions(0), 
@@ -114,6 +114,10 @@ void HUD::buildMenu(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandP
 		{ L"No", L"NVidia Ray Tracing" }, &m_font);
 	int rtShadowAAItem = m_menu.addDependentPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Shadow Anti-aliasing", changeRTShadowsAA, this, 0,
 		{ L"No", L"2x", L"4x", L"8x" }, &m_font, MENU_ITEM_TYPE_PICKLIST, shadowMenuItem, { 1 });
+	int aoItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Ambient Occlusion", changeAO, this, 0,
+		{ L"No", L"SSAO" }, &m_font);
+	m_menu.addDependentPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Power", changeSSAOPower, this, 0,
+		{ L"1", L"2", L"5", L"10", L"100" }, &m_font, MENU_ITEM_TYPE_PICKLIST, aoItem, { 1 });
 	m_menu.build(device, physicalDevice, commandPool, descriptorPool, graphicsQueue, &m_font);
 }
 

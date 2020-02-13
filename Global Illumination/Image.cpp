@@ -311,7 +311,7 @@ void Image::transitionImageLayoutUsingCommandBuffer(VkCommandBuffer commandBuffe
 	barrier.subresourceRange.baseArrayLayer = arrayLayer;
 	barrier.subresourceRange.layerCount = 1;
 
-	if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+	if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL || hasDepthComponent(format))
 	{
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 

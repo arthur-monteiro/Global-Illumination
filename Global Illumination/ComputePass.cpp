@@ -165,7 +165,7 @@ void ComputePass::fillCommandBufferWithOperation(VkCommandBuffer commandBuffer, 
 		if (operationType == OPERATION_TYPE_COPY_IMAGE)
 		{
 			VkImageCopy copyRegion = {};
-			copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 			copyRegion.srcSubresource.mipLevel = 0;
 			copyRegion.srcSubresource.baseArrayLayer = 0;
 			copyRegion.srcSubresource.layerCount = 1;

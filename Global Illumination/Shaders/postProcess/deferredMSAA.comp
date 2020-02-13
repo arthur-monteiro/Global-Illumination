@@ -8,32 +8,94 @@ layout (binding = 1, r32f) uniform readonly image2D inDepthFromGBuffer;
 layout (binding = 2, r32f) uniform readonly image2DMS inDepthMS;
 layout (binding = 3, rgba8) uniform image2D resultImage;
 
+layout(binding = 4, std140) uniform readonly UniformBufferObject
+{
+    int sampleCount;
+} ubo;
+
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // Back to NDC 
+    return (2.0 * 0.1 * 50.0) / (0.1 + 50.0 - z * (0.1 - 50.0));
+}
+
 void main()
 {
     vec3 color = imageLoad(inImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
     int nColor = 1;
 
-    vec2 offsets[] = 
-	{
-		vec2(0.380f, 0.141f),
-		vec2(0.859f, 0.380f),
-		vec2(0.141f, 0.620f),
-		vec2(0.620f, 0.859f)			
-	};
+    vec2 offsets[8];
+
+    // https://vulkan.lunarg.com/doc/view/1.0.26.0/linux/vkspec.chunked/ch24s03.html
+    if(ubo.sampleCount == 2)
+    {
+        offsets[0] = vec2(0.25);
+        offsets[1] = vec2(0.75);
+    }
+    else if(ubo.sampleCount == 4)
+    {
+        offsets[0] = vec2(0.375, 0.125);
+		offsets[1] = vec2(0.875, 0.375);
+		offsets[2] = vec2(0.125, 0.625);
+		offsets[3] = vec2(0.625, 0.875);
+    }
+    else if(ubo.sampleCount == 8)
+    {
+        offsets[0] = vec2(0.5625,0.3125);
+		offsets[1] = vec2(0.4375,0.6875);
+		offsets[2] = vec2(0.8125,0.5625);
+		offsets[3] = vec2(0.3125,0.1875);
+        offsets[4] = vec2(0.1875,0.8125);
+		offsets[5] = vec2(0.0625,0.4375);
+		offsets[6] = vec2(0.6875,0.9375);
+		offsets[7] = vec2(0.9375,0.0625);
+    }
+
 
     vec2 posOffset = vec2(0.0);
-    float gbufferDepth = imageLoad(inDepthFromGBuffer, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).r;
-    for(int i = 0; i < 4; i++)
+    float gbufferDepth = LinearizeDepth(imageLoad(inDepthFromGBuffer, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).r);
+    for(int i = 0; i < ubo.sampleCount; i++)
     {
-        float diff =  abs(gbufferDepth - imageLoad(inDepthMS, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), i).r);
+        float diff =  abs(gbufferDepth - LinearizeDepth(imageLoad(inDepthMS, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), i).r));
 
-        float threshold = 0.00005;
+        float threshold = 0.0001;
         if(diff > threshold)
         {
-            color += imageLoad(inImage, ivec2(gl_GlobalInvocationID.xy + (offsets[i] - vec2(0.5)) * 2)).rgb;
+            posOffset += offsets[i] - vec2(0.5);
             nColor++;
         }
     }
-    
-    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color.rgb / nColor, 1.0));
+
+    if(nColor > 1)
+    {
+        posOffset /= (nColor - 1);
+
+        vec3 colorRef = color;
+
+        // X
+        if(posOffset.x < 0.0)
+            color += mix(colorRef, imageLoad(inImage, ivec2(gl_GlobalInvocationID.x - 1, gl_GlobalInvocationID.y)).rgb, distance(posOffset, vec2(-0.5, 0.0)) * 2.0);
+        else
+            color += mix(colorRef, imageLoad(inImage, ivec2(gl_GlobalInvocationID.x + 1, gl_GlobalInvocationID.y)).rgb, distance(posOffset, vec2(0.5, 0.0)) * 2.0);
+
+        // Y
+        if(posOffset.y < 0.0)
+            color += mix(colorRef, imageLoad(inImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y - 1)).rgb, distance(posOffset, vec2(0.0, -0.5)) * 2.0);
+        else
+            color += mix(colorRef, imageLoad(inImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y + 1)).rgb, distance(posOffset, vec2(0.0, 0.5)) * 2.0);
+
+        // X & Y
+        if(posOffset.x < 0.0 && posOffset.y < 0.0)
+            color += mix(colorRef, imageLoad(inImage, ivec2(gl_GlobalInvocationID.x - 1, gl_GlobalInvocationID.y - 1)).rgb, distance(posOffset, vec2(-0.5)) * 2.0);
+        else if(posOffset.x < 0.0 && posOffset.y > 0.0)
+            color += mix(colorRef, imageLoad(inImage, ivec2(gl_GlobalInvocationID.x - 1, gl_GlobalInvocationID.y + 1)).rgb, distance(posOffset, vec2(-0.5, 0.5)) * 2.0);
+        else if(posOffset.x > 0.0 && posOffset.y < 0.0)
+            color += mix(colorRef, imageLoad(inImage, ivec2(gl_GlobalInvocationID.x + 1, gl_GlobalInvocationID.y - 1)).rgb, distance(posOffset, vec2(0.5, -0.5)) * 2.0);
+        else if(posOffset.x > 0.0 && posOffset.y > 0.0)
+            color += mix(colorRef, imageLoad(inImage, ivec2(gl_GlobalInvocationID.x + 1, gl_GlobalInvocationID.y + 1)).rgb, distance(posOffset, vec2(0.5)) * 2.0);
+
+        color /= 4.0;
+    }
+
+    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color.rgb, 1.0));
 }

@@ -31,5 +31,5 @@ private:
 	VkBuffer m_uniformBuffer;
 	VkDeviceMemory m_uniformBufferMemory;
 
-	VkDeviceSize m_size;
+	VkDeviceSize m_size = 0;
 };

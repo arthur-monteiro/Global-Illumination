@@ -34,7 +34,7 @@ void SceneManager::changeOption(std::string parameter, std::wstring value)
 		if (value != L"No")
 		{
 			m_uboParamsData.drawShadows = 1;
-			m_shadows.changeShadowType(value);
+			m_shadowAlgorithm = value;
 		}
 		else
 			m_uboParamsData.drawShadows = 0;
@@ -71,22 +71,50 @@ void SceneManager::changeOption(std::string parameter, std::wstring value)
 	}
 	else if(parameter == "msaa")
 	{
-		unsigned int sampleCount = 0;
 		if (value == L"No")
-			sampleCount = 1;
+			m_postProcessAASampleCount = VK_SAMPLE_COUNT_1_BIT;
 		else if (value == L"2x")
-			sampleCount = 2;
+			m_postProcessAASampleCount = VK_SAMPLE_COUNT_2_BIT;
 		else if (value == L"4x")
-			sampleCount = 4;
+			m_postProcessAASampleCount = VK_SAMPLE_COUNT_4_BIT;
 		else if (value == L"8x")
-			sampleCount = 8;
+			m_postProcessAASampleCount = VK_SAMPLE_COUNT_8_BIT;
 
-		if (sampleCount > 1)
+		if (m_postProcessAASampleCount != VK_SAMPLE_COUNT_1_BIT)
 			m_usePostProcessAA = true;
 		else
 			m_usePostProcessAA = false;
 
 		m_needUpdatePostProcessAA = true;
+	}
+	else if(parameter == "ao")
+	{
+		if (value != L"No")
+		{
+			m_uboParamsData.useAO = 1;
+			m_aoAlgorithm = value;
+		}
+		else
+		{
+			m_uboParamsData.useAO = 0;
+			m_aoAlgorithm = L"";
+		}
+
+		m_needUpdateUBOParams = true;
+	}
+	else if (parameter == "ssao_power")
+	{
+		int power = 1;
+		if (value == L"2")
+			power = 2;
+		else if (value == L"5")
+			power = 5;
+		else if (value == L"10")
+			power = 10;
+		else if (value == L"100")
+			power = 100;
+
+		m_updateSSAOPower = power;
 	}
 }
 
@@ -112,12 +140,17 @@ void SceneManager::submit(VkDevice device, VkPhysicalDevice physicalDevice, GLFW
 		m_startTimeFPSCounter = currentTime;
 	}
 
+	m_camera.update(window);
+	glm::mat4 mvp = m_camera.getProjection() * m_camera.getViewMatrix() * m_model.getTransformation();
+
+	bool needRecreatePBRPass = false;
+
 	if (m_needUpdateUBOParams)
 	{
 		m_pbrCompute.updateParameters(device, m_uboParamsData);
 		m_needUpdateUBOParams = false;
 	}
-	if(m_needUpdateUpscale || m_needUpdatePostProcessAA)
+	if(m_needUpdateUpscale)
 	{
 		VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT;
 		if (m_uboParamsData.sampleCount == 2)
@@ -130,39 +163,96 @@ void SceneManager::submit(VkDevice device, VkPhysicalDevice physicalDevice, GLFW
 		m_gbuffer.changeSampleCount(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), m_swapChainImages[0]->getExtent(), sampleCount);
 		recoverGBufferImages(device, physicalDevice, graphicsQueue, nullptr);
 
-		createPBRComputePass(device, physicalDevice, computeQueue, true);
-		createPostProcessAAComputePass(device, physicalDevice, computeQueue, true);
-
+		needRecreatePBRPass = true;
 		m_needUpdateUpscale = false;
-		m_needUpdatePostProcessAA = false;
+	}
+	else if (m_needUpdatePostProcessAA) // can't update gbuffer sample count and post process aa
+	{
+		if (m_postProcessAASampleCount == VK_SAMPLE_COUNT_1_BIT)
+		{
+			m_preDepthPass.cleanup(device, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool());
+			m_gbuffer.useDepthAsStorage(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), m_swapChainImages[0]->getExtent(), false);
+		}
+		else
+		{
+			if(m_postProcessAASampleCount != VK_SAMPLE_COUNT_2_BIT)
+				m_preDepthPass.cleanup(device, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool());
+
+			m_preDepthPass.initialize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), m_swapChainImages[0]->getExtent(), 
+				m_postProcessAASampleCount, &m_model, mvp);
+			m_depthPassTexture.createFromImage(device, m_preDepthPass.getImage());
+			m_gbuffer.useDepthAsStorage(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), m_swapChainImages[0]->getExtent(), true);
+		}
+		recoverGBufferImages(device, physicalDevice, graphicsQueue, nullptr);
+		needRecreatePBRPass = true; // need to update pbr pass before post process aa pass
 	}
 	if(m_updateRTShadowSampleCount > 0)
 	{
 		m_shadows.changeRTSampleCount(device, m_updateRTShadowSampleCount);
 		m_updateRTShadowSampleCount = 0;
 	}
+	if (m_updateSSAOPower > 0)
+	{
+		m_ambientOcclusion.updateSSAOPower(device, m_updateSSAOPower);
+		m_updateSSAOPower = 0;
+	}
+
+	// Create / delete passes
+	if (m_ambientOcclusion.setAlgorithm(device, physicalDevice, m_computeCommandPool.getCommandPool(), computeQueue, m_descriptorPool.getDescriptorPool(),
+		m_camera.getProjection(), &m_gbufferTextures[0], &m_gbufferTextures[2], m_aoAlgorithm))
+		needRecreatePBRPass = true;
+
+	if (m_shadows.changeShadowType(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), graphicsQueue, &m_model,
+		mvp, m_swapChainImages[0]->getExtent(), m_shadowAlgorithm))
+		needRecreatePBRPass = true;
+
+	if (needRecreatePBRPass)
+	{
+		if (m_uboParamsData.useAO == 1 && m_ambientOcclusion.isReady())
+			m_ambientOcclusion.recreate(device, physicalDevice, m_computeCommandPool.getCommandPool(), computeQueue, m_descriptorPool.getDescriptorPool(),
+				m_camera.getProjection(), &m_gbufferTextures[0], &m_gbufferTextures[2]);
+
+		createPBRComputePass(device, physicalDevice, computeQueue, true);
+		if (m_needUpdatePostProcessAA)
+		{
+			if(m_postProcessAASampleCount != VK_SAMPLE_COUNT_1_BIT)
+				createPostProcessAAComputePass(device, physicalDevice, computeQueue, true);
+			else
+			{
+				m_postProcessAACreated = false;
+				m_postProcessAA.cleanup(device, m_computeCommandPool.getCommandPool());
+			}
+
+			m_needUpdatePostProcessAA = false;
+		}
+	}
 	
-	m_camera.update(window);
-    glm::mat4 mvp = m_camera.getProjection() * m_camera.getViewMatrix() * m_model.getTransformation();
-	m_gbuffer.submit(device, graphicsQueue, mvp, m_model.getTransformation());
+	m_gbuffer.submit(device, graphicsQueue, m_camera.getViewMatrix(), m_model.getTransformation(), m_camera.getProjection());
 
 	if (m_uboParamsData.drawHUD == 1)
 		m_HUD.submit(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), graphicsQueue, window, fpsModification, m_drawMenu);
 
-	if(m_uboParamsData.drawShadows == 1)
+	if(m_uboParamsData.drawShadows == 1 && m_shadows.isReady())
 		m_shadows.submit(device, graphicsQueue, {}, glm::inverse(m_camera.getViewMatrix()), glm::inverse(m_camera.getProjection()));
 
-	std::vector<Semaphore*> semaphoresToWait = { m_gbuffer.getRenderCompleteSemaphore(), imageAvailableSemaphore };
-	if (m_uboParamsData.drawShadows == 1)
+	if(m_uboParamsData.useAO == 1 && m_ambientOcclusion.isReady())
+		m_ambientOcclusion.submit(device, computeQueue, { m_gbuffer.getRenderCompleteSemaphore() });
+
+	std::vector<Semaphore*> semaphoresToWait = { imageAvailableSemaphore };
+	if (m_uboParamsData.drawShadows == 1 && m_shadows.isReady())
 		semaphoresToWait.push_back(m_shadows.getRenderCompleteSemaphore());
 	if(m_uboParamsData.drawHUD == 1)
 		semaphoresToWait.push_back(m_HUD.getRenderCompleteSemaphore());
+	if (m_uboParamsData.useAO == 1 && m_ambientOcclusion.isReady())
+		semaphoresToWait.push_back(m_ambientOcclusion.getSemaphore());
+	else
+		semaphoresToWait.push_back(m_gbuffer.getRenderCompleteSemaphore());
 
-	if(!m_usePostProcessAA || !m_postProcessAACreated)
-		m_pbrCompute.submit(device, computeQueue, swapChainImageIndex, semaphoresToWait, m_camera.getPosition());
+	if (!m_usePostProcessAA || !m_postProcessAACreated)
+		m_pbrCompute.submit(device, computeQueue, swapChainImageIndex, semaphoresToWait, glm::transpose(glm::inverse(m_camera.getViewMatrix())) * glm::vec4(1.5f, -5.0f, -1.0f, 1.0f));
 	else
 	{
-		m_pbrCompute.submit(device, computeQueue, semaphoresToWait, m_camera.getPosition());
+		m_pbrCompute.submit(device, computeQueue, semaphoresToWait, glm::transpose(glm::inverse(m_camera.getViewMatrix())) * glm::vec4(1.5f, -5.0f, -1.0f, 1.0f));
 		
 		m_preDepthPass.submit(device, graphicsQueue, mvp);
 		m_postProcessAA.submit(device, computeQueue, swapChainImageIndex, { m_pbrCompute.getSemaphore(), m_preDepthPass.getSemaphore() });
@@ -180,14 +270,34 @@ void SceneManager::resize(VkDevice device, VkPhysicalDevice physicalDevice, VkQu
 	createHUD(device, physicalDevice, graphicsQueue, nullptr, swapChainImages, true);
 
 	/* -- GBuffer -- */
-	m_gbuffer.resize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), swapChainImages[0]->getExtent());
+	if (!m_usePostProcessAA)
+		m_gbuffer.resize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), swapChainImages[0]->getExtent());
+	else 
+		m_gbuffer.useDepthAsStorage(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), m_swapChainImages[0]->getExtent(), true);
+
 	recoverGBufferImages(device, physicalDevice, graphicsQueue, nullptr);
 
 	/* -- Shadows -- */
-	creatShadows(device, physicalDevice, graphicsQueue, nullptr, swapChainImages[0]->getExtent(), true);
+	m_shadows.resize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), graphicsQueue, &m_model, m_swapChainImages[0]->getExtent());
+
+	/* -- AO -- */
+	m_ambientOcclusion.recreate(device, physicalDevice, m_computeCommandPool.getCommandPool(), computeQueue, m_descriptorPool.getDescriptorPool(),
+		m_camera.getProjection(), &m_gbufferTextures[0], &m_gbufferTextures[2]);
 	
 	createPBRComputePass(device, physicalDevice, computeQueue, true);
-	createPostProcessAAComputePass(device, physicalDevice, computeQueue, true);
+
+	/* -- MSAA -- */
+	if (m_usePostProcessAA)
+	{
+		m_preDepthPass.cleanup(device, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool());
+
+		glm::mat4 mvp = m_camera.getProjection() * m_camera.getViewMatrix() * m_model.getTransformation();
+		m_preDepthPass.initialize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), m_swapChainImages[0]->getExtent(),
+			m_postProcessAASampleCount, &m_model, mvp);
+		m_depthPassTexture.createFromImage(device, m_preDepthPass.getImage());
+
+		createPostProcessAAComputePass(device, physicalDevice, computeQueue, true);
+	}
 }
 
 void SceneManager::cleanup(VkDevice device)
@@ -196,6 +306,7 @@ void SceneManager::cleanup(VkDevice device)
 	m_gbuffer.cleanup(device, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool());
 	m_shadows.cleanup(device, m_graphicsCommandPool.getCommandPool());
 	m_pbrCompute.cleanup(device, m_computeCommandPool.getCommandPool());
+	m_ambientOcclusion.cleanup(device, m_computeCommandPool.getCommandPool());
 	m_graphicsCommandPool.cleanup(device);
 	m_descriptorPool.cleanup(device);
 }
@@ -254,17 +365,27 @@ void SceneManager::createPasses(VkDevice device, VkPhysicalDevice physicalDevice
 
 	/* -- Pre Depth Pass -- */
 	glm::mat4 mvp = m_camera.getProjection() * m_camera.getViewMatrix() * m_model.getTransformation();
-	//if(m_usePostProcessAA)
-	m_preDepthPass.initialize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), swapChainImages[0]->getExtent(), VK_SAMPLE_COUNT_4_BIT,
-		&m_model, mvp);
-	m_depthPassTexture.createFromImage(device, m_preDepthPass.getImage());
+	if (m_usePostProcessAA)
+	{
+		m_preDepthPass.initialize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), swapChainImages[0]->getExtent(), VK_SAMPLE_COUNT_4_BIT,
+			&m_model, mvp);
+		m_depthPassTexture.createFromImage(device, m_preDepthPass.getImage());
+	}
 
 	/* -- GBuffer -- */
-	m_gbuffer.initialize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), swapChainImages[0]->getExtent(), &m_model, mvp);
+	m_gbuffer.initialize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), swapChainImages[0]->getExtent(), &m_model, m_camera.getViewMatrix(),
+		m_camera.getProjection(), false);
 	recoverGBufferImages(device, physicalDevice, graphicsQueue, graphicsQueueMutex);
 
 	/* -- Shadows -- */
-	creatShadows(device, physicalDevice, graphicsQueue, graphicsQueueMutex, swapChainImages[0]->getExtent(), false);
+	graphicsQueueMutex->lock();
+	m_shadows.initialize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), graphicsQueue, swapChainImages[0]->getExtent());
+	graphicsQueueMutex->unlock();
+
+	/* -- Ambient Occlusion -- */
+	graphicsQueueMutex->lock();
+	m_ambientOcclusion.initialize(device, physicalDevice, m_computeCommandPool.getCommandPool(), computeQueue, swapChainImages[0]->getExtent());
+	graphicsQueueMutex->unlock();
 
 	/* -- Compute Pass -- */
 	createPBRComputePass(device, physicalDevice, computeQueue, false);
@@ -332,28 +453,6 @@ void SceneManager::recoverGBufferImages(VkDevice device, VkPhysicalDevice physic
 	}
 }
 
-void SceneManager::creatShadows(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue graphicsQueue,
-	std::mutex* graphicsQueueMutex, VkExtent2D extent, bool recreate)
-{
-	if (!recreate)
-	{
-		const glm::mat4 mvp = m_camera.getProjection() * m_camera.getViewMatrix() * m_model.getTransformation();
-		if (graphicsQueueMutex)
-			graphicsQueueMutex->lock();
-		m_shadows.initialize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), graphicsQueue, &m_model, mvp, extent);
-		if (graphicsQueueMutex)
-			graphicsQueueMutex->unlock();
-	}
-	else
-		m_shadows.resize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), graphicsQueue, &m_model, extent);
-
-	// Get result image
-	Image* rtShadowImage = m_shadows.getImage();
-
-	m_shadowsTexture.createFromImage(device, rtShadowImage);
-	m_shadowsTexture.createSampler(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 1.0f, VK_FILTER_LINEAR);
-}
-
 void SceneManager::createPBRComputePass(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue computeQueue,
                                         bool recreate)
 {
@@ -366,20 +465,20 @@ void SceneManager::createPBRComputePass(VkDevice device, VkPhysicalDevice physic
 	if(!m_usePostProcessAA)
 	{
 		if(!recreate)
-			m_pbrCompute.initialize(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), gBufferTextures, &m_shadowsTexture,
-				&m_HUDTextures[0], swapChainTextures, m_transitSwapchainToLayoutGeneral, m_transitSwapchainToLayoutPresent, m_uboParamsData);
+			m_pbrCompute.initialize(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), gBufferTextures, m_shadows.getTexture(),
+				&m_HUDTextures[0], m_ambientOcclusion.getTextureOutput(), swapChainTextures, m_transitSwapchainToLayoutGeneral, m_transitSwapchainToLayoutPresent, m_uboParamsData);
 		else
-			m_pbrCompute.recreate(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), gBufferTextures, &m_shadowsTexture,
-				&m_HUDTextures[0], swapChainTextures, m_transitSwapchainToLayoutGeneral, m_transitSwapchainToLayoutPresent);
+			m_pbrCompute.recreate(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), gBufferTextures, m_shadows.getTexture(),
+				&m_HUDTextures[0], m_ambientOcclusion.getTextureOutput(), swapChainTextures, m_transitSwapchainToLayoutGeneral, m_transitSwapchainToLayoutPresent);
 	}
 	else
 	{
 		if (!recreate)
-			m_pbrCompute.initialize(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), gBufferTextures, &m_shadowsTexture,
-				&m_HUDTextures[0], swapChainTextures[0]->getImage()->getExtent(), m_uboParamsData, computeQueue);
+			m_pbrCompute.initialize(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), gBufferTextures, m_shadows.getTexture(),
+				&m_HUDTextures[0], m_ambientOcclusion.getTextureOutput(), swapChainTextures[0]->getImage()->getExtent(), m_uboParamsData, computeQueue);
 		else
-			m_pbrCompute.recreate(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), gBufferTextures, &m_shadowsTexture,
-				&m_HUDTextures[0], swapChainTextures[0]->getImage()->getExtent(), computeQueue);
+			m_pbrCompute.recreate(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), gBufferTextures, m_shadows.getTexture(),
+				&m_HUDTextures[0], m_ambientOcclusion.getTextureOutput(), swapChainTextures[0]->getImage()->getExtent(), computeQueue);
 	}
 }
 
@@ -389,7 +488,7 @@ void SceneManager::createPostProcessAAComputePass(VkDevice device, VkPhysicalDev
 	if (recreate)
 		m_postProcessAA.cleanup(device, m_computeCommandPool.getCommandPool());
 
-	m_postProcessAA.initialize(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), m_pbrCompute.getTextureOutput(), 
+	m_postProcessAA.initialize(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), computeQueue, m_pbrCompute.getTextureOutput(), 
 		&m_gbufferDepthTexture , &m_depthPassTexture, getSwapChainTextures(),
 		m_transitSwapchainToLayoutGeneral, m_transitSwapchainToLayoutPresent);
 

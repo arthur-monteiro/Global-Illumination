@@ -5,10 +5,10 @@ GameManager::~GameManager()
 }
 
 bool GameManager::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkQueue graphicsQueue, std::mutex* graphicsQueueMutex,
-	VkQueue computeQueue, std::mutex* computeQueueMutex, std::vector<Image*> swapChainImages)
+	VkQueue computeQueue, std::mutex* computeQueueMutex, std::vector<Image*> swapChainImages, bool rayTracingAvailable)
 {
 	m_loadingManager.initialize(device, physicalDevice, surface, graphicsQueue, swapChainImages);
-    m_sceneLoadingThread = std::thread(&SceneManager::load, &m_sceneManager, device, physicalDevice, graphicsQueue, computeQueue, surface, graphicsQueueMutex, swapChainImages);
+    m_sceneLoadingThread = std::thread(&SceneManager::load, &m_sceneManager, device, physicalDevice, graphicsQueue, computeQueue, surface, graphicsQueueMutex, swapChainImages, rayTracingAvailable);
 
 	return true;
 }

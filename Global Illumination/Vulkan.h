@@ -31,6 +31,8 @@ public:
 	std::mutex* getPresentQueueMutex() { return m_mutexPresentQueue; }
 	std::mutex* getComputeQueueMutex() { return m_mutexComputeQueue; }
 
+	bool isRayTracingAvailable() { return m_raytracingAvailable; }
+
 private:
 	/* Main Loading Functions */
 	void createInstance();

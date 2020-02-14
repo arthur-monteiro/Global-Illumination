@@ -23,7 +23,7 @@ public:
     ~SceneManager();
 
     void load(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue graphicsQueue, VkQueue computeQueue, VkSurfaceKHR surface, std::mutex * graphicsQueueMutex,
-              std::vector<Image*> swapChainImages);
+              std::vector<Image*> swapChainImages, bool rayTracingAvailable);
 
 	void changeOption(std::string parameter, std::wstring value);
 
@@ -63,6 +63,7 @@ private:
     CommandPool m_graphicsCommandPool;
 	CommandPool m_computeCommandPool;
 	DescriptorPool m_descriptorPool;
+	bool m_rayTracingAvailable = false;
 
 	Camera m_camera;
 

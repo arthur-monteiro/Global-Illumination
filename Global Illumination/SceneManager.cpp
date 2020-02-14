@@ -5,9 +5,10 @@ SceneManager::~SceneManager()
 }
 
 void SceneManager::load(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue graphicsQueue, VkQueue computeQueue, VkSurfaceKHR surface,
-        std::mutex * graphicsQueueMutex,  std::vector<Image*> swapChainImages)
+        std::mutex * graphicsQueueMutex,  std::vector<Image*> swapChainImages, bool rayTracingAvailable)
 {
 	m_swapChainImages = swapChainImages;
+	m_rayTracingAvailable = rayTracingAvailable;
 	
 	// Command Pool + Descriptor Pool
     m_graphicsCommandPool.initializeForGraphicsQueue(device, physicalDevice, surface);
@@ -402,7 +403,7 @@ void SceneManager::createHUD(VkDevice device, VkPhysicalDevice physicalDevice, V
 	{
 		graphicsQueueMutex->lock();
 		m_HUD.initialize(device, physicalDevice, m_graphicsCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), graphicsQueue, swapChainImages[0]->getExtent(),
-			changeOptionCallback, this);
+			changeOptionCallback, this, m_rayTracingAvailable);
 		graphicsQueueMutex->unlock();
 	}
 	else

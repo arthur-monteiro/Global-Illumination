@@ -3,10 +3,11 @@
 #include <utility>
 
 void HUD::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue,
-                     VkExtent2D outputExtent, std::function<void(void*, std::string, std::wstring)> callback, void* instance)
+                     VkExtent2D outputExtent, std::function<void(void*, std::string, std::wstring)> callback, void* instance, bool raytracingAvailable)
 {
 	m_callback = callback;
 	m_instanceForCallback = instance;
+	m_rayTracingAvailable = raytracingAvailable;
 	
 	m_outputExtent = outputExtent;
 	m_font.initialize(device, physicalDevice, commandPool, graphicsQueue, 48, "Fonts/arial.ttf");
@@ -116,8 +117,13 @@ void HUD::buildMenu(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandP
 		{ L"No", L"2x", L"4x", L"8x" }, &m_font);
 	m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"MSAA", changeMSAACallback, this, 0,
 		{ L"No", L"2x", L"4x", L"8x" }, &m_font);
+	
+	std::vector<std::wstring> shadowOptions = { L"No" };
+	if (m_rayTracingAvailable)
+		shadowOptions.push_back(L"NVidia Ray Tracing");
 	int shadowMenuItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Shadows", changeShadowsCallback, this, 0, 
-		{ L"No", L"NVidia Ray Tracing" }, &m_font);
+		shadowOptions, &m_font);
+
 	int rtShadowAAItem = m_menu.addDependentPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Shadow Anti-aliasing", changeRTShadowsAA, this, 0,
 		{ L"No", L"2x", L"4x", L"8x" }, &m_font, MENU_ITEM_TYPE_PICKLIST, shadowMenuItem, { 1 });
 	int aoItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Ambient Occlusion", changeAO, this, 0,

@@ -11,7 +11,7 @@ public:
 	~HUD() = default;
 
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue, VkExtent2D outputExtent,
-		std::function<void(void*, std::string, std::wstring)> callback, void* instance);
+		std::function<void(void*, std::string, std::wstring)> callback, void* instance, bool raytracingAvailable);
 	void submit(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, GLFWwindow* window, int fps, bool drawMenu);
 
 	void resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue, VkExtent2D outputExtent);
@@ -40,6 +40,7 @@ private:
 	std::vector<Attachment> m_attachments;
 	std::vector<VkClearValue> m_clearValues;
 	RenderPass m_renderPass;
+	bool m_rayTracingAvailable = false;
 
 	VkExtent2D m_outputExtent;
 	

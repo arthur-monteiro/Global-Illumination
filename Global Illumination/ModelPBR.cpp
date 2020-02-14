@@ -135,25 +135,23 @@ void ModelPBR::loadFromFile(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 	m_mesh.loadFromVertices(device, physicalDevice, commandPool, graphicsQueue, vertices, indices);
 	graphicsQueueMutex->unlock();
 
-	m_textures.resize(materials.size() * 5);
+	m_images.resize(materials.size() * 5);
 	int indexTexture = 0;
 	for (int i(0); i < materials.size(); ++i)
 	{
 		graphicsQueueMutex->lock();
 
-		m_textures[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].diffuse_texname, mtlFolder));
-		m_textures[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].bump_texname, mtlFolder));
-		m_textures[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].specular_highlight_texname, mtlFolder));
-		m_textures[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].ambient_texname, mtlFolder));
-		m_textures[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].ambient_texname, mtlFolder));
+		m_images[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].diffuse_texname, mtlFolder));
+		m_images[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].bump_texname, mtlFolder));
+		m_images[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].specular_highlight_texname, mtlFolder));
+		m_images[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].ambient_texname, mtlFolder));
+		m_images[indexTexture++].createFromFile(device, physicalDevice, commandPool, graphicsQueue, getTexName(materials[i].ambient_texname, mtlFolder));
 
 		graphicsQueueMutex->unlock();
 	}
 
-	for (int i(0); i < m_textures.size(); ++i)
-	{
-		m_textures[i].createSampler(device, VK_SAMPLER_ADDRESS_MODE_REPEAT, static_cast<float>(m_textures[i].getMipLevels()), VK_FILTER_LINEAR);
-	}
+
+	m_sampler.initialize(device, VK_SAMPLER_ADDRESS_MODE_REPEAT, static_cast<float>(m_images[0].getMipLevels()), VK_FILTER_LINEAR);
 
     std::cout << "Model loaded with " << indices.size() / 3 << " triangles" << std::endl;
 }
@@ -161,9 +159,9 @@ void ModelPBR::loadFromFile(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 void ModelPBR::cleanup(VkDevice device)
 {
     m_mesh.cleanup(device);
-	for(Texture& texture : m_textures)
+	for(Image& image : m_images)
 	{
-		texture.cleanup(device);
+		image.cleanup(device);
 	}
 }
 
@@ -176,11 +174,11 @@ std::vector<VertexBuffer> ModelPBR::getVertexBuffers()
     return vertexBuffers;
 }
 
-std::vector<Texture*> ModelPBR::getTextures(int meshID)
+std::vector<Image*> ModelPBR::getImages(int meshID)
 {
-	std::vector<Texture*> r(m_textures.size());
+	std::vector<Image*> r(m_images.size());
 
-	std::transform(m_textures.begin(), m_textures.end(), r.begin(), [](Texture& t) { return &t; });
+	std::transform(m_images.begin(), m_images.end(), r.begin(), [](Image& t) { return &t; });
 
 	return r;
 }

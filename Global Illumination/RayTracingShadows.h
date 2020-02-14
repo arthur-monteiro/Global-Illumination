@@ -28,7 +28,7 @@ public:
 private:
 	void fillCommandBuffer(VkExtent2D extent);
 	
-	void createRaytracingDescriptorSet(VkDevice device, std::vector<Texture*> textures, VkBuffer vertexBuffer, VkBuffer indexBuffer);
+	void createRaytracingDescriptorSet(VkDevice device, std::vector<Image*> images, Sampler* sampler, VkBuffer vertexBuffer, VkBuffer indexBuffer);
 	void updateRaytracingRenderTarget(VkDevice device, VkImageView target);
 	void createShaderBindingTable(VkDevice device, VkPhysicalDevice physicalDevice);
 

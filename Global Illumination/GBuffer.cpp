@@ -43,28 +43,32 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCom
 
 	m_uboMVP.initialize(device, physicalDevice, &ubo, sizeof(MatricesUBO));
 
-	std::vector<TextureLayout> textureLayouts(120);
-	for (int i(0); i < textureLayouts.size(); ++i)
+	std::vector<ImageLayout> imageLayouts(120);
+	for (int i(0); i < imageLayouts.size(); ++i)
 	{
-		textureLayouts[i].accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
-		textureLayouts[i].binding = i + 1;
+		imageLayouts[i].accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
+		imageLayouts[i].binding = i + 2;
 	}
 
+	SamplerLayout samplerLayout;
+	samplerLayout.accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerLayout.binding = 1;
+
 	m_renderer.initialize(device, "Shaders/gbuffer/vert.spv", "Shaders/gbuffer/frag.spv", { VertexPBR::getBindingDescription(0) }, VertexPBR::getAttributeDescriptions(0),
-		{ mvpLayout }, textureLayouts, {}, {}, { false, false, false, false });
+		{ mvpLayout }, {}, imageLayouts, { samplerLayout }, { false, false, false, false });
 
 	std::vector<VertexBuffer> vertexBuffers = model->getVertexBuffers();
 	for (int i(0); i < vertexBuffers.size(); ++i)
 	{
-		std::vector<Texture*> textures = model->getTextures(i);
-		std::vector<std::pair<Texture*, TextureLayout>> rendererTextures(textures.size());
-		for (int j(0); j < rendererTextures.size(); ++j)
+		std::vector<Image*> images = model->getImages(i);
+		std::vector<std::pair<Image*, ImageLayout>> rendererImages(images.size());
+		for (int j(0); j < rendererImages.size(); ++j)
 		{
-			rendererTextures[j].first = textures[j];
-			rendererTextures[j].second = textureLayouts[j];
+			rendererImages[j].first = images[j];
+			rendererImages[j].second = imageLayouts[j];
 		}
 
-		m_renderer.addMesh(device, descriptorPool, vertexBuffers[i], { { &m_uboMVP, mvpLayout } }, rendererTextures, {}, {});
+		m_renderer.addMesh(device, descriptorPool, vertexBuffers[i], { { &m_uboMVP, mvpLayout } }, {}, rendererImages, { { model->getSampler(), samplerLayout } });
 	}
 
 	m_clearValues.resize(5);

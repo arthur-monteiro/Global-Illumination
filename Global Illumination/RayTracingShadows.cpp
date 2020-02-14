@@ -36,7 +36,7 @@ void RayTracingShadows::initialize(VkDevice device, VkPhysicalDevice physicalDev
 	m_textureTarget.setImageLayout(device, commandPool, graphicsQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_ACCESS_SHADER_WRITE_BIT);
 
 	std::vector<VertexBuffer> vertexBuffers = model->getVertexBuffers();
-	createRaytracingDescriptorSet(device, model->getTextures(0), vertexBuffers[0].vertexBuffer, vertexBuffers[0].indexBuffer);
+	createRaytracingDescriptorSet(device, model->getImages(0), model->getSampler(), vertexBuffers[0].vertexBuffer, vertexBuffers[0].indexBuffer);
 
 	m_pipeline.initialize(device, m_rtDescriptorSetLayout, "Shaders/rtShadows/rgen.spv", "Shaders/rtShadows/rmiss.spv", "Shaders/rtShadows/rchit.spv");
 	createShaderBindingTable(device, physicalDevice);
@@ -95,7 +95,7 @@ void RayTracingShadows::resize(VkDevice device, VkPhysicalDevice physicalDevice,
 	vkDestroyDescriptorPool(device, m_rtDescriptorPool, nullptr);
 	
 	std::vector<VertexBuffer> vertexBuffers = model->getVertexBuffers();
-	createRaytracingDescriptorSet(device, model->getTextures(0), vertexBuffers[0].vertexBuffer, vertexBuffers[0].indexBuffer);
+	createRaytracingDescriptorSet(device, model->getImages(0), model->getSampler(), vertexBuffers[0].vertexBuffer, vertexBuffers[0].indexBuffer);
 
 	fillCommandBuffer(extentOutput);
 }
@@ -146,7 +146,7 @@ void RayTracingShadows::fillCommandBuffer(VkExtent2D extent)
 	vkEndCommandBuffer(m_command.getCommandBuffer(0));
 }
 
-void RayTracingShadows::createRaytracingDescriptorSet(VkDevice device, std::vector<Texture*> textures, VkBuffer vertexBuffer, VkBuffer indexBuffer)
+void RayTracingShadows::createRaytracingDescriptorSet(VkDevice device, std::vector<Image*> images, Sampler* sampler, VkBuffer vertexBuffer, VkBuffer indexBuffer)
 {
 	// Add the bindings to the resources
 	// Top-level acceleration structure, usable by both the ray generation and the
@@ -162,7 +162,7 @@ void RayTracingShadows::createRaytracingDescriptorSet(VkDevice device, std::vect
 	// Index buffer
 	m_rtDSG->AddBinding(4, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV);
 	// Textures
-	m_rtDSG->AddBinding(5, static_cast<uint32_t>(textures.size()), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV);
+	m_rtDSG->AddBinding(5, static_cast<uint32_t>(images.size()), VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV);
 	// Params
 	m_rtDSG->AddBinding(6, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_RAYGEN_BIT_NV);
 	
@@ -211,15 +211,15 @@ void RayTracingShadows::createRaytracingDescriptorSet(VkDevice device, std::vect
 
 	// Textures
 	std::vector<VkDescriptorImageInfo> imageInfos;
-	for (size_t i = 0; i < textures.size(); ++i)
+	for (size_t i = 0; i < images.size(); ++i)
 	{
 		VkDescriptorImageInfo imageInfo = {};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView = textures[i]->getImageView();
-		imageInfo.sampler = textures[i]->getSampler();
+		imageInfo.imageView = images[i]->getImageView();
+		imageInfo.sampler = sampler->getSampler();
 		imageInfos.push_back(imageInfo);
 	}
-	if (!textures.empty())
+	if (!images.empty())
 	{
 		m_rtDSG->Bind(m_rtDescriptorSet, 5, imageInfos);
 	}

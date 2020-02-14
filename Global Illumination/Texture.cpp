@@ -22,16 +22,7 @@ void Texture::createFromPixels(VkDevice device, VkPhysicalDevice physicalDevice,
 
 bool Texture::createFromFile(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::string filename)
 {
-	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	texChannels = 4;
-
-	if (!pixels)
-		throw std::runtime_error("Error : loading image " + filename);
-
-	m_image.createFromPixels(device, physicalDevice, commandPool, graphicsQueue, { static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), static_cast<uint32_t>(texChannels) }, VK_FORMAT_R8G8B8A8_UNORM,
-		pixels);
-	stbi_image_free(pixels);
+	m_image.createFromFile(device, physicalDevice, commandPool, graphicsQueue, filename);
 
 	return true;
 }

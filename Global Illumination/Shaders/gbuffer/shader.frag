@@ -2,7 +2,8 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_EXT_nonuniform_qualifier : enable
 
-layout(binding = 1) uniform sampler2D[] textures;
+layout(binding = 1) uniform sampler textureSampler;
+layout(binding = 2) uniform texture2D[] textures;
 
 layout(location = 0) in vec3 inViewdPos;
 layout(location = 1) in vec2 inTexCoord;
@@ -16,10 +17,12 @@ layout(location = 3) out vec4 outRoughnessMetalAO;
 
 void main() 
 {
-	outAlbedo = texture(textures[inMaterialID * 5], inTexCoord);
-	vec3 normal = (texture(textures[inMaterialID * 5 + 1], inTexCoord).rgb * 2.0 - vec3(1.0)) * inTBN;
+	outAlbedo = texture(sampler2D(textures[inMaterialID * 5], textureSampler), inTexCoord);
+	vec3 normal = (texture(sampler2D(textures[inMaterialID * 5 + 1], textureSampler), inTexCoord).rgb * 2.0 - vec3(1.0)) * inTBN;
 	normal = normalize(normal);
 	outNormal = vec4(normal, 1.0);
-	outRoughnessMetalAO = vec4(texture(textures[inMaterialID * 5 + 2], inTexCoord).r, texture(textures[inMaterialID * 5 + 3], inTexCoord).r, texture(textures[inMaterialID * 5 + 4], inTexCoord).r, 1.0);
+	outRoughnessMetalAO = vec4(texture(sampler2D(textures[inMaterialID * 5 + 2], textureSampler), inTexCoord).r, 
+		texture(sampler2D(textures[inMaterialID * 5 + 3], textureSampler), inTexCoord).r,
+		texture(sampler2D(textures[inMaterialID * 5 + 4], textureSampler), inTexCoord).r, 1.0);
 	outViewPos = vec4(inViewdPos, 1.0);
 }

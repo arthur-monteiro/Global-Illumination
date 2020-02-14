@@ -26,13 +26,15 @@ public:
     void cleanup(VkDevice device);
 
     std::vector<VertexBuffer> getVertexBuffers();
-	std::vector<Texture*> getTextures(int meshID);
+	std::vector<Image*> getImages(int meshID);
+	Sampler* getSampler() { return &m_sampler; }
 	glm::mat4 getTransformation() { return m_transformationMatrix; }
 
 private:
     //std::vector<MeshPBR> m_meshes;
 	Mesh<VertexPBR> m_mesh;
-	std::vector<Texture> m_textures;
+	std::vector<Image> m_images;
+	Sampler m_sampler;
 	glm::mat4 m_transformationMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f));
 
 private:

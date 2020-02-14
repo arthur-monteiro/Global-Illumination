@@ -62,7 +62,7 @@ bool SwapChain::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkS
 	if (!(swapchainFormatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT))
 	{
 		m_invertColors = true;
-		surfaceFormat.format = VK_FORMAT_R8G8B8A8_UNORM;
+		//surfaceFormat.format = VK_FORMAT_R8G8B8A8_UNORM;
 	}
 
 	for (int i(0); i < imageCount; ++i)

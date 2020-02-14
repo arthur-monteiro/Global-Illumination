@@ -7,9 +7,9 @@ layout (binding = 0, rgba32f) uniform readonly image2DMS inWorldPos;
 layout (binding = 1, rgba32f) uniform readonly image2DMS inAlbedo;
 layout (binding = 2, rgba32f) uniform readonly image2DMS inNormal;
 layout (binding = 3, rgba32f) uniform readonly image2DMS inRoughnessMetalAO;
-layout (binding = 4, rgba32f) uniform readonly image2D inShadowMask;
-layout (binding = 5, rgba32f) uniform readonly image2D inHUD;
-layout (binding = 6, rgba32f) uniform readonly image2D inAO;
+layout (binding = 4, rgba8) uniform readonly image2D inShadowMask;
+layout (binding = 5, rgba8) uniform readonly image2D inHUD;
+layout (binding = 6, rgba8) uniform readonly image2D inAO;
 layout (binding = 7, rgba8) uniform image2D resultImage;
 
 layout(binding = 8, std140) uniform readonly UniformBufferObjectLighting

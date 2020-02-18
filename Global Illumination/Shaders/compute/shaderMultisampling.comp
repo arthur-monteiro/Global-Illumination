@@ -8,11 +8,10 @@ layout (binding = 1, rgba32f) uniform readonly image2DMS inAlbedo;
 layout (binding = 2, rgba32f) uniform readonly image2DMS inNormal;
 layout (binding = 3, rgba32f) uniform readonly image2DMS inRoughnessMetalAO;
 layout (binding = 4, rgba8) uniform readonly image2D inShadowMask;
-layout (binding = 5, rgba8) uniform readonly image2D inHUD;
-layout (binding = 6, rgba8) uniform readonly image2D inAO;
-layout (binding = 7, rgba8) uniform image2D resultImage;
+layout (binding = 5, rgba8) uniform readonly image2D inAO;
+layout (binding = 6, rgba8) uniform image2D resultImage;
 
-layout(binding = 8, std140) uniform readonly UniformBufferObjectLighting
+layout(binding = 7, std140) uniform readonly UniformBufferObjectLighting
 {
 	vec4 cameraPosition;
 
@@ -20,9 +19,8 @@ layout(binding = 8, std140) uniform readonly UniformBufferObjectLighting
 	vec4 colorDirectionalLight;
 } uboLighting;
 
-layout(binding = 9, std140) uniform readonly UniformBufferObjectParams
+layout(binding = 8, std140) uniform readonly UniformBufferObjectParams
 {
-	uint drawHUD;
     uint drawShadows;
     uint sampleCount;
     uint useAO;
@@ -94,20 +92,10 @@ void main()
 
         colors[i] = ambient + Lo;
 
-        float exposure = 0.35;
-        colors[i] = vec3(1.0) - exp(-colors[i] * exposure);
-        colors[i] = pow(colors[i], vec3(1.0 / 2.2));
-
         colorSum += colors[i];
     }
 
     vec3 color = colorSum / uboParams.sampleCount;
-
-    if(uboParams.drawHUD == 1)
-    {
-        vec4 hud = imageLoad(inHUD, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgba;
-        color = color * (1.0 - hud.a) + hud.rgb * hud.a; 
-    }
 
     imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color, 1.0));
 }

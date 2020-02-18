@@ -27,9 +27,10 @@ public:
 	static void changeRTShadowsAA(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("rtshadow_sample_count", option); }
 	static void changeAO(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("ao", option); }
 	static void changeSSAOPower(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("ssao_power", option); }
+	static void changeReflections(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("reflection", option); }
 
 	void drawFPSCounter(bool status);
-	void applyCallback(std::string parameter, std::wstring value) const { m_callback(m_instanceForCallback, std::move(parameter), std::move(value)); }
+	void applyCallback(std::string parameter, std::wstring value);
 
 private:
 	void buildMenu(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue);
@@ -51,6 +52,9 @@ private:
 
 	Menu m_menu;
 	bool m_currentDrawMenu = false;
+	int m_needToDisable = -1;
+	int m_needToEnable = -1;
+	int m_msaaItem, m_upscaleItem;
 
 	Renderer m_renderer;
 	bool m_shouldRefillCommandBuffer = false;

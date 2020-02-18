@@ -74,7 +74,7 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCom
 	m_clearValues.resize(5);
 	m_clearValues[0] = { 1.0f };
 	m_clearValues[1] = { 1.0f, 0.0f, 0.0f, 1.0f };
-	m_clearValues[2] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	m_clearValues[2] = { -1.0f, 0.0f, 0.0f, 1.0f };
 	m_clearValues[3] = { 1.0f, 0.0f, 0.0f, 1.0f };
 	m_clearValues[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 

@@ -59,6 +59,9 @@
     <ClCompile Include="AmbientOcclusion.cpp" />
     <ClCompile Include="SSAO.cpp" />
     <ClCompile Include="Blur.cpp" />
+    <ClCompile Include="ToneMapping.cpp" />
+    <ClCompile Include="Merge.cpp" />
+    <ClCompile Include="Skybox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -115,6 +118,9 @@
     <ClInclude Include="AmbientOcclusion.h" />
     <ClInclude Include="SSAO.h" />
     <ClInclude Include="Blur.h" />
+    <ClInclude Include="ToneMapping.h" />
+    <ClInclude Include="Merge.h" />
+    <ClInclude Include="Skybox.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

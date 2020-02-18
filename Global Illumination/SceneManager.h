@@ -15,6 +15,8 @@
 #include "PostProcessAA.h"
 #include "PBRCompute.h"
 #include "AmbientOcclusion.h"
+#include "ToneMapping.h"
+#include "Merge.h"
 
 class SceneManager
 {
@@ -97,6 +99,10 @@ private:
 	PBRCompute m_pbrCompute;
 	ParamsUBO m_uboParamsData;
 	bool m_needUpdateUBOParams = false;
+
+	ToneMapping m_toneMapping;
+
+	Merge m_merge;
 	
 	std::vector<Texture> m_swapchainTextures;
 	std::vector<Operation> m_transitSwapchainToLayoutGeneral;

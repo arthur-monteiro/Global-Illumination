@@ -31,7 +31,7 @@ private:
 	{
 		glm::mat4 projection;
 		glm::vec4 power = glm::vec4(1.0f);
-		std::array<glm::vec4, 64> samples;
+		std::array<glm::vec4, 16> samples;
 		std::array<glm::vec4, 16> noise;
 	};
 	SsaoUBO m_uboData;

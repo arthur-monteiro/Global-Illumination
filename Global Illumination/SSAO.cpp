@@ -7,8 +7,8 @@ void SSAO::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkComman
 	const std::uniform_real_distribution<float> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
 	std::random_device rd;
 	std::default_random_engine generator(rd());
-	std::array<glm::vec4, 64> ssaoKernel;
-	for (unsigned int i = 0; i < 64; ++i)
+	std::array<glm::vec4, 16> ssaoKernel;
+	for (unsigned int i = 0; i < 16; ++i)
 	{
 		glm::vec3 sample(
 			randomFloats(generator) * 2.0 - 1.0,

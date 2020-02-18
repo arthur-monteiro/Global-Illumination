@@ -29,7 +29,7 @@ private:
 	Texture m_defaultTexture;
 	Semaphore m_renderFinishedSemaphore;
 
-	enum class ShadowType { NO, RTX };
+	enum class ShadowType { NO, RTX, CSM };
 	ShadowType m_shadowType = ShadowType::NO;
 	
 	RayTracingShadows m_rtShadows;

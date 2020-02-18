@@ -21,8 +21,8 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 	/* Shaders */
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
-	VkShaderModule vertShaderModule;
-	VkShaderModule fragShaderModule;
+	VkShaderModule vertShaderModule = VK_NULL_HANDLE;
+	VkShaderModule fragShaderModule = VK_NULL_HANDLE;
 
 	std::vector<char> vertShaderCode = readFile(vertexShader);
 	vertShaderModule = createShaderModule(vertShaderCode, device);

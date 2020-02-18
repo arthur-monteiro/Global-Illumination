@@ -30,6 +30,9 @@ public:
 	                             void* instance, int defaultValue, std::vector<std::wstring> options, Font* font, int itemTypeSrc, int itemIdSrc, std::vector<int> activateValues);
 	/*void addDependency(int itemTypeSrc, int itemIdSrc, int itemTypeDst, int itemIdDst, std::vector<int> activateValues);*/
 
+	void disableItem(VkDevice device, int itemType, int itemId);
+	void enableItem(VkDevice device, int itemType, int itemId);
+
 	void build(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue, Font* font);
 
 	void update(VkDevice device, GLFWwindow* window, int windowWidth, int windowHeight);

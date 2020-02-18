@@ -10,18 +10,19 @@ public:
 	~PostProcessAA() = default;
 
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue computeQueue, 
-		Texture* inputTexture, Texture* inputDepth, Texture* inputDepthMS, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
-		std::vector<Operation> transitSwapChainToLayoutPresent);
-	void submit(VkDevice device, VkQueue computeQueue, unsigned int swapChainImageIndex, std::vector<Semaphore*> semaphoresToWait);
+		Texture* inputTexture, Texture* inputDepth, Texture* inputDepthMS);
+	void submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> semaphoresToWait);
 
 	void cleanup(VkDevice device, VkCommandPool commandPool);
 
 	// Getters
-	VkSemaphore getSemaphore() { return m_processFinishedSemaphore.getSemaphore(); }
+	Semaphore* getSemaphore() { return &m_processFinishedSemaphore; }
+	Texture* getOutputTexture() { return &m_outputTexture; }
 	
 private:
-	std::vector<ComputePass> m_deferredMsaaPasses;
+	ComputePass m_pass;
 	UniformBufferObject m_ubo;
+	Texture m_outputTexture;
 
 	Semaphore m_processFinishedSemaphore;
 };

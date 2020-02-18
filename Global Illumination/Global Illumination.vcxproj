@@ -179,6 +179,7 @@
     <ClCompile Include="LoadingManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="Merge.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Model2D.cpp" />
@@ -197,11 +198,13 @@
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Semaphore.cpp" />
     <ClCompile Include="Shadows.cpp" />
+    <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="SSAO.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="SystemManager.cpp" />
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="ToneMapping.cpp" />
     <ClCompile Include="UniformBufferObject.cpp" />
     <ClCompile Include="Vulkan.cpp" />
     <ClCompile Include="VulkanHelper.cpp" />
@@ -234,6 +237,7 @@
     <ClInclude Include="Instance.h" />
     <ClInclude Include="LoadingManager.h" />
     <ClInclude Include="Menu.h" />
+    <ClInclude Include="Merge.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Model2D.h" />
@@ -252,11 +256,13 @@
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="Shadows.h" />
+    <ClInclude Include="Skybox.h" />
     <ClInclude Include="SSAO.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="SystemManager.h" />
     <ClInclude Include="Text.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="ToneMapping.h" />
     <ClInclude Include="UniformBufferObject.h" />
     <ClInclude Include="Vulkan.h" />
     <ClInclude Include="VulkanHelper.h" />

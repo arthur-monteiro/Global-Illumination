@@ -11,12 +11,12 @@ layout(binding = 3, std140) uniform readonly UniformBufferObject
 {
     mat4 projection;
     vec4 power;
-	vec3 samples[64];
+	vec3 samples[16];
     vec3 noise[16];
 } ubo;
 
-int kernelSize = 64;
-float radius = 1.0;
+int kernelSize = 16;
+float radius = 0.5;
 float bias = 0.025;
 
 float LinearizeDepth(float depth)

@@ -99,6 +99,38 @@ int Menu::addDependentPicklistItem(VkDevice device, VkPhysicalDevice physicalDev
 	return r;
 }
 
+void Menu::disableItem(VkDevice device, int itemType, int itemId)
+{
+	if (itemType == MENU_ITEM_TYPE_PICKLIST)
+	{
+		m_picklistItems[itemId].activated = false;
+		m_quadItems[m_picklistItems[itemId].quadID].color = glm::vec4(ITEM_DEACTIVATED_COLOR, 1.0f);
+
+		m_text.setColor(device, m_picklistItems[itemId].textID, TEXT_COLOR_DEACTIVATED);
+		m_text.setColor(device, m_picklistItems[itemId].textOptionIDs[m_picklistItems[itemId].selectedOption], TEXT_COLOR_DEACTIVATED);
+		for (int& text : m_picklistItems[itemId].textAngleBrackets)
+			m_text.setColor(device, text, TEXT_COLOR_DEACTIVATED);
+	}
+
+	updateQuadUBO(device);
+}
+
+void Menu::enableItem(VkDevice device, int itemType, int itemId)
+{
+	if (itemType == MENU_ITEM_TYPE_PICKLIST)
+	{
+		m_picklistItems[itemId].activated = true;
+		m_quadItems[m_picklistItems[itemId].quadID].color = glm::vec4(ITEM_DEFAULT_COLOR, 1.0f);
+
+		m_text.setColor(device, m_picklistItems[itemId].textID, TEXT_VALUE_COLOR_YES);
+		m_text.setColor(device, m_picklistItems[itemId].textOptionIDs[m_picklistItems[itemId].selectedOption], TEXT_VALUE_COLOR_YES);
+		for (int& text : m_picklistItems[itemId].textAngleBrackets)
+			m_text.setColor(device, text, glm::vec3(0.7f));
+	}
+
+	updateQuadUBO(device);
+}
+
 void Menu::build(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue, Font* font)
 {
 	// Texts

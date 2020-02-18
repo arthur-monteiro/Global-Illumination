@@ -17,6 +17,8 @@ bool Shadows::changeShadowType(VkDevice device, VkPhysicalDevice physicalDevice,
 		requestedType = ShadowType::NO;
 	else if (newType == L"NVidia Ray Tracing")
 		requestedType = ShadowType::RTX;
+	else if (newType == L"CSM")
+		requestedType = ShadowType::CSM;
 
 	if (m_shadowType == requestedType)
 		return false;
@@ -27,6 +29,10 @@ bool Shadows::changeShadowType(VkDevice device, VkPhysicalDevice physicalDevice,
 		m_renderFinishedSemaphore.setPipelineStage(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 
 		m_rtShadows.initialize(device, physicalDevice, commandPool, graphicsQueue, model, mvp, extentOutput);
+	}
+	else if (newType == L"CSM")
+	{
+		m_shadowType = ShadowType::CSM;
 	}
 	else
 	{

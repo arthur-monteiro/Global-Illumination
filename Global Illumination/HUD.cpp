@@ -58,6 +58,17 @@ void HUD::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommand
 
 void HUD::submit(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, GLFWwindow* window, int fps, bool drawMenu)
 {
+	if (m_needToDisable != -1)
+	{
+		m_menu.disableItem(device, MENU_ITEM_TYPE_PICKLIST, m_needToDisable);
+		m_needToDisable = -1;
+	}
+	if (m_needToEnable != -1)
+	{
+		m_menu.enableItem(device, MENU_ITEM_TYPE_PICKLIST, m_needToEnable);
+		m_needToEnable = -1;
+	}
+
 	if(fps > 0 || m_shouldRefillCommandBuffer)
 	{
 		m_fpsCounter.cleanup(device);
@@ -108,14 +119,34 @@ void HUD::drawFPSCounter(bool status)
 	m_shouldRefillCommandBuffer = true;
 }
 
+void HUD::applyCallback(std::string parameter, std::wstring value) 
+{
+	m_callback(m_instanceForCallback, parameter, value);
+
+	if (parameter == "msaa")
+	{
+		if (value == L"No")
+			m_needToEnable = m_upscaleItem;
+		else
+			m_needToDisable = m_upscaleItem;
+	}
+	else if (parameter == "upscale")
+	{
+		if (value == L"No")
+			m_needToEnable = m_msaaItem;
+		else
+			m_needToDisable = m_msaaItem;
+	}
+}
+
 void HUD::buildMenu(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue)
 {
 	m_menu.initialize(device, physicalDevice, commandPool, graphicsQueue, m_outputExtent, std::function<void(void*, VkImageView)>(), this);
 	m_menu.addBooleanItem(device, physicalDevice, commandPool, graphicsQueue, L"Draw FPS Counter", drawFPSCounterCallback, true, this, 
 		{ "", "" }, &m_font);
-	m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Upscale", changeUpscaleCallback, this, 0,
+	m_upscaleItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Upscale", changeUpscaleCallback, this, 0,
 		{ L"No", L"2x", L"4x", L"8x" }, &m_font);
-	m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"MSAA", changeMSAACallback, this, 0,
+	m_msaaItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"MSAA", changeMSAACallback, this, 0,
 		{ L"No", L"2x", L"4x", L"8x" }, &m_font);
 	
 	std::vector<std::wstring> shadowOptions = { L"No" };
@@ -130,6 +161,12 @@ void HUD::buildMenu(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandP
 		{ L"No", L"SSAO" }, &m_font);
 	m_menu.addDependentPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Power", changeSSAOPower, this, 0,
 		{ L"1", L"2", L"5", L"10", L"100" }, &m_font, MENU_ITEM_TYPE_PICKLIST, aoItem, { 1 });
+
+	/*m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Reflections", changeReflections, this, 0,
+		{ L"No", L"SSR" }, &m_font);
+	m_menu.addBooleanItem(device, physicalDevice, commandPool, graphicsQueue, L"Bloom", drawFPSCounterCallback, true, this,
+		{ "", "" }, &m_font);*/
+
 	m_menu.build(device, physicalDevice, commandPool, descriptorPool, graphicsQueue, &m_font);
 }
 

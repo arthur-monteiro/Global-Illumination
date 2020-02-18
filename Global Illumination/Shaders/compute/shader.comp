@@ -8,11 +8,10 @@ layout (binding = 1, rgba32f) uniform readonly image2D inAlbedo;
 layout (binding = 2, rgba32f) uniform readonly image2D inNormal;
 layout (binding = 3, rgba32f) uniform readonly image2D inRoughnessMetalAO;
 layout (binding = 4, rgba8) uniform readonly image2D inShadowMask;
-layout (binding = 5, rgba8) uniform readonly image2D inHUD;
-layout (binding = 6, rgba8) uniform readonly image2D inAO;
-layout (binding = 7, rgba8) uniform image2D resultImage;
+layout (binding = 5, rgba8) uniform readonly image2D inAO;
+layout (binding = 6, rgba8) uniform image2D resultImage;
 
-layout(binding = 8, std140) uniform readonly UniformBufferObjectLighting
+layout(binding = 7, std140) uniform readonly UniformBufferObjectLighting
 {
 	vec4 cameraPosition;
 
@@ -20,9 +19,8 @@ layout(binding = 8, std140) uniform readonly UniformBufferObjectLighting
 	vec4 colorDirectionalLight;
 } uboLighting;
 
-layout(binding = 9, std140) uniform readonly UniformBufferObjectParams
+layout(binding = 8, std140) uniform readonly UniformBufferObjectParams
 {
-	uint drawHUD;
     uint drawShadows;
     uint sampleCount;
     uint useAO;
@@ -38,6 +36,13 @@ const float PI = 3.14159265359;
 void main()
 {
     vec3 albedo = imageLoad(inAlbedo, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
+
+    if(albedo.x < 0.0)
+    {
+        imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(-1.0, 0.0, 0.0, 1.0));
+        return;
+    }
+
     vec3 normal = imageLoad(inNormal, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
     vec3 worldPos = imageLoad(inWorldPos, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
     float roughness = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).r;
@@ -90,15 +95,15 @@ void main()
 
     vec3 color = ambient + Lo;
 
-    float exposure = 0.35;
+    /*float exposure = 0.35;
     color = vec3(1.0) - exp(-color * exposure);
     color = pow(color, vec3(1.0 / 2.2));
 
-    if(uboParams.drawHUD == 1)
+    /*if(uboParams.drawHUD == 1)
     {
         vec4 hud = imageLoad(inHUD, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgba;
         color = color * (1.0 - hud.a) + hud.rgb * hud.a; 
-    }
+    }*/
 
     imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color, 1.0));
 }

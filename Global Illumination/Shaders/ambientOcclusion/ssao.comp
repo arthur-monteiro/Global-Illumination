@@ -16,7 +16,7 @@ layout(binding = 3, std140) uniform readonly UniformBufferObject
 } ubo;
 
 int kernelSize = 16;
-float radius = 0.5;
+float radius = 1.0;
 float bias = 0.025;
 
 float LinearizeDepth(float depth)

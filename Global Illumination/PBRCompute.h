@@ -20,7 +20,7 @@ public:
 		Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
 		std::vector<Operation> transitSwapChainToLayoutPresent, ParamsUBO params);*/
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
-		Texture* shadowMask, Texture* aoTexture, VkExtent2D extentOutput, ParamsUBO params, VkQueue computeQueue);
+		Texture* shadowMask, Texture* aoTexture, Texture* skyboxTexture, VkExtent2D extentOutput, ParamsUBO params, VkQueue computeQueue);
 	
 	void submit(VkDevice device, VkQueue computeQueue, unsigned int swapChainImageIndex, std::vector<Semaphore*> semaphoresToWait, glm::vec3 lightDirection);
 	void submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> semaphoresToWait, glm::vec3 cameraPosition);
@@ -29,7 +29,7 @@ public:
 		Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
 		std::vector<Operation> transitSwapChainToLayoutPresent);*/
 	void recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
-		Texture* shadowMask, Texture* aoTexture, VkExtent2D extent, VkQueue computeQueue);
+		Texture* shadowMask, Texture* aoTexture, Texture* skyboxTexture, VkExtent2D extent, VkQueue computeQueue);
 
 	void cleanup(VkDevice device, VkCommandPool commandPool);
 
@@ -46,7 +46,7 @@ private:
 	//	Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
 	//	std::vector<Operation> transitSwapChainToLayoutPresent);
 	void createPasses(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
-		Texture* shadowMask, Texture* aoTexture, VkQueue graphicsQueue, VkExtent2D extentOutput);
+		Texture* shadowMask, Texture* aoTexture, Texture* skyboxTexture, VkQueue graphicsQueue, VkExtent2D extentOutput);
 	
 private:
 	std::vector<ComputePass> m_computePasses;

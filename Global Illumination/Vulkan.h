@@ -31,7 +31,7 @@ public:
 	std::mutex* getPresentQueueMutex() { return m_mutexPresentQueue; }
 	std::mutex* getComputeQueueMutex() { return m_mutexComputeQueue; }
 
-	bool isRayTracingAvailable() { return m_raytracingAvailable; }
+	HardwareCapabilities getHardwareCapabilities() { return m_hardwareCapabilities; }
 
 private:
 	/* Main Loading Functions */
@@ -87,4 +87,5 @@ private:
 
 	/* Properties */
 	VkSampleCountFlagBits m_maxMsaaSamples = VK_SAMPLE_COUNT_1_BIT;
+	HardwareCapabilities m_hardwareCapabilities;
 };

@@ -16,12 +16,12 @@
 //}
 
 void PBRCompute::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
-	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* aoTexture,
+	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* aoTexture, Texture* skyboxTexture,
 	VkExtent2D extentOutput, ParamsUBO params, VkQueue computeQueue)
 {
 	createUBOs(device, physicalDevice, params);
 
-	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, aoTexture, computeQueue, extentOutput);
+	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, aoTexture, skyboxTexture, computeQueue, extentOutput);
 	
 	m_computePassFinishedSemaphore.initialize(device);
 	m_computePassFinishedSemaphore.setPipelineStage(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
@@ -55,7 +55,7 @@ void PBRCompute::updateParameters(VkDevice device, ParamsUBO parameters)
 void PBRCompute::createUBOs(VkDevice device, VkPhysicalDevice physicalDevice, ParamsUBO params)
 {
 	//m_uboLightingData.cameraPosition = glm::vec4(m_camera.getPosition(), 1.0f);
-	m_uboLightingData.colorDirectionalLight = glm::vec4(10.0f);
+	m_uboLightingData.colorDirectionalLight = glm::vec4(2.0f);
 	m_uboLightingData.directionDirectionalLight = glm::vec4(1.5f, -5.0f, -1.0f, 1.0f);
 	m_uboLighting.initialize(device, physicalDevice, &m_uboLightingData, sizeof(m_uboLightingData));
 
@@ -141,7 +141,7 @@ void PBRCompute::createUBOs(VkDevice device, VkPhysicalDevice physicalDevice, Pa
 //}
 
 void PBRCompute::createPasses(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
-	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* aoTexture, VkQueue computeQueue,
+	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* aoTexture, Texture* skyboxTexture, VkQueue computeQueue,
 	VkExtent2D extentOutput)
 {
 	m_outputTexture.create(device, physicalDevice, extentOutput, VK_IMAGE_USAGE_STORAGE_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
@@ -180,7 +180,7 @@ void PBRCompute::createPasses(VkDevice device, VkPhysicalDevice physicalDevice, 
 	//	texturesForComputePass.emplace_back(hudTexture, textureLayout);
 	//}
 
-	// HUD
+	// AO
 	{
 		TextureLayout textureLayout{};
 		textureLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
@@ -189,14 +189,23 @@ void PBRCompute::createPasses(VkDevice device, VkPhysicalDevice physicalDevice, 
 		texturesForComputePass.emplace_back(aoTexture, textureLayout);
 	}
 
+	// Skybox
+	{
+		TextureLayout textureLayout{};
+		textureLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
+		textureLayout.binding = gBufferTextures.size() + 2; // GBuffer + RT Shadow + AO
+
+		texturesForComputePass.emplace_back(skyboxTexture, textureLayout);
+	}
+
 	// UBOs
 	UniformBufferObjectLayout uboLightingLayout{};
 	uboLightingLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
-	uboLightingLayout.binding = 7;
+	uboLightingLayout.binding = 8;
 
 	UniformBufferObjectLayout uboParamsLayout{};
 	uboParamsLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
-	uboParamsLayout.binding = 8;
+	uboParamsLayout.binding = 9;
 
 	// Create compute passes
 	m_computePasses.resize(1);
@@ -238,11 +247,11 @@ void PBRCompute::cleanup(VkDevice device, VkCommandPool commandPool)
 //}
 
 void PBRCompute::recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
-	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* aoTexture,
+	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* aoTexture, Texture* skyboxTexture,
 	VkExtent2D extent, VkQueue computeQueue)
 {
 	cleanup(device, commandPool);
 
-	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, aoTexture, computeQueue, extent);
+	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, aoTexture, skyboxTexture, computeQueue, extent);
 }
 

@@ -41,6 +41,7 @@ void Texture::setImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue
 
 void Texture::cleanup(VkDevice device)
 {
-	m_image.cleanup(device);
+	if(m_imagePtr == nullptr)
+		m_image.cleanup(device);
 	m_sampler.cleanup(device);
 }

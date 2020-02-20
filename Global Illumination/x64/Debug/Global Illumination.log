@@ -1,1 +1,8 @@
-﻿  Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe
+﻿  GameManager.cpp
+  HUD.cpp
+  main.cpp
+  SceneManager.cpp
+  SystemManager.cpp
+  Generating Code...
+F:\Code\Global Illumination\Global Illumination\HUD.cpp(232,22): warning C4244:  'return': conversion from '__int64' to 'int', possible loss of data
+  Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe

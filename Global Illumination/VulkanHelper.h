@@ -28,8 +28,14 @@ struct SwapChainSupportDetails
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
+struct HardwareCapabilities
+{
+	bool rayTracingAvailable = false;
+	VkDeviceSize VRAMSize = 0;
+};
+
 std::vector<const char*> getRequiredExtensions();
-bool isDeviceSuitable(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, std::vector<const char*> deviceExtensions);
+bool isDeviceSuitable(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, std::vector<const char*> deviceExtensions, HardwareCapabilities& outHardwareCapabilities);
 QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
 VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physicalDevice);
 bool checkDeviceExtensionSupport(VkPhysicalDevice device, std::vector<const char*> deviceExtensions);
@@ -45,3 +51,4 @@ VkCommandPool createCommandPool(VkDevice device, VkPhysicalDevice physicalDevice
 bool hasStencilComponent(VkFormat format);
 bool hasDepthComponent(VkFormat format);
 VkPhysicalDeviceRayTracingPropertiesNV getPhysicalDeviceRayTracingProperties(VkPhysicalDevice physicalDevice);
+void copyImage(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage source, VkImage dst, uint32_t width, uint32_t height, uint32_t baseArrayLayer, uint32_t mipLevel);

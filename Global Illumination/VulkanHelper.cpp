@@ -20,7 +20,7 @@ std::vector<const char*> getRequiredExtensions()
 	return extensions;
 }
 
-bool isDeviceSuitable(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, std::vector<const char*> deviceExtensions)
+bool isDeviceSuitable(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, std::vector<const char*> deviceExtensions, HardwareCapabilities& outHardwareCapabilities)
 {
 	QueueFamilyIndices indices = findQueueFamilies(physicalDevice, surface);
 
@@ -35,6 +35,22 @@ bool isDeviceSuitable(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, std
 
 	VkPhysicalDeviceFeatures supportedFeatures;
 	vkGetPhysicalDeviceFeatures(physicalDevice, &supportedFeatures);
+
+	VkPhysicalDeviceMemoryProperties memoryProperties;
+	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+
+	for (int i(0); i < memoryProperties.memoryHeapCount; ++i)
+	{
+		if (memoryProperties.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
+		{
+			outHardwareCapabilities.VRAMSize = memoryProperties.memoryHeaps[i].size;
+			if (memoryProperties.memoryHeaps[i].size < 1073741824)
+			{
+				std::cout << "Not enough memory : " << memoryProperties.memoryHeaps[i].size << std::endl;
+				return false;
+			}
+		}
+	}
 
 	return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
@@ -297,4 +313,38 @@ VkPhysicalDeviceRayTracingPropertiesNV getPhysicalDeviceRayTracingProperties(VkP
 	vkGetPhysicalDeviceProperties2(physicalDevice, &props);
 
 	return raytracingProperties;
+}
+
+void copyImage(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage source, VkImage dst, uint32_t width, uint32_t height, uint32_t baseArrayLayer, uint32_t mipLevel)
+{
+	VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+
+	VkImageCopy copyRegion = {};
+
+	copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	copyRegion.srcSubresource.baseArrayLayer = 0;
+	copyRegion.srcSubresource.mipLevel = 0;
+	copyRegion.srcSubresource.layerCount = 1;
+	copyRegion.srcOffset = { 0, 0, 0 };
+
+	copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	copyRegion.dstSubresource.baseArrayLayer = baseArrayLayer;
+	copyRegion.dstSubresource.mipLevel = mipLevel;
+	copyRegion.dstSubresource.layerCount = 1;
+	copyRegion.dstOffset = { 0, 0, 0 };
+
+	copyRegion.extent.width = width;
+	copyRegion.extent.height = height;
+	copyRegion.extent.depth = 1;
+
+	vkCmdCopyImage(
+		commandBuffer,
+		source,
+		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		dst,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		1,
+		&copyRegion);
+
+	endSingleTimeCommands(device, graphicsQueue, commandBuffer, commandPool);
 }

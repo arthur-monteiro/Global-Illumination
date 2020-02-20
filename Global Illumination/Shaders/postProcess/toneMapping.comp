@@ -9,9 +9,10 @@ layout (binding = 1, rgba8) uniform image2D resultImage;
 //http://filmicworlds.com/blog/filmic-tonemapping-operators/
 void main()
 {
-    vec3 color = imageLoad(inImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
+    vec4 colorInput = imageLoad(inImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgba;
+    vec3 color = colorInput.rgb;
 
-    float exposure = 0.35;
+    float exposure = 1.0;
     float gamma = 2.2;
 
     color *= exposure;
@@ -19,5 +20,5 @@ void main()
 
     color = (x*(6.2*x+.5))/(x*(6.2*x+1.7)+0.06);
 
-    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color.rgb, 1.0));
+    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color.rgb, colorInput.a));
 }

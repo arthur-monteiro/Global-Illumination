@@ -21,7 +21,7 @@ bool SystemManager::initialize()
 	m_swapChain.initialize(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_vulkan.getSurface(), m_windowManager.getWindow());
 
 	m_gameManager.initialize(m_vulkan.getDevice(), m_vulkan.getPhysicalDevice(), m_vulkan.getSurface(), m_vulkan.getGraphicsQueue(), m_vulkan.getGraphicsQueueMutex(),
-		m_vulkan.getComputeQueue(), m_vulkan.getComputeQueueMutex(), m_swapChain.getImages(), m_vulkan.isRayTracingAvailable());
+		m_vulkan.getComputeQueue(), m_vulkan.getComputeQueueMutex(), m_swapChain.getImages(), m_vulkan.getHardwareCapabilities());
 
 	return true;
 }

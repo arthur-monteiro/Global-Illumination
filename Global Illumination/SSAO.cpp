@@ -73,7 +73,7 @@ void SSAO::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkComman
 	m_renderFinishedSemaphore.initialize(device);
 	m_renderFinishedSemaphore.setPipelineStage(VK_SHADER_STAGE_COMPUTE_BIT);
 
-	m_blur.initialize(device, physicalDevice, commandPool, descriptorPool, computeQueue, &m_outputTexture, 1);
+	m_blur.initialize(device, physicalDevice, commandPool, descriptorPool, computeQueue, &m_outputTexture, 2);
 }
 
 void SSAO::submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> semaphoresToWait)

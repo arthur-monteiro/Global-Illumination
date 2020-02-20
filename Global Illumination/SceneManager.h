@@ -17,6 +17,9 @@
 #include "AmbientOcclusion.h"
 #include "ToneMapping.h"
 #include "Merge.h"
+#include "Skybox.h"
+#include "Bloom.h"
+#include "Reflection.h"
 
 class SceneManager
 {
@@ -25,7 +28,7 @@ public:
     ~SceneManager();
 
     void load(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue graphicsQueue, VkQueue computeQueue, VkSurfaceKHR surface, std::mutex * graphicsQueueMutex,
-              std::vector<Image*> swapChainImages, bool rayTracingAvailable);
+              std::vector<Image*> swapChainImages, HardwareCapabilities hardwareCapabilities);
 
 	void changeOption(std::string parameter, std::wstring value);
 
@@ -65,7 +68,7 @@ private:
     CommandPool m_graphicsCommandPool;
 	CommandPool m_computeCommandPool;
 	DescriptorPool m_descriptorPool;
-	bool m_rayTracingAvailable = false;
+	HardwareCapabilities m_hardwareCapabilities;
 
 	Camera m_camera;
 
@@ -84,6 +87,8 @@ private:
 	Texture m_gbufferDepthTexture;
 	bool m_needUpdateUpscale = false;
 
+	Skybox m_skybox;
+
 	HUD m_HUD;
 	std::vector<Texture> m_HUDTextures;
 	bool m_drawMenu = false;
@@ -100,7 +105,15 @@ private:
 	ParamsUBO m_uboParamsData;
 	bool m_needUpdateUBOParams = false;
 
+	Bloom m_bloom;
+	bool m_useBloom = false;
+	bool m_bloomChange = false;
+
 	ToneMapping m_toneMapping;
+
+	Reflection m_reflections;
+	std::wstring m_reflectionAlgorithm = L"";
+	bool m_useReflections = false;
 
 	Merge m_merge;
 	

@@ -3,11 +3,11 @@
 #include <utility>
 
 void HUD::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue,
-                     VkExtent2D outputExtent, std::function<void(void*, std::string, std::wstring)> callback, void* instance, bool raytracingAvailable)
+                     VkExtent2D outputExtent, std::function<void(void*, std::string, std::wstring)> callback, void* instance, HardwareCapabilities hardwareCapabilities)
 {
 	m_callback = callback;
 	m_instanceForCallback = instance;
-	m_rayTracingAvailable = raytracingAvailable;
+	m_hardwareCapabilities = hardwareCapabilities;
 	
 	m_outputExtent = outputExtent;
 	m_font.initialize(device, physicalDevice, commandPool, graphicsQueue, 48, "Fonts/arial.ttf");
@@ -123,49 +123,79 @@ void HUD::applyCallback(std::string parameter, std::wstring value)
 {
 	m_callback(m_instanceForCallback, parameter, value);
 
-	if (parameter == "msaa")
-	{
-		if (value == L"No")
-			m_needToEnable = m_upscaleItem;
-		else
-			m_needToDisable = m_upscaleItem;
-	}
+	if (parameter == "shadow")
+		m_shadowState = value;
 	else if (parameter == "upscale")
 	{
 		if (value == L"No")
 			m_needToEnable = m_msaaItem;
 		else
 			m_needToDisable = m_msaaItem;
+
+		m_upscaleState = value;
 	}
+	else if (parameter == "msaa")
+	{
+		if (value == L"No")
+			m_needToEnable = m_upscaleItem;
+		else
+			m_needToDisable = m_upscaleItem;
+
+		m_mssaState = value;
+	}
+	else if (parameter == "rtshadow_sample_count")
+		m_rtShadowAAState = value;
+	else if (parameter == "ao")
+		m_aoState = value;
+	else if (parameter == "ssao_power")
+		m_ssaoPowerState = value;
+	else if (parameter == "bloom")
+		m_bloomState = value == L"Yes";
+	else if (parameter == "m_reflectionState")
+		m_reflectionState = value;
 }
 
 void HUD::buildMenu(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue)
 {
 	m_menu.initialize(device, physicalDevice, commandPool, graphicsQueue, m_outputExtent, std::function<void(void*, VkImageView)>(), this);
-	m_menu.addBooleanItem(device, physicalDevice, commandPool, graphicsQueue, L"Draw FPS Counter", drawFPSCounterCallback, true, this, 
-		{ "", "" }, &m_font);
-	m_upscaleItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Upscale", changeUpscaleCallback, this, 0,
-		{ L"No", L"2x", L"4x", L"8x" }, &m_font);
-	m_msaaItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"MSAA", changeMSAACallback, this, 0,
-		{ L"No", L"2x", L"4x", L"8x" }, &m_font);
+	//m_menu.addBooleanItem(device, physicalDevice, commandPool, graphicsQueue, L"Draw FPS Counter", drawFPSCounterCallback, true, this, 
+	//	{ "", "" }, &m_font);
+	//	
+	std::vector<std::wstring> upscaleOptions = { L"No" };
+	if (m_hardwareCapabilities.VRAMSize >= 2147483648)
+		upscaleOptions.push_back(L"2x");
+	if (m_hardwareCapabilities.VRAMSize >= 4294967296)
+		upscaleOptions.push_back(L"4x");
+	if (m_hardwareCapabilities.VRAMSize >= 8589934592)
+		upscaleOptions.push_back(L"8x");
+	m_upscaleItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Upscale", changeUpscaleCallback, this, 
+		getIndexInVector(upscaleOptions, m_upscaleState), upscaleOptions, &m_font);
 	
-	std::vector<std::wstring> shadowOptions = { L"No" };
-	if (m_rayTracingAvailable)
+	const std::vector<std::wstring> mssaOptions = { L"No", L"2x", L"4x", L"8x" };
+	m_msaaItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"MSAA", changeMSAACallback, this,
+		getIndexInVector(mssaOptions, m_mssaState), mssaOptions, &m_font);
+	
+	std::vector<std::wstring> shadowOptions = { L"No", L"CSM" };
+	if (m_hardwareCapabilities.rayTracingAvailable)
 		shadowOptions.push_back(L"NVidia Ray Tracing");
-	int shadowMenuItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Shadows", changeShadowsCallback, this, 0, 
-		shadowOptions, &m_font);
+	int shadowMenuItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Shadows", changeShadowsCallback, this,
+		getIndexInVector(shadowOptions, m_shadowState), shadowOptions, &m_font);
+	const std::vector<std::wstring> RTShadowAAOptions = { L"No", L"2x", L"4x", L"8x" };
+	m_menu.addDependentPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Shadow Anti-aliasing", changeRTShadowsAA, this,
+		getIndexInVector(RTShadowAAOptions, m_rtShadowAAState), RTShadowAAOptions, &m_font, MENU_ITEM_TYPE_PICKLIST, shadowMenuItem, { 2 });
 
-	int rtShadowAAItem = m_menu.addDependentPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Shadow Anti-aliasing", changeRTShadowsAA, this, 0,
-		{ L"No", L"2x", L"4x", L"8x" }, &m_font, MENU_ITEM_TYPE_PICKLIST, shadowMenuItem, { 1 });
-	int aoItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Ambient Occlusion", changeAO, this, 0,
-		{ L"No", L"SSAO" }, &m_font);
-	m_menu.addDependentPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Power", changeSSAOPower, this, 0,
-		{ L"1", L"2", L"5", L"10", L"100" }, &m_font, MENU_ITEM_TYPE_PICKLIST, aoItem, { 1 });
+	const std::vector<std::wstring> AOOptions = { L"No", L"SSAO" };
+	int aoItem = m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Ambient Occlusion", changeAO, this,
+		getIndexInVector(AOOptions, m_aoState), AOOptions, &m_font);
+	const std::vector<std::wstring> SSAOPowerOptions = { L"1", L"2", L"5", L"10", L"100" };
+	m_menu.addDependentPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Power", changeSSAOPower, this,
+		getIndexInVector(SSAOPowerOptions, m_ssaoPowerState),	SSAOPowerOptions, &m_font, MENU_ITEM_TYPE_PICKLIST, aoItem, { 1 });
 
-	/*m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Reflections", changeReflections, this, 0,
-		{ L"No", L"SSR" }, &m_font);
-	m_menu.addBooleanItem(device, physicalDevice, commandPool, graphicsQueue, L"Bloom", drawFPSCounterCallback, true, this,
-		{ "", "" }, &m_font);*/
+	const std::vector<std::wstring> reflectionOptions = { L"No", L"SSR" };
+	m_menu.addPicklistItem(device, physicalDevice, commandPool, graphicsQueue, L"Reflections", changeReflections, this,
+		getIndexInVector(reflectionOptions, m_reflectionState), reflectionOptions, &m_font);
+	m_menu.addBooleanItem(device, physicalDevice, commandPool, graphicsQueue, L"Bloom", changeBloom, m_bloomState, this,
+		{ "", "" }, &m_font);
 
 	m_menu.build(device, physicalDevice, commandPool, descriptorPool, graphicsQueue, &m_font);
 }
@@ -195,4 +225,9 @@ void HUD::fillCommandBuffer(VkDevice device, bool drawMenu)
 	
 	m_renderPass.fillCommandBuffer(device, 0, m_clearValues, renderers);
 	m_shouldRefillCommandBuffer = false;
+}
+
+int HUD::getIndexInVector(const std::vector<std::wstring>& vector, const std::wstring& value)
+{
+	return std::distance(vector.begin(), std::find(vector.begin(), vector.end(), value));
 }

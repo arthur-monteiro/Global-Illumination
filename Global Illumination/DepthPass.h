@@ -11,7 +11,7 @@ public:
 	~DepthPass() = default;
 
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkExtent2D extent, VkSampleCountFlagBits sampleCount,
-		ModelPBR* model, glm::mat4 mvp);
+		ModelPBR* model, glm::mat4 mvp, bool useAsStorage);
 	void submit(VkDevice device, VkQueue graphicsQueue, glm::mat4 mvp);
 
 	void cleanup(VkDevice device, VkCommandPool commandPool, VkDescriptorPool descriptorPool);

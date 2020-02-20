@@ -6,6 +6,9 @@ RayTracingShadows::~RayTracingShadows()
 
 void RayTracingShadows::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, ModelPBR* model, glm::mat4 mvp, VkExtent2D extentOutput)
 {
+	if (m_rtDSG)
+		return;
+	
 	m_rtDSG = std::make_unique<nv_helpers_vk::DescriptorSetGenerator>();
 	
 	std::vector<VertexBuffer> modelVertexBuffers = model->getVertexBuffers();
@@ -116,7 +119,7 @@ void RayTracingShadows::cleanup(VkDevice device, VkCommandPool commandPool)
 	vkDestroyBuffer(device, m_shaderBindingTableBuffer, nullptr);
 	vkFreeMemory(device, m_shaderBindingTableMem, nullptr);
 	m_pipeline.cleanup(device);
-	m_rtDSG.release();
+	m_rtDSG.reset();
 }
 
 void RayTracingShadows::fillCommandBuffer(VkExtent2D extent)

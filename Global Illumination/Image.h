@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <cstring>
+#include <array>
 
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
@@ -24,6 +25,7 @@ public:
 	void createFromPixels(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkExtent3D extent, VkFormat format, unsigned char* pixels);
 	void createFromBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkExtent3D extent, VkFormat format, VkBuffer buffer);
 	void createFromFile(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::string filename);
+	void createCubeMapFromImages(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::array<Image*, 6> images);
 
 	void setImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImageLayout newLayout, VkPipelineStageFlags sourceStage, VkPipelineStageFlags destinationStage);
 	void setImageLayoutWithoutOperation(VkImageLayout newImageLayout) { m_imageLayout = newImageLayout; }

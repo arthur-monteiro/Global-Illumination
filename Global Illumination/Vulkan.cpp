@@ -86,9 +86,10 @@ void Vulkan::pickPhysicalDevice()
 
 	for (auto& device : devices)
 	{
-		if (isDeviceSuitable(device, m_surface, m_deviceExtensions))
+		if (isDeviceSuitable(device, m_surface, m_deviceExtensions, m_hardwareCapabilities))
 		{
-			m_raytracingAvailable = isDeviceSuitable(device, m_surface, m_raytracingDeviceExtensions);
+			m_raytracingAvailable = isDeviceSuitable(device, m_surface, m_raytracingDeviceExtensions, m_hardwareCapabilities);
+			m_hardwareCapabilities.rayTracingAvailable = m_raytracingAvailable;
 
 			if (m_raytracingAvailable)
 				for (int i(0); i < m_raytracingDeviceExtensions.size(); ++i)

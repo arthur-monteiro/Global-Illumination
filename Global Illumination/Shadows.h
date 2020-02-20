@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RayTracingShadows.h"
+#include "CascadedShadowMapping.h"
 
 class Shadows
 {
@@ -9,17 +10,20 @@ public:
 	~Shadows() = default;
 
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue computeQueue, VkExtent2D extent);
-	bool changeShadowType(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, ModelPBR* model, glm::mat4 mvp, VkExtent2D extentOutput,
+	bool changeShadowType(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue, ModelPBR* model, glm::mat4 mvp, glm::vec3 sunDir,
+		float cameraNear, float cameraFar, VkExtent2D extentOutput,
 		const std::wstring& newType);
-	void submit(VkDevice device, VkQueue queue, std::vector<Semaphore*> waitSemaphores, glm::mat4 viewInverse, glm::mat4 projInverse);
+	void submit(VkDevice device, VkQueue graphicsQueue, std::vector<Semaphore*> waitSemaphores, glm::mat4 viewInverse, glm::mat4 projInverse, glm::mat4 view, glm::mat4 model, glm::mat4 projection,
+		float cameraNear, float cameraFOV, glm::vec3 lightDir, glm::vec3 cameraPosition, glm::vec3 cameraOrientation);
 
-	void resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, ModelPBR* model, VkExtent2D extentOutput);
+	void resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue, ModelPBR* model, VkExtent2D extentOutput,
+		glm::vec3 lightDir, float cameraNear, float cameraFar);
 	void changeRTSampleCount(VkDevice device, unsigned int sampleCount);
 
 	void cleanup(VkDevice device, VkCommandPool commandPool);
 
 	Texture* getTexture();
-	Semaphore* getRenderCompleteSemaphore() { return &m_renderFinishedSemaphore; }
+	Semaphore* getRenderCompleteSemaphore();
 	bool isReady() { return m_shadowType != ShadowType::NO; }
 
 private:
@@ -33,6 +37,6 @@ private:
 	ShadowType m_shadowType = ShadowType::NO;
 	
 	RayTracingShadows m_rtShadows;
-	
+	CascadedShadowMapping m_csm;
 };
 

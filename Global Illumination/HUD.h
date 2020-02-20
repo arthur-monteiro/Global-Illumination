@@ -11,7 +11,7 @@ public:
 	~HUD() = default;
 
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue, VkExtent2D outputExtent,
-		std::function<void(void*, std::string, std::wstring)> callback, void* instance, bool raytracingAvailable);
+		std::function<void(void*, std::string, std::wstring)> callback, void* instance, HardwareCapabilities hardwareCapabilities);
 	void submit(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, GLFWwindow* window, int fps, bool drawMenu);
 
 	void resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue, VkExtent2D outputExtent);
@@ -27,6 +27,7 @@ public:
 	static void changeRTShadowsAA(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("rtshadow_sample_count", option); }
 	static void changeAO(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("ao", option); }
 	static void changeSSAOPower(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("ssao_power", option); }
+	static void changeBloom(void* instance, bool status) { reinterpret_cast<HUD*>(instance)->applyCallback("bloom", status ? L"true" : L"false"); }
 	static void changeReflections(void* instance, std::wstring option) { reinterpret_cast<HUD*>(instance)->applyCallback("reflection", option); }
 
 	void drawFPSCounter(bool status);
@@ -36,12 +37,13 @@ private:
 	void buildMenu(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue);
 	void buildFPSCounter(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::wstring textValue);
 	void fillCommandBuffer(VkDevice device, bool drawMenu);
+	static int getIndexInVector(const std::vector<std::wstring>& vector, const std::wstring& value);
 
 private:	
 	std::vector<Attachment> m_attachments;
 	std::vector<VkClearValue> m_clearValues;
 	RenderPass m_renderPass;
-	bool m_rayTracingAvailable = false;
+	HardwareCapabilities m_hardwareCapabilities;
 
 	VkExtent2D m_outputExtent;
 	
@@ -55,6 +57,16 @@ private:
 	int m_needToDisable = -1;
 	int m_needToEnable = -1;
 	int m_msaaItem, m_upscaleItem;
+
+	// Menu current state
+	std::wstring m_shadowState = L"No";
+	std::wstring m_upscaleState = L"No";
+	std::wstring m_mssaState = L"No";
+	std::wstring m_rtShadowAAState = L"No";
+	std::wstring m_aoState = L"No";
+	std::wstring m_ssaoPowerState = L"1";
+	bool m_bloomState = false;
+	std::wstring m_reflectionState = L"No";
 
 	Renderer m_renderer;
 	bool m_shouldRefillCommandBuffer = false;

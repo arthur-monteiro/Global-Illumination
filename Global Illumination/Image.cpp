@@ -96,6 +96,37 @@ void Image::createFromFile(VkDevice device, VkPhysicalDevice physicalDevice, VkC
 	createFromPixels(device, physicalDevice, commandPool, graphicsQueue, { static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), static_cast<uint32_t>(texChannels) }, VK_FORMAT_R8G8B8A8_UNORM,
 		pixels);
 	stbi_image_free(pixels);
+
+	m_extent.width = texWidth;
+	m_extent.height = texHeight;
+	m_sampleCount = VK_SAMPLE_COUNT_1_BIT;
+	m_imageFormat = VK_FORMAT_R8G8B8A8_UNORM;
+}
+
+void Image::createCubeMapFromImages(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::array<Image*, 6> images)
+{
+	m_mipLevels = images[0]->getMipLevels();
+	m_imageFormat = images[0]->getFormat();
+	m_sampleCount = images[0]->getSampleCount();
+	m_extent = images[0]->getExtent();
+
+	createImage(device, physicalDevice, m_extent.width, m_extent.height, m_mipLevels, m_sampleCount, m_imageFormat, VK_IMAGE_TILING_OPTIMAL,
+		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
+		m_image, m_imageMemory);
+	transitionImageLayout(device, commandPool, graphicsQueue, m_image, m_imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels, 6,
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+	for (int i = 0; i < images.size(); ++i)
+	{
+		transitionImageLayout(device, commandPool, graphicsQueue, images[i]->getImage(), m_imageFormat, images[i]->getImageLayout(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 1, 1,
+			VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+		copyImage(device, commandPool, graphicsQueue, images[i]->getImage(), m_image, m_extent.width, m_extent.height, i, 0);
+
+		generateMipmaps(device, physicalDevice, commandPool, graphicsQueue, m_image, m_imageFormat, m_extent.width, m_extent.height, m_mipLevels, i);
+	}
+
+	m_imageView = createImageView(device, m_image, m_imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, m_mipLevels, VK_IMAGE_VIEW_TYPE_CUBE);
+	m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }
 
 void Image::setImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImageLayout newLayout, VkPipelineStageFlags sourceStage, VkPipelineStageFlags destinationStage)

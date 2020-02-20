@@ -1,13 +1,22 @@
 #include "DepthPass.h"
 
 void DepthPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
-	VkDescriptorPool descriptorPool, VkExtent2D extent, VkSampleCountFlagBits sampleCount, ModelPBR* model, glm::mat4 mvp)
+	VkDescriptorPool descriptorPool, VkExtent2D extent, VkSampleCountFlagBits sampleCount, ModelPBR* model, glm::mat4 mvp, bool useAsStorage)
 {
 	m_sampleCount = sampleCount;
 	
 	m_attachments.resize(1);
-	m_attachments[0].initialize(findDepthFormat(physicalDevice), m_sampleCount, VK_IMAGE_LAYOUT_GENERAL, VK_ATTACHMENT_STORE_OP_STORE,
-		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
+	VkImageUsageFlags usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	if (useAsStorage)
+		usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+	else
+		usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+	VkImageLayout layout;
+	if (useAsStorage)
+		layout = VK_IMAGE_LAYOUT_GENERAL;
+	else 
+		layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	m_attachments[0].initialize(findDepthFormat(physicalDevice), m_sampleCount, layout, VK_ATTACHMENT_STORE_OP_STORE, usage);
 
 	m_renderPass.initialize(device, physicalDevice, commandPool, m_attachments, { extent });
 

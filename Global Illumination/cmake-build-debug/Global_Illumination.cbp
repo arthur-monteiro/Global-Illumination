@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="Global_Illumination"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\usr\lib\;CMake Files\..\..\..\..\..\..\usr\lib\x86_64-linux-gnu\;CMake Files\..\..\..\..\..\..\usr\lib\x86_64-linux-gnu\cmake\;CMake Files\..\..\..\..\..\..\usr\lib\x86_64-linux-gnu\cmake\glfw3\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Global_Illumination">
+				<Option output="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug/Global_Illumination" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DGLFW_DLL"/>
+					<Add directory="/usr/include/freetype2"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 Global_Illumination"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Global_Illumination/fast">
+				<Option output="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug/Global_Illumination" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DGLFW_DLL"/>
+					<Add directory="/usr/include/freetype2"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 Global_Illumination/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global\ Illumination/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Attachment.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Attachment.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Camera.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Camera.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Command.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Command.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/CommandPool.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/CommandPool.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ComputePass.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ComputePass.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/DescriptorPool.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/DescriptorPool.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Framebuffer.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Framebuffer.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GBuffer.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GBuffer.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GameManager.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/GameManager.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Image.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Image.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/LoadingManager.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/LoadingManager.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Mesh.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model2DTextured.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Model2DTextured.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ModelPBR.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/ModelPBR.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Operation.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Operation.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Pipeline.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Pipeline.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/RenderPass.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Renderer.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Renderer.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Sampler.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Sampler.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneManager.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SceneManager.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Semaphore.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Semaphore.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SwapChain.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SwapChain.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SystemManager.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/SystemManager.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Texture.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Texture.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/UniformBufferObject.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/UniformBufferObject.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Vulkan.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/Vulkan.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/VulkanHelper.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/WindowManager.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/WindowManager.h">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/main.cpp">
+			<Option target="Global_Illumination"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/../../../../../../usr/lib/x86_64-linux-gnu/cmake/glfw3/glfw3Config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib\x86_64-linux-gnu\cmake\glfw3\"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/../../../../../../usr/lib/x86_64-linux-gnu/cmake/glfw3/glfw3ConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib\x86_64-linux-gnu\cmake\glfw3\"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/../../../../../../usr/lib/x86_64-linux-gnu/cmake/glfw3/glfw3Targets-none.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib\x86_64-linux-gnu\cmake\glfw3\"/>
+		</Unit>
+		<Unit filename="/home/arthur/CLionProjects/Global-Illumination/Global-Illumination/Global Illumination/../../../../../../usr/lib/x86_64-linux-gnu/cmake/glfw3/glfw3Targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib\x86_64-linux-gnu\cmake\glfw3\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

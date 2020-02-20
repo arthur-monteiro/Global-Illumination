@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -105,6 +105,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(STB_IMAGE_PATH)\stb_image;$(TINYOBJ_PATH);$(FREETYPE_PATH)\include\freetype2;$(VULKAN_SDK)\Include;$(GLM_PATH);$(GLFW_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ControlFlowGuard>false</ControlFlowGuard>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,6 +113,9 @@
       <AdditionalLibraryDirectories>$(FREETYPE_PATH)\lib\x64;$(VULKAN_SDK)\Lib;$(GLFW_PATH)\lib-vc2019;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>vulkan-1.lib;glfw3.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -155,37 +159,128 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AccelerationStructure.cpp" />
+    <ClCompile Include="AmbientOcclusion.cpp" />
+    <ClCompile Include="Attachment.cpp" />
+    <ClCompile Include="Bloom.cpp" />
+    <ClCompile Include="Blur.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CascadedShadowMapping.cpp" />
+    <ClCompile Include="Command.cpp" />
+    <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="ComputePass.cpp" />
+    <ClCompile Include="DepthPass.cpp" />
+    <ClCompile Include="DescriptorPool.cpp" />
+    <ClCompile Include="Font.cpp" />
+    <ClCompile Include="Framebuffer.cpp" />
+    <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="GBuffer.cpp" />
+    <ClCompile Include="HUD.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Instance.cpp" />
+    <ClCompile Include="LoadingManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="Merge.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Model2D.cpp" />
+    <ClCompile Include="Model2DTextured.cpp" />
+    <ClCompile Include="ModelPBR.cpp" />
+    <ClCompile Include="Operation.cpp" />
+    <ClCompile Include="PBRCompute.cpp" />
     <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="PostProcessAA.cpp" />
+    <ClCompile Include="RayTracingPass.cpp" />
+    <ClCompile Include="RayTracingPipeline.cpp" />
+    <ClCompile Include="RayTracingShadows.cpp" />
+    <ClCompile Include="Reflection.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="Sampler.cpp" />
-    <ClCompile Include="System.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="Semaphore.cpp" />
+    <ClCompile Include="Shadows.cpp" />
+    <ClCompile Include="Skybox.cpp" />
+    <ClCompile Include="SSAO.cpp" />
+    <ClCompile Include="SSR.cpp" />
+    <ClCompile Include="SwapChain.cpp" />
+    <ClCompile Include="SystemManager.cpp" />
     <ClCompile Include="Text.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="ToneMapping.cpp" />
     <ClCompile Include="UniformBufferObject.cpp" />
     <ClCompile Include="Vulkan.cpp" />
+    <ClCompile Include="VulkanHelper.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\BottomLevelASGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\DescriptorSetGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\RaytracingPipelineGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\ShaderBindingTableGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\TopLevelASGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\VKHelpers.cpp" />
+    <ClCompile Include="vulkannv\vulkan_raytracing.cpp" />
+    <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AccelerationStructure.h" />
+    <ClInclude Include="AmbientOcclusion.h" />
+    <ClInclude Include="Attachment.h" />
+    <ClInclude Include="Bloom.h" />
+    <ClInclude Include="Blur.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CascadedShadowMapping.h" />
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="CommandPool.h" />
     <ClInclude Include="ComputePass.h" />
+    <ClInclude Include="DepthPass.h" />
+    <ClInclude Include="DescriptorPool.h" />
+    <ClInclude Include="Font.h" />
+    <ClInclude Include="Framebuffer.h" />
+    <ClInclude Include="GameManager.h" />
+    <ClInclude Include="GBuffer.h" />
+    <ClInclude Include="HUD.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Instance.h" />
+    <ClInclude Include="LoadingManager.h" />
     <ClInclude Include="Menu.h" />
+    <ClInclude Include="Merge.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="Model2D.h" />
+    <ClInclude Include="Model2DTextured.h" />
+    <ClInclude Include="ModelPBR.h" />
+    <ClInclude Include="Operation.h" />
+    <ClInclude Include="PBRCompute.h" />
     <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="PostProcessAA.h" />
+    <ClInclude Include="RayTracingPass.h" />
+    <ClInclude Include="RayTracingPipeline.h" />
+    <ClInclude Include="RayTracingShadows.h" />
+    <ClInclude Include="Reflection.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="Sampler.h" />
-    <ClInclude Include="System.h" />
+    <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="Semaphore.h" />
+    <ClInclude Include="Shadows.h" />
+    <ClInclude Include="Skybox.h" />
+    <ClInclude Include="SSAO.h" />
+    <ClInclude Include="SSR.h" />
+    <ClInclude Include="SwapChain.h" />
+    <ClInclude Include="SystemManager.h" />
     <ClInclude Include="Text.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="ToneMapping.h" />
     <ClInclude Include="UniformBufferObject.h" />
     <ClInclude Include="Vulkan.h" />
+    <ClInclude Include="VulkanHelper.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\BottomLevelASGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\DescriptorSetGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\RaytracingPipelineGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\ShaderBindingTableGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\TopLevelASGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\VKHelpers.h" />
+    <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

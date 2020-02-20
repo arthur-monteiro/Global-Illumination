@@ -1,16 +1,25 @@
 #pragma once
 
-#include "Vulkan.h"
+#include "VulkanHelper.h"
+
+struct SamplerLayout
+{
+	VkShaderStageFlags accessibility;
+	uint32_t binding;
+};
 
 class Sampler
 {
 public:
-	void create(Vulkan* vk, VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter);
+	Sampler() = default;
+	~Sampler();
+
+	void initialize(VkDevice device, VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter);
 	void cleanup(VkDevice device);
 
 	VkSampler getSampler() { return m_textureSampler; }
 
 private:
-	VkSampler m_textureSampler = NULL;
+	VkSampler m_textureSampler = VK_NULL_HANDLE;
 };
 

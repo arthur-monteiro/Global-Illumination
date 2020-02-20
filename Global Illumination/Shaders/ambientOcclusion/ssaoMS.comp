@@ -1,0 +1,62 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout (binding = 0, rgba32f) uniform readonly image2DMS inViewPos;
+layout (binding = 1, rgba32f) uniform readonly image2DMS inNormal;
+layout (binding = 2, rgba8) uniform image2D resultImage;
+
+layout(binding = 3, std140) uniform readonly UniformBufferObject
+{
+    mat4 projection;
+    vec4 power;
+	vec3 samples[16];
+    vec3 noise[16];
+} ubo;
+
+int kernelSize = 16;
+float radius = 1.0;
+float bias = 0.025;
+
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // Back to NDC 
+    return (2.0 * 0.1 * 50.0) / (0.1 + 50.0 - z * (0.1 - 50.0));
+}
+
+void main()
+{
+    vec3 normal = imageLoad(inNormal, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), 0).rgb;
+    vec3 viewPos = imageLoad(inViewPos, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), 0).rgb;
+
+    ivec2 inputSize = imageSize(inViewPos);
+    uint idNoise = (gl_GlobalInvocationID.x / inputSize.x) * 3 + 12 * (gl_GlobalInvocationID.y / inputSize.y);
+    vec3 randomVec = ubo.noise[idNoise];
+
+    vec3 tangent   = normalize(randomVec - normal * dot(randomVec, normal));
+    vec3 bitangent = cross(normal, tangent);
+    mat3 TBN       = mat3(tangent, bitangent, normal);  
+
+    float occlusion = 0.0;
+    for(int i = 0; i < kernelSize; ++i)
+    {
+        // get sample position
+        vec3 samplePoint = TBN * ubo.samples[i]; // From tangent to view-space
+        samplePoint = viewPos + samplePoint * radius; 
+
+        vec4 offset = vec4(samplePoint, 1.0);
+        offset      = ubo.projection * offset;    // from view to clip-space
+        offset.xyz /= offset.w;               // perspective divide
+        offset.xyz  = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0  
+        offset.xy *= inputSize; // to range 0 - textureSize
+
+        float depth = imageLoad(inViewPos, ivec2(offset.xy), 0).z;
+
+        float rangeCheck = clamp(smoothstep(0.0, 1.0, radius / abs(viewPos.z- depth)),0.0, 1.0);
+        occlusion += (depth >= samplePoint.z + bias ? 1.0 : 0.0) * rangeCheck;    
+    } 
+
+    occlusion = 1.0 - (occlusion / kernelSize);
+    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(pow(occlusion, ubo.power.x).rrr, 1.0));
+}

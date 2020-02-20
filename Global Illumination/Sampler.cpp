@@ -1,6 +1,10 @@
 #include "Sampler.h"
 
-void Sampler::create(Vulkan* vk, VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter)
+Sampler::~Sampler()
+{
+}
+
+void Sampler::initialize(VkDevice device, VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter)
 {
 	VkSamplerCreateInfo samplerInfo = {};
 	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -11,7 +15,7 @@ void Sampler::create(Vulkan* vk, VkSamplerAddressMode addressMode, float mipLeve
 	samplerInfo.addressModeV = addressMode;
 	samplerInfo.addressModeW = addressMode;
 
-	samplerInfo.anisotropyEnable = VK_FALSE;
+	samplerInfo.anisotropyEnable = VK_TRUE;
 	samplerInfo.maxAnisotropy = 16;
 
 	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -24,8 +28,10 @@ void Sampler::create(Vulkan* vk, VkSamplerAddressMode addressMode, float mipLeve
 	samplerInfo.minLod = 0.0f;
 	samplerInfo.maxLod = mipLevels;
 
-	if (vkCreateSampler(vk->getDevice(), &samplerInfo, nullptr, &m_textureSampler) != VK_SUCCESS)
-		throw std::runtime_error("Error : texture sampler creation");
+	samplerInfo.pNext = VK_NULL_HANDLE;
+
+	if (vkCreateSampler(device, &samplerInfo, nullptr, &m_textureSampler) != VK_SUCCESS)
+		throw std::runtime_error("Error : create sampler");
 }
 
 void Sampler::cleanup(VkDevice device)

@@ -1,0 +1,254 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout (binding = 0, rgba8) uniform readonly image2D inColor;
+layout (binding = 1, rgba32f) uniform readonly image2D inViewPos;
+layout (binding = 2, rgba32f) uniform readonly image2D inNormal;
+layout (binding = 3, rgba8) uniform image2D resultImage;
+
+layout(binding = 4, std140) uniform readonly UniformBufferObject
+{
+    mat4 projection;
+} ubo;
+
+float maxDistance = 10.0;
+float nearPlane = 0.1;
+
+float distanceSquared(vec2 a, vec2 b)
+{
+    a -= b;
+    return dot(a, a);
+}
+
+bool intersectsDepthBuffer(float z, float minZ, float maxZ)
+{
+    /*
+     * Based on how far away from the camera the depth is,
+     * adding a bit of extra thickness can help improve some
+     * artifacts. Driving this value up too high can cause
+     * artifacts of its own.
+     */
+    float depthScale = min(1.0f, z * 1.0);
+    z += 0.1 + mix(0.0f, 2.0f, depthScale);
+    return (maxZ >= z) && (minZ - 0.1 <= z);
+}
+
+void swap(inout float a, inout float b)
+{
+    float t = a;
+    a = b;
+    b = t;
+}
+
+
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // Back to NDC 
+    return (2.0 * 0.1 * 50.0) / (0.1 + 50.0 - z * (0.1 - 50.0));
+}
+
+float linearDepthTexelFetch(ivec2 hitPixel)
+{
+    // Load returns 0 for any value accessed out of bounds
+    return LinearizeDepth(imageLoad(inViewPos, ivec2(hitPixel.xy)).z);
+}
+
+bool traceScreenSpaceRay(
+    // Camera-space ray origin, which must be within the view volume
+    vec3 csOrig,
+    // Unit length camera-space ray direction
+    vec3 csDir,
+    // Number between 0 and 1 for how far to bump the ray in stride units
+    // to conceal banding artifacts. Not needed if stride == 1.
+    float jitter, ivec2 inputSize,
+    // Pixel coordinates of the first intersection with the scene
+    out vec2 hitPixel,
+    // Camera space location of the ray hit
+    out vec3 hitPoint)
+{
+    // Clip to the near plane
+    float rayLength = ((csOrig.z + csDir.z * maxDistance) < nearPlane) ? (nearPlane - csOrig.z) / csDir.z : maxDistance;
+    vec3 csEndPoint = csOrig + csDir * rayLength;
+
+    // Project into homogeneous clip space
+    vec4 H0 = ubo.projection * vec4(csOrig, 1.0f);
+    H0.xy *= inputSize;
+    vec4 H1 = ubo.projection * vec4(csEndPoint, 1.0f);
+    H1.xy *= inputSize;
+    float k0 = 1.0 / H0.w;
+    float k1 = 1.0 / H1.w;
+
+    // The interpolated homogeneous version of the camera-space points
+    vec3 Q0 = csOrig * k0;
+    vec3 Q1 = csEndPoint * k1;
+
+    // Screen-space endpoints
+    vec2 P0 = H0.xy * k0;
+    vec2 P1 = H1.xy * k1;
+
+    // If the line is degenerate, make it cover at least one pixel
+    // to avoid handling zero-pixel extent as a special case later
+    P1 += distanceSquared(P0, P1) < 0.0001 ? vec2(0.01, 0.01) : vec2(0.0);
+    vec2 delta = P1 - P0;
+
+    // Permute so that the primary iteration is in x to collapse
+    // all quadrant-specific DDA cases later
+    bool permute = false;
+    if(abs(delta.x) < abs(delta.y))
+    {
+        // This is a more-vertical line
+        permute = true;
+        delta = delta.yx;
+        P0 = P0.yx;
+        P1 = P1.yx;
+    }
+
+    float stepDir = sign(delta.x);
+    float invdx = stepDir / delta.x;
+
+    // Track the derivatives of Q and k
+    vec3 dQ = (Q1 - Q0) * invdx;
+    float dk = (k1 - k0) * invdx;
+    vec2 dP = vec2(stepDir, delta.y * invdx);
+
+    // Scale derivatives by the desired pixel stride and then
+    // offset the starting values by the jitter fraction
+    float strideScale = 1.0f - min(1.0f, csOrig.z * 1.0); // !!
+    float stride = 1.0f + strideScale * 1.0;
+    dP *= stride;
+    dQ *= stride;
+    dk *= stride;
+
+    P0 += dP * jitter;
+    Q0 += dQ * jitter;
+    k0 += dk * jitter;
+
+    // Slide P from P0 to P1, (now-homogeneous) Q from Q0 to Q1, k from k0 to k1
+    vec4 PQk = vec4(P0, Q0.z, k0);
+    vec4 dPQk = vec4(dP, dQ.z, dk);
+    vec3 Q = Q0; 
+
+    // Adjust end condition for iteration direction
+    float end = P1.x * stepDir;
+
+    float stepCount = 0.0f;
+    float prevZMaxEstimate = csOrig.z;
+    float rayZMin = prevZMaxEstimate;
+    float rayZMax = prevZMaxEstimate;
+    float sceneZMax = rayZMax + 100.0f;
+    for(;
+        ((PQk.x * stepDir) <= end) && (stepCount < 128) &&
+        !intersectsDepthBuffer(sceneZMax, rayZMin, rayZMax) &&
+        (sceneZMax != 0.0f);
+        ++stepCount)
+    {
+        rayZMin = prevZMaxEstimate;
+        rayZMax = (dPQk.z * 0.5f + PQk.z) / (dPQk.w * 0.5f + PQk.w);
+        prevZMaxEstimate = rayZMax;
+        if(rayZMin > rayZMax)
+        {
+            swap(rayZMin, rayZMax);
+        }
+
+        hitPixel = permute ? PQk.yx : PQk.xy;
+        // You may need hitPixel.y = depthBufferSize.y - hitPixel.y; here if your vertical axis
+        // is different than ours in screen space
+        sceneZMax = linearDepthTexelFetch(ivec2(hitPixel));
+
+        PQk += dPQk;
+    }
+
+    // Advance Q based on the number of steps
+    Q.xy += dQ.xy * stepCount;
+    hitPoint = Q * (1.0f / PQk.w);
+    return intersectsDepthBuffer(sceneZMax, rayZMin, rayZMax);
+}
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+void main()
+{
+    vec4 color = imageLoad(inColor, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgba;
+    vec3 viewPos = imageLoad(inViewPos, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
+    vec3 normal = imageLoad(inNormal, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
+
+    ivec2 inputSize = imageSize(inViewPos);
+    vec3 dir = normalize(reflect(viewPos, normal));
+
+    vec3 F0 = vec3(0.04);
+    vec3 V = normalize(-viewPos);
+    vec3 L = normalize(dir);
+    vec3 H = normalize(V + L);
+    vec3 kS = fresnelSchlickRoughness(max(dot(H, V), 0.0), F0, color.w);
+
+    vec3 outColor = color.rgb;
+    if(length(kS) > 0.1)
+    {
+        float maxDepth = viewPos.z;
+        vec2 lastOffset = gl_GlobalInvocationID.xy;
+        float lastDepth = viewPos.z;
+
+        float nPixelSmooth = 50.0;
+
+        float step = 0.5;
+        for(int i = 1; i < 32; i++)
+        {
+            vec3 newViewPos = viewPos + dir * (step * i);
+
+            vec4 offset = vec4(newViewPos, 1.0);
+            offset      = ubo.projection * offset;    // from view to clip-space
+            offset.xyz /= offset.w;               // perspective divide
+            offset.xyz  = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0  
+
+            if(offset.x > 1.0 || offset.y > 1.0 || offset.x < 0.0 || offset.y < 0.0)
+                break;
+
+            offset.xy *= inputSize; // to range 0 - textureSize
+
+            float depth = LinearizeDepth(imageLoad(inViewPos, ivec2(offset.xy)).z);
+
+            if(depth <= LinearizeDepth(newViewPos.z))
+            {
+                if(dot(normalize(imageLoad(inViewPos, ivec2(offset.xy)).rgb - viewPos), dir) < 0.8)
+                    break;
+
+                vec2 fOffset = mix(lastOffset, offset.xy, 0.5);
+
+                //float pixelLeft = float(min(min(inputSize.x - fOffset.x, inputSize.y - fOffset.y), min(fOffset.x, fOffset.y)));
+                //float coeffReflection = clamp(mix(0.0, kS, pixelLeft / nPixelSmooth), 0.0, kS);
+
+                outColor = outColor * (vec3(1.0) - kS) + imageLoad(inColor, ivec2(fOffset)).rgb * kS;
+                break;
+            }
+
+            lastDepth = newViewPos.z;
+            lastOffset = offset.xy;
+        }
+
+        /*vec3 rayOrigin = vec3(viewPos.x, viewPos.y, viewPos.z) * LinearizeDepth(viewPos.z);
+
+        ivec2 inputSize = imageSize(inViewPos);
+        vec3 dir = normalize(reflect(normalize(rayOrigin), normal));
+
+        vec2 hitPixel = vec2(0.0f, 0.0f);
+        vec3 hitPoint = vec3(0.0f, 0.0f, 0.0f);
+
+        bool intersection = traceScreenSpaceRay(rayOrigin, dir, 0.0, inputSize, hitPixel, hitPoint);
+
+        float depth = LinearizeDepth(imageLoad(inViewPos, ivec2(hitPixel.xy)).z);
+        if(hitPixel.x > inputSize.x || hitPixel.x < 0.0f || hitPixel.y > inputSize.y || hitPixel.y < 0.0f)
+        {
+            intersection = false;
+        }
+
+        if(intersection)
+            outColor =  outColor * (1.0 - 0.5) + imageLoad(inColor, ivec2(hitPixel)).rgb * 0.5;*/
+    }
+
+    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(outColor, 1.0));
+}

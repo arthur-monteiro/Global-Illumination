@@ -1,95 +1,134 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Instance.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Pipeline.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderPass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="System.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Text.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UniformBufferObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vulkan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Menu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Image.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ComputePass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Sampler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClCompile Include="SystemManager.cpp" />
+    <ClCompile Include="WindowManager.cpp" />
+    <ClCompile Include="VulkanHelper.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="SwapChain.cpp" />
+    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="LoadingManager.cpp" />
+    <ClCompile Include="RenderPass.cpp" />
+    <ClCompile Include="Command.cpp" />
+    <ClCompile Include="Framebuffer.cpp" />
+    <ClCompile Include="Attachment.cpp" />
+    <ClCompile Include="Semaphore.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Model2D.cpp" />
+    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="CommandPool.cpp" />
+    <ClCompile Include="UniformBufferObject.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Sampler.cpp" />
+    <ClCompile Include="DescriptorPool.cpp" />
+    <ClCompile Include="Model2DTextured.cpp" />
+    <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="GBuffer.cpp" />
+    <ClCompile Include="ModelPBR.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="ComputePass.cpp" />
+    <ClCompile Include="Operation.cpp" />
+    <ClCompile Include="RayTracingPass.cpp" />
+    <ClCompile Include="AccelerationStructure.cpp" />
+    <ClCompile Include="vulkannv\vulkan_raytracing.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\BottomLevelASGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\DescriptorSetGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\RaytracingPipelineGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\ShaderBindingTableGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\TopLevelASGenerator.cpp" />
+    <ClCompile Include="vulkannv\nv_helpers_vk\VKHelpers.cpp" />
+    <ClCompile Include="RayTracingPipeline.cpp" />
+    <ClCompile Include="Font.cpp" />
+    <ClCompile Include="Text.cpp" />
+    <ClCompile Include="HUD.cpp" />
+    <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="Instance.cpp" />
+    <ClCompile Include="RayTracingShadows.cpp" />
+    <ClCompile Include="Shadows.cpp" />
+    <ClCompile Include="DepthPass.cpp" />
+    <ClCompile Include="PostProcessAA.cpp" />
+    <ClCompile Include="PBRCompute.cpp" />
+    <ClCompile Include="AmbientOcclusion.cpp" />
+    <ClCompile Include="SSAO.cpp" />
+    <ClCompile Include="Blur.cpp" />
+    <ClCompile Include="ToneMapping.cpp" />
+    <ClCompile Include="Merge.cpp" />
+    <ClCompile Include="Skybox.cpp" />
+    <ClCompile Include="CascadedShadowMapping.cpp" />
+    <ClCompile Include="Bloom.cpp" />
+    <ClCompile Include="Reflection.cpp" />
+    <ClCompile Include="SSR.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Instance.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Pipeline.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderPass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="System.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Text.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UniformBufferObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Vulkan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Menu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ComputePass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Sampler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ClInclude Include="SystemManager.h" />
+    <ClInclude Include="WindowManager.h" />
+    <ClInclude Include="VulkanHelper.h" />
+    <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="SwapChain.h" />
+    <ClInclude Include="Image.h" />
+    <ClInclude Include="LoadingManager.h" />
+    <ClInclude Include="RenderPass.h" />
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="Framebuffer.h" />
+    <ClInclude Include="Attachment.h" />
+    <ClInclude Include="Semaphore.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="Model2D.h" />
+    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="CommandPool.h" />
+    <ClInclude Include="UniformBufferObject.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="Sampler.h" />
+    <ClInclude Include="DescriptorPool.h" />
+    <ClInclude Include="Model2DTextured.h" />
+    <ClInclude Include="GameManager.h" />
+    <ClInclude Include="GBuffer.h" />
+    <ClInclude Include="ModelPBR.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="ComputePass.h" />
+    <ClInclude Include="Operation.h" />
+    <ClInclude Include="RayTracingPass.h" />
+    <ClInclude Include="AccelerationStructure.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\BottomLevelASGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\DescriptorSetGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\RaytracingPipelineGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\ShaderBindingTableGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\TopLevelASGenerator.h" />
+    <ClInclude Include="vulkannv\nv_helpers_vk\VKHelpers.h" />
+    <ClInclude Include="RayTracingPipeline.h" />
+    <ClInclude Include="Font.h" />
+    <ClInclude Include="Text.h" />
+    <ClInclude Include="HUD.h" />
+    <ClInclude Include="Menu.h" />
+    <ClInclude Include="Instance.h" />
+    <ClInclude Include="RayTracingShadows.h" />
+    <ClInclude Include="Shadows.h" />
+    <ClInclude Include="DepthPass.h" />
+    <ClInclude Include="PostProcessAA.h" />
+    <ClInclude Include="PBRCompute.h" />
+    <ClInclude Include="AmbientOcclusion.h" />
+    <ClInclude Include="SSAO.h" />
+    <ClInclude Include="Blur.h" />
+    <ClInclude Include="ToneMapping.h" />
+    <ClInclude Include="Merge.h" />
+    <ClInclude Include="Skybox.h" />
+    <ClInclude Include="CascadedShadowMapping.h" />
+    <ClInclude Include="Bloom.h" />
+    <ClInclude Include="Reflection.h" />
+    <ClInclude Include="SSR.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

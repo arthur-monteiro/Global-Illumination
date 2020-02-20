@@ -1,45 +1,55 @@
 #include "Pipeline.h"
 
-void Pipeline::initialize(Vulkan* vk, VkDescriptorSetLayout* descriptorSetLayout, VkRenderPass renderPass, 
-	PipelineShaders shaders, bool alphaBlending, VkSampleCountFlagBits msaaSamples, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
-	std::vector<VkVertexInputAttributeDescription> attributeInputDescription, VkExtent2D extent, int outTextureNumber)
+Pipeline::~Pipeline()
 {
+}
+
+void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
+	std::vector<VkVertexInputAttributeDescription> attributeInputDescription, VkExtent2D extent, VkSampleCountFlagBits msaaSamples, std::vector<bool> alphaBlending, 
+	VkDescriptorSetLayout* descriptorSetLayout)
+{
+	/* Pipeline layout */
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount = 1;
+	pipelineLayoutInfo.pSetLayouts = descriptorSetLayout;
+	pipelineLayoutInfo.pushConstantRangeCount = 0;
+
+	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
+		throw std::runtime_error("Error : create pipeline layout");
+
 	/* Shaders */
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
-	VkShaderModule vertShaderModule;
-	VkShaderModule fragShaderModule;
+	VkShaderModule vertShaderModule = VK_NULL_HANDLE;
+	VkShaderModule fragShaderModule = VK_NULL_HANDLE;
+
+	std::vector<char> vertShaderCode = readFile(vertexShader);
+	vertShaderModule = createShaderModule(vertShaderCode, device);
+
+	VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
+	vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	vertShaderStageInfo.module = vertShaderModule;
+	vertShaderStageInfo.pName = "main";
+
+	shaderStages.push_back(vertShaderStageInfo);
+
+	if(!fragmentShader.empty())
 	{
-		/* Vertex */
-		if(shaders.vertexShader != "")
-		{
-			std::vector<char> vertShaderCode = readFile(shaders.vertexShader);
-			vertShaderModule = createShaderModule(vertShaderCode, vk->getDevice());
+		std::vector<char> fragShaderCode = readFile(fragmentShader);
+		fragShaderModule = createShaderModule(fragShaderCode, device);
 
-			VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
-			vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-			vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-			vertShaderStageInfo.module = vertShaderModule;
-			vertShaderStageInfo.pName = "main";
+		VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
+		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+		fragShaderStageInfo.module = fragShaderModule;
+		fragShaderStageInfo.pName = "main";
 
-			shaderStages.push_back(vertShaderStageInfo);
-		}
-		/* Fragment */
-		if (shaders.fragmentShader != "")
-		{
-			std::vector<char> fragShaderCode = readFile(shaders.fragmentShader);
-			fragShaderModule = createShaderModule(fragShaderCode, vk->getDevice());
-
-			VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
-			fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-			fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-			fragShaderStageInfo.module = fragShaderModule;
-			fragShaderStageInfo.pName = "main";
-
-			shaderStages.push_back(fragShaderStageInfo);
-		}
+		shaderStages.push_back(fragShaderStageInfo);
 	}
 
+	/* Input */
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
@@ -53,11 +63,12 @@ void Pipeline::initialize(Vulkan* vk, VkDescriptorSetLayout* descriptorSetLayout
 	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
 
+	/* Viewport */
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width = (float)extent.width;
-	viewport.height = (float)extent.height;
+	viewport.width = static_cast<float>(extent.width);
+	viewport.height = static_cast<float>(extent.height);
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
@@ -72,34 +83,28 @@ void Pipeline::initialize(Vulkan* vk, VkDescriptorSetLayout* descriptorSetLayout
 	viewportState.scissorCount = 1;
 	viewportState.pScissors = &scissor;
 
+	/* Rasterizarion */
 	VkPipelineRasterizationStateCreateInfo rasterizer = {};
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rasterizer.depthClampEnable = VK_FALSE;
 	rasterizer.rasterizerDiscardEnable = VK_FALSE;
 	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizer.lineWidth = 1.0f;
-	rasterizer.cullMode = VK_CULL_MODE_NONE;
+	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
 
+	/* Multisampling */
 	VkPipelineMultisampleStateCreateInfo multisampling = {};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisampling.sampleShadingEnable = VK_FALSE;
 	multisampling.rasterizationSamples = msaaSamples;
 
-	std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments(outTextureNumber);
-	if (!alphaBlending)
+	/* Color blend */
+	std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments(alphaBlending.size());
+	for (int i(0); i < alphaBlending.size(); ++i)
 	{
-		for (int i(0); i < outTextureNumber; ++i)
-		{
-			colorBlendAttachments[i].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-				VK_COLOR_COMPONENT_A_BIT;
-			colorBlendAttachments[i].blendEnable = VK_FALSE;
-		}
-	}
-	else
-	{
-		for (int i(0); i < outTextureNumber; ++i)
+		if (alphaBlending[i])
 		{
 			colorBlendAttachments[i].colorWriteMask = 0xf;
 			colorBlendAttachments[i].blendEnable = VK_TRUE;
@@ -109,6 +114,12 @@ void Pipeline::initialize(Vulkan* vk, VkDescriptorSetLayout* descriptorSetLayout
 			colorBlendAttachments[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 			colorBlendAttachments[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_DST_ALPHA;
 			colorBlendAttachments[i].alphaBlendOp = VK_BLEND_OP_ADD;
+		}
+		else
+		{
+			colorBlendAttachments[i].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
+				VK_COLOR_COMPONENT_A_BIT;
+			colorBlendAttachments[i].blendEnable = VK_FALSE;
 		}
 	}
 
@@ -122,15 +133,6 @@ void Pipeline::initialize(Vulkan* vk, VkDescriptorSetLayout* descriptorSetLayout
 	colorBlending.blendConstants[1] = 0.0f;
 	colorBlending.blendConstants[2] = 0.0f;
 	colorBlending.blendConstants[3] = 0.0f;
-
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 1;
-	pipelineLayoutInfo.pSetLayouts = descriptorSetLayout;
-	pipelineLayoutInfo.pushConstantRangeCount = 0;
-
-	if (vkCreatePipelineLayout(vk->getDevice(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : pipeline layout");
 
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -154,18 +156,18 @@ void Pipeline::initialize(Vulkan* vk, VkDescriptorSetLayout* descriptorSetLayout
 	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 	depthStencil.depthBoundsTestEnable = VK_FALSE;
 	depthStencil.stencilTestEnable = VK_FALSE;
+
 	pipelineInfo.pDepthStencilState = &depthStencil;
 
-	if (vkCreateGraphicsPipelines(vk->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : graphic pipeline");
+	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline) != VK_SUCCESS)
+		throw std::runtime_error("Error : graphic pipeline creation");
 
-	if (shaders.vertexShader != "")
-		vkDestroyShaderModule(vk->getDevice(), vertShaderModule, nullptr);
-	if (shaders.fragmentShader != "")
-		vkDestroyShaderModule(vk->getDevice(), fragShaderModule, nullptr);
+	vkDestroyShaderModule(device, vertShaderModule, nullptr);
+	if(!fragmentShader.empty())
+		vkDestroyShaderModule(device, fragShaderModule, nullptr);
 }
 
-void Pipeline::intialize(Vulkan* vk, std::string computeShader, VkDescriptorSetLayout* descriptorSetLayout)
+void Pipeline::initialize(VkDevice device, std::string computeShader, VkDescriptorSetLayout* descriptorSetLayout)
 {
 	/* Pipeline layout */
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
@@ -174,12 +176,12 @@ void Pipeline::intialize(Vulkan* vk, std::string computeShader, VkDescriptorSetL
 	pipelineLayoutInfo.pSetLayouts = descriptorSetLayout;
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
 
-	if (vkCreatePipelineLayout(vk->getDevice(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
-		throw std::runtime_error("Error : pipeline layout creation");
+	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
+		throw std::runtime_error("Error : create pipeline layout");
 
 	/* Shader */
 	std::vector<char> computeShaderCode = readFile(computeShader);
-	VkShaderModule computeShaderModule = createShaderModule(computeShaderCode, vk->getDevice());
+	VkShaderModule computeShaderModule = createShaderModule(computeShaderCode, device);
 
 	VkPipelineShaderStageCreateInfo compShaderStageInfo = {};
 	compShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -196,16 +198,22 @@ void Pipeline::intialize(Vulkan* vk, std::string computeShader, VkDescriptorSetL
 	pipelineInfo.pNext = nullptr;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-	if (vkCreateComputePipelines(vk->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_computePipeline) != VK_SUCCESS)
-		throw std::runtime_error("Error : compute pipeline creation");
+	if (vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline) != VK_SUCCESS)
+		throw std::runtime_error("Error : create compute pipeline");
 }
 
-std::vector<char> Pipeline::readFile(const std::string & filename)
+void Pipeline::cleanup(VkDevice device)
+{
+	vkDestroyPipeline(device, m_pipeline, nullptr);
+	vkDestroyPipelineLayout(device, m_pipelineLayout, nullptr);
+}
+
+std::vector<char> Pipeline::readFile(const std::string& filename)
 {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
 	if (!file.is_open())
-		throw std::runtime_error("Erreur lors de l'ouverture du fichier : " + filename);
+		throw std::runtime_error("Error opening file : " + filename);
 
 	size_t fileSize = (size_t)file.tellg();
 	std::vector<char> buffer(fileSize);
@@ -227,7 +235,7 @@ VkShaderModule Pipeline::createShaderModule(const std::vector<char>& code, VkDev
 
 	VkShaderModule shaderModule;
 	if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : shader module");
+		throw std::runtime_error("Error : create shader module");
 
 	return shaderModule;
 }

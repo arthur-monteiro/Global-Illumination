@@ -1,73 +1,54 @@
 #pragma once
 
-#include <ft2build.h>
-#include FT_FREETYPE_H  
+#include <utility>
+#include <array>
 
-#include <map>
-
-#include "Vulkan.h"
-#include "Pipeline.h"
+#include "VulkanHelper.h"
+#include "Mesh.h"
+#include "Font.h"
 #include "UniformBufferObject.h"
-
-struct Character
-{
-	VkImage image;
-	VkDeviceMemory imageMemory;
-	VkImageView imageView;
-	int xSize; // en pixel
-	int ySize;
-	int bearingX;
-	int bearingY;
-};
 
 class Text
 {
 public:
-	void initialize(Vulkan * vk, int ySize, std::string path);
-	int addText(Vulkan * vk, std::wstring text, glm::vec2 pos, float maxSize, glm::vec3 color);
+	Text() = default;
+	~Text() = default;
 
-	void changeText(Vulkan * vk, std::wstring text, int textID);
+	int addWString(std::wstring text, glm::vec2 position, glm::vec3 color);
+	void build(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkExtent2D outputExtent, Font* font, float size);
+	void cleanup(VkDevice device);
 
-	float simulateSizeX(Vulkan* vk, std::wstring text, float maxSize);
+	float simulateSizeX(std::wstring text, VkExtent2D outputExtent, Font* font, float maxSize);
 
-public:
-	int getNbTexts() { return (int)m_texts.size(); }
-	int getNbCharacters(int index) { return (int)m_texts[index].character.size(); }
-	VkBuffer getVertexBuffer(int indexI, int indexJ) { return m_texts[indexI].vertexBuffers[indexJ]; }
-	UboBase* getUbo(int index) { return &m_texts[index].ubo; }
-	VkBuffer getIndexBuffer() { return m_indexBuffer; }
-	VkImageView getImageView(int indexI, int indexJ) { return m_characters[m_texts[indexI].character[indexJ]].imageView; }
-	VkSampler getSampler() { return m_sampler; }
+	VertexBuffer getVertexBuffer() { return m_mesh.getVertexBuffer(); }
+	UniformBufferObject* getUBO() { return &m_ubo; }
 
-	void setColor(Vulkan* vk, int index, glm::vec3 color);
-
-	int needUpdate() { return m_needUpdate; }
-	void updateDone() { m_needUpdate = -1; }
+	void setColor(VkDevice device, unsigned int ID, glm::vec3 color);
+	void translate(VkDevice device, unsigned int ID, glm::vec2 offset);
 
 private:
-	struct TextStruct
+	void updateUBO(VkDevice device);
+	
+private:
+	struct TextStructure
 	{
-		glm::vec2 pos;
-		float maxSize;
-		std::vector<VkBuffer> vertexBuffers;
-		std::vector<VkDeviceMemory> vertexBufferMemories;
-		std::vector<wchar_t> character;
-
+		glm::vec2 position;
+		glm::vec2 posOffset = glm::vec2(0.0f);
+		std::wstring textValue;
 		glm::vec3 color;
-		UniformBufferObject<UniformBufferObjectSingleVec> ubo;
+
+		TextStructure(const glm::vec2 pos, std::wstring text, glm::vec3 color) : position(pos), textValue(std::move(text)), color(color) {}
 	};
+	std::vector<TextStructure> m_texts;
+	
+	Mesh<Vertex2DTexturedWithMaterial> m_mesh;
+	UniformBufferObject m_ubo;
 
-	TextStruct createTextStruct(Vulkan * vk, std::wstring text, glm::vec2 pos, float maxSize, glm::vec3 color);
-
-private:
-	std::map<wchar_t, Character> m_characters;
-	VkSampler m_sampler;
-	int m_maxYSize;
-
-	std::vector<TextStruct> m_texts;
-	int m_needUpdate = -1;
-
-	VkBuffer m_indexBuffer;
-	VkDeviceMemory m_indexBufferMemory;
+	struct TextUBO
+	{
+		std::array<glm::vec4, 64> color;
+		std::array<glm::vec4, 64> posOffset;
+	};
+	TextUBO m_uboData;
 };
 

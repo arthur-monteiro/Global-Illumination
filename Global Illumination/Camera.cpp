@@ -58,10 +58,10 @@ void Camera::update(GLFWwindow* window)
 
 glm::mat4 Camera::getViewMatrix(glm::vec3 forceOrientation)
 {
-	if(forceOrientation.x == -1.0f)
+	if (forceOrientation.x == -1.0f)
 		return glm::lookAt(m_position, m_target, m_verticalAxis);
-	else 
-		return glm::lookAt(m_position, glm::normalize(m_position + forceOrientation), m_verticalAxis);
+		
+	return glm::lookAt(m_position, glm::normalize(m_position + forceOrientation), m_verticalAxis);
 }
 
 glm::vec3 Camera::getPosition()
@@ -121,8 +121,8 @@ void Camera::updateOrientation(int xOffset, int yOffset)
 
 	if (m_phi > glm::half_pi<float>() - OFFSET_ANGLES)
 		m_phi = glm::half_pi<float>() - OFFSET_ANGLES;
-	else if (m_phi < - glm::half_pi<float>() + OFFSET_ANGLES)
-		m_phi = - glm::half_pi<float>() + OFFSET_ANGLES;
+	else if (m_phi < -glm::half_pi<float>() + OFFSET_ANGLES)
+		m_phi = -glm::half_pi<float>() + OFFSET_ANGLES;
 
 	if (m_verticalAxis.x == 1.0)
 	{

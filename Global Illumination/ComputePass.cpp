@@ -1,42 +1,38 @@
 #include "ComputePass.h"
 
-void ComputePass::initialize(Vulkan* vk, VkExtent2D extent, VkExtent3D dispatchGroups, std::string computeShader, VkImageView inputImageView)
+void ComputePass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool,
+	VkExtent2D extent, VkExtent3D dispatchGroups, std::string computeShader,
+	std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures,
+	std::vector<Operation> operationsBefore, std::vector<Operation> operationsAfter)
 {
-	/* Create image */
-	m_resultImage.create(vk, extent, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
-	m_resultImage.transitionImageLayout(vk, VK_IMAGE_LAYOUT_GENERAL);
-	m_resultImage.createTextureSampler(vk, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
-
 	/* Create command buffer */
-	{
-		m_commandPool = vk->createComputeCommandPool();
-
-		VkCommandBufferAllocateInfo allocInfo = {};
-		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = m_commandPool;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = 1;
-
-		if (vkAllocateCommandBuffers(vk->getDevice(), &allocInfo, &m_commandBuffer) != VK_SUCCESS)
-			throw std::runtime_error("Error : command buffer allocation for compute shader");
-	}
+	m_command.allocateCommandBuffers(device, commandPool, 1);
 
 	/* Create pipeline */
-	VkDescriptorSetLayoutBinding inputImageLayoutBinding = {};
-	inputImageLayoutBinding.binding = 0;
-	inputImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	inputImageLayoutBinding.descriptorCount = 1;
-	inputImageLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-	inputImageLayoutBinding.pImmutableSamplers = nullptr;
+	std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayouts;
+	for (int i(0); i < ubos.size(); ++i)
+	{
+		VkDescriptorSetLayoutBinding descriptorSetLayout = {};
+		descriptorSetLayout.binding = ubos[i].second.binding;
+		descriptorSetLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorSetLayout.descriptorCount = 1;
+		descriptorSetLayout.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+		descriptorSetLayout.pImmutableSamplers = nullptr;
 
-	VkDescriptorSetLayoutBinding outputImageLayoutBinding = {};
-	outputImageLayoutBinding.binding = 1;
-	outputImageLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	outputImageLayoutBinding.descriptorCount = 1;
-	outputImageLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-	outputImageLayoutBinding.pImmutableSamplers = nullptr;
+		descriptorSetLayouts.push_back(descriptorSetLayout);
+	}
 
-	std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayouts = { inputImageLayoutBinding, outputImageLayoutBinding };
+	for (int i(0); i < textures.size(); ++i)
+	{
+		VkDescriptorSetLayoutBinding descriptorSetLayout = {};
+		descriptorSetLayout.binding = textures[i].second.binding;
+		descriptorSetLayout.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+		descriptorSetLayout.descriptorCount = 1;
+		descriptorSetLayout.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+		descriptorSetLayout.pImmutableSamplers = nullptr;
+
+		descriptorSetLayouts.push_back(descriptorSetLayout);
+	}
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -44,136 +40,154 @@ void ComputePass::initialize(Vulkan* vk, VkExtent2D extent, VkExtent3D dispatchG
 	layoutInfo.pBindings = descriptorSetLayouts.data();
 
 	VkDescriptorSetLayout descriptorSetLayout;
-	if (vkCreateDescriptorSetLayout(vk->getDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
-		throw std::runtime_error("Erreur : descriptor set layout");
+	if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+		throw std::runtime_error("Error : create descriptor set layout");
 
-	m_pipeline.intialize(vk, computeShader, &descriptorSetLayout);
-
-	std::array<VkDescriptorPoolSize, 1> poolSizes = {};
-	poolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	poolSizes[0].descriptorCount = 2;
-
-	VkDescriptorPoolCreateInfo poolInfo = {};
-	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = 3;
-	poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-
-	if (vkCreateDescriptorPool(vk->getDevice(), &poolInfo, nullptr, &m_descriptorPool) != VK_SUCCESS)
-		throw std::runtime_error("Error : descriptor pool creation");
+	m_pipeline.initialize(device, computeShader, &descriptorSetLayout);
 
 	VkDescriptorSetLayout layouts[] = { descriptorSetLayout };
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_descriptorPool;
+	allocInfo.descriptorPool = descriptorPool;
 	allocInfo.descriptorSetCount = 1;
 	allocInfo.pSetLayouts = layouts;
 
 	VkDescriptorSet descriptorSet;
-	VkResult res = vkAllocateDescriptorSets(vk->getDevice(), &allocInfo, &descriptorSet);
+	VkResult res = vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet);
 	if (res != VK_SUCCESS)
-		throw std::runtime_error("Erreur : allocation descriptor set");
+		throw std::runtime_error("Error : allocate descriptor set");
 
-	// Input
-	VkWriteDescriptorSet inputImageDescriptorSet;
-	inputImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	inputImageDescriptorSet.dstSet = descriptorSet;
-	inputImageDescriptorSet.dstBinding = 0;
-	inputImageDescriptorSet.dstArrayElement = 0;
-	inputImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	inputImageDescriptorSet.descriptorCount = 1;
+	// Descriptor Set
+	std::vector<VkWriteDescriptorSet> descriptorWrites;
 
-	VkDescriptorImageInfo inputImageInfo;
-	inputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	inputImageInfo.imageView = inputImageView;
-	inputImageInfo.sampler = m_resultImage.getSampler();
+	std::vector<VkDescriptorBufferInfo> bufferInfo(ubos.size());
+	for (int i(0); i < ubos.size(); ++i)
+	{
+		bufferInfo[i].buffer = ubos[i].first->getUniformBuffer();
+		bufferInfo[i].offset = 0;
+		bufferInfo[i].range = ubos[i].first->getSize();
 
-	inputImageDescriptorSet.pImageInfo = &inputImageInfo;
-	inputImageDescriptorSet.pNext = NULL;
+		VkWriteDescriptorSet descriptorWrite;
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.dstSet = descriptorSet;
+		descriptorWrite.dstBinding = ubos[i].second.binding;
+		descriptorWrite.dstArrayElement = 0;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.pBufferInfo = &bufferInfo[i];
+		descriptorWrite.pNext = NULL;
 
-	// Output
-	VkWriteDescriptorSet outputImageDescriptorSet;
-	outputImageDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	outputImageDescriptorSet.dstSet = descriptorSet;
-	outputImageDescriptorSet.dstBinding = 1;
-	outputImageDescriptorSet.dstArrayElement = 0;
-	outputImageDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	outputImageDescriptorSet.descriptorCount = 1;
+		descriptorWrites.push_back(descriptorWrite);
+	}
 
-	VkDescriptorImageInfo outputImageInfo;
-	outputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	outputImageInfo.imageView = m_resultImage.getImageView();
-	outputImageInfo.sampler = m_resultImage.getSampler();
+	std::vector<VkDescriptorImageInfo> imageInfo(textures.size());
+	for (int i(0); i < textures.size(); ++i)
+	{
+		imageInfo[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+		imageInfo[i].imageView = textures[i].first->getImageView();
+		imageInfo[i].sampler = textures[i].first->getSampler();
 
-	outputImageDescriptorSet.pImageInfo = &outputImageInfo;
-	outputImageDescriptorSet.pNext = NULL;
+		VkWriteDescriptorSet descriptorWrite;
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.dstSet = descriptorSet;
+		descriptorWrite.dstBinding = textures[i].second.binding;
+		descriptorWrite.dstArrayElement = 0;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.pImageInfo = &imageInfo[i];
+		descriptorWrite.pNext = NULL;
 
-	std::vector<VkWriteDescriptorSet> descriptorWrites = { inputImageDescriptorSet, outputImageDescriptorSet };
+		descriptorWrites.push_back(descriptorWrite);
+	}
 
-	vkUpdateDescriptorSets(vk->getDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+	vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 
 	/* Fill command buffer */
-	vkQueueWaitIdle(vk->getComputeQueue());
-
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
-	vkBeginCommandBuffer(m_commandBuffer, &beginInfo);
+	vkBeginCommandBuffer(m_command.getCommandBuffer(0), &beginInfo);
 
-	vkCmdBindPipeline(m_commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipeline.getComputePipeline());
-	vkCmdBindDescriptorSets(m_commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_pipeline.getPipelineLayout(), 0, 1, &descriptorSet, 0, 0);
+	fillCommandBufferWithOperation(m_command.getCommandBuffer(0), operationsBefore);
+
+	vkCmdBindPipeline(m_command.getCommandBuffer(0), VK_PIPELINE_BIND_POINT_COMPUTE, m_pipeline.getPipeline());
+	vkCmdBindDescriptorSets(m_command.getCommandBuffer(0), VK_PIPELINE_BIND_POINT_COMPUTE, m_pipeline.getPipelineLayout(), 0, 1, &descriptorSet, 0, 0);
 	uint32_t groupSizeX = extent.width % dispatchGroups.width != 0 ? extent.width / dispatchGroups.width + 1 : extent.width / dispatchGroups.width;
 	uint32_t groupSizeY = extent.height % dispatchGroups.height != 0 ? extent.height / dispatchGroups.height + 1 : extent.height / dispatchGroups.height;
-	vkCmdDispatch(m_commandBuffer, groupSizeX, groupSizeY, dispatchGroups.depth);
+	vkCmdDispatch(m_command.getCommandBuffer(0), groupSizeX, groupSizeY, dispatchGroups.depth);
 
-	vkEndCommandBuffer(m_commandBuffer);
+	fillCommandBufferWithOperation(m_command.getCommandBuffer(0), operationsAfter);
 
-	/* Semaphore creation */
-	VkSemaphoreCreateInfo semaphoreInfo = {};
-	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-	if (vkCreateSemaphore(vk->getDevice(), &semaphoreInfo, nullptr, &m_renderCompleteSemaphore) != VK_SUCCESS)
-		throw std::runtime_error("Error : semaphore creation");
-
-	m_initialiazed = true; // gj !
+	vkEndCommandBuffer(m_command.getCommandBuffer(0));
 }
 
-void ComputePass::drawCall(Vulkan* vk)
+void ComputePass::submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> waitSemaphores, VkSemaphore signalSemaphore)
 {
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = &m_renderCompleteSemaphore; // renderPass
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &m_commandBuffer;
-	submitInfo.waitSemaphoreCount = m_needToWaitSemaphores.size();
-	submitInfo.pWaitSemaphores = m_needToWaitSemaphores.data();
-	submitInfo.pWaitDstStageMask = m_needToWaitStages.data();
 
-	if (vkQueueSubmit(vk->getComputeQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+	VkSemaphore signalSemaphores[] = { signalSemaphore };
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	VkCommandBuffer commandBuffer = m_command.getCommandBuffer(0);
+	submitInfo.pCommandBuffers = &commandBuffer;
+	submitInfo.commandBufferCount = 1;
+
+	submitInfo.waitSemaphoreCount = waitSemaphores.size();
+	std::vector<VkSemaphore> semaphores;
+	std::vector<VkPipelineStageFlags> stages;
+	for (int i(0); i < waitSemaphores.size(); ++i)
+	{
+		semaphores.push_back(waitSemaphores[i]->getSemaphore());
+		stages.push_back(waitSemaphores[i]->getPipelineStage());
+	}
+	submitInfo.pWaitSemaphores = semaphores.data();
+	submitInfo.pWaitDstStageMask = stages.data();
+
+	if (vkQueueSubmit(computeQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
 		throw std::runtime_error("Error : submit to compute queue");
 }
 
-void ComputePass::cleanup(VkDevice device)
+void ComputePass::cleanup(VkDevice device, VkCommandPool commandPool)
 {
-	if (!m_initialiazed)
-		return;
-
-	m_resultImage.cleanup(device);
-
-	vkDestroyDescriptorPool(device, m_descriptorPool, nullptr);
-	vkDestroyCommandPool(device, m_commandPool, nullptr);
+	m_command.cleanup(device, commandPool);
+	m_pipeline.cleanup(device);
 }
 
-void ComputePass::setSemaphoreToWait(VkDevice device, std::vector<Semaphore> semaphores)
+void ComputePass::fillCommandBufferWithOperation(VkCommandBuffer commandBuffer, std::vector<Operation> operations)
 {
-	m_needToWaitSemaphores.clear();
-	m_needToWaitStages.clear();
-
-	for (int i(0); i < semaphores.size(); ++i)
+	for (int i(0); i < operations.size(); ++i)
 	{
-		m_needToWaitSemaphores.push_back(semaphores[i].semaphore);
-		m_needToWaitStages.push_back(semaphores[i].stage);
+		int operationType = operations[i].getOperationType();
+
+		if (operationType == OPERATION_TYPE_COPY_IMAGE)
+		{
+			VkImageCopy copyRegion = {};
+			copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+			copyRegion.srcSubresource.mipLevel = 0;
+			copyRegion.srcSubresource.baseArrayLayer = 0;
+			copyRegion.srcSubresource.layerCount = 1;
+			copyRegion.srcOffset = { 0, 0, 0 };
+			copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			copyRegion.dstSubresource.mipLevel = 0;
+			copyRegion.dstSubresource.baseArrayLayer = 0;
+			copyRegion.dstSubresource.layerCount = 1;
+			copyRegion.dstOffset = { 0, 0, 0 };
+			copyRegion.extent = { operations[i].getSourceImage()->getExtent().width, operations[i].getSourceImage()->getExtent().height, 1 };
+
+			vkCmdCopyImage(commandBuffer,
+				operations[i].getSourceImage()->getImage(), operations[i].getSourceLayout(),
+				operations[i].getDestinationImage()->getImage(), operations[i].getDestinationLayout(),
+				1, &copyRegion);
+		}
+		else if (operationType == OPERATION_TYPE_TRANSIT_IMAGE_LAYOUT)
+		{
+			Image::transitionImageLayoutUsingCommandBuffer(commandBuffer, operations[i].getSourceImage()->getImage(),
+				operations[i].getSourceImage()->getFormat(), operations[i].getSourceLayout(),
+				operations[i].getDestinationLayout(), 1, operations[i].getSourceStage(),
+				operations[i].getDestinationStage(), 0);
+		}
 	}
 }

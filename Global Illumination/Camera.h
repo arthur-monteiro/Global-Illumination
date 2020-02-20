@@ -62,4 +62,3 @@ private:
 	float m_far = 50.0f;
 	float m_radFOV = glm::radians(45.0f);
 };
-

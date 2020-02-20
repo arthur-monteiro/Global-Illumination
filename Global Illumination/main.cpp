@@ -1,25 +1,30 @@
-#include "System.h"
+#include "SystemManager.h"
 
 #include <iostream>
 
 int main()
 {
-	{
-		System s;
+	SystemManager s;
 
-		try
-		{
-			s.initialize();
-			s.mainLoop();
-			s.cleanup();
-		}
-		catch (const std::runtime_error& e)
-		{
-			std::cerr << e.what() << std::endl;
-			system("PAUSE");
-			return EXIT_FAILURE;
-		}
+	try
+	{
+		if (!s.initialize())
+			throw std::runtime_error("Failed to initialize system manager");
+		if (!s.run())
+			throw std::runtime_error("Failed to run system manager");
+		if (!s.cleanup())
+			throw std::runtime_error("Failed to cleanup system manager");
 	}
+	catch (const std::runtime_error& e)
+	{
+		std::cerr << e.what() << std::endl;
+#ifdef _WIN32
+		system("PAUSE");
+#endif
+		return EXIT_FAILURE;
+	}
+
+	std::cout << "Successful exit !" << std::endl;
 
 #ifdef _WIN32
 	system("PAUSE");

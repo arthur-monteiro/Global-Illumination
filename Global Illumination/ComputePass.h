@@ -1,32 +1,25 @@
 #pragma once
 
-#include "Vulkan.h"
 #include "Image.h"
+#include "Semaphore.h"
+#include "Command.h"
 #include "Pipeline.h"
-#include "RenderPass.h"
+#include "Operation.h"
 
 class ComputePass
 {
 public:
-	void initialize(Vulkan* vk, VkExtent2D extent, VkExtent3D dispatchGroups, std::string computeShader, VkImageView inputImageView);
-	void drawCall(Vulkan* vk);
-	void cleanup(VkDevice device);
+	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool,
+		VkExtent2D extent, VkExtent3D dispatchGroups, std::string computeShader, 
+		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures,
+		std::vector<Operation> operationsBefore, std::vector<Operation> operationsAfter);
+	void submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> waitSemaphores, VkSemaphore signalSemaphore);
+	void cleanup(VkDevice device, VkCommandPool commandPool);
 
-	VkImageView getImageView() { return m_resultImage.getImageView(); }
-	VkSemaphore getRenderFinishedSemaphore() { return m_renderCompleteSemaphore; }
-
-	void setSemaphoreToWait(VkDevice device, std::vector<Semaphore> semaphores);
 private:
-	bool m_initialiazed = false;
-
-	Image m_resultImage;
-	VkCommandPool m_commandPool;
-	VkCommandBuffer m_commandBuffer;
-	VkDescriptorPool m_descriptorPool;
+	Command m_command;
 	Pipeline m_pipeline;
 
-	std::vector<VkSemaphore> m_needToWaitSemaphores;
-	std::vector<VkPipelineStageFlags> m_needToWaitStages;
-	VkSemaphore m_renderCompleteSemaphore;
+private:
+	void fillCommandBufferWithOperation(VkCommandBuffer commandBuffer, std::vector<Operation> operations);
 };
-

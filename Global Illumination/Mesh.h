@@ -1,127 +1,363 @@
 #pragma once
 
-#include <unordered_map>
+#include "VulkanHelper.h"
 
-#include "Vulkan.h"
-#include "Pipeline.h"
-#include "Image.h"
+#include <cstring>
 
-struct ImageToRemove
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/hash.hpp>
+
+struct Vertex2D
 {
-	VkImage image;
-	VkDeviceMemory  imageMemory;
-	VkImageView imageView;
-};
+	glm::vec2 pos;
 
-class MeshBase
-{
-public:
-	virtual ~MeshBase() 
+	static VkVertexInputBindingDescription getBindingDescription(uint32_t binding)
 	{
-		if (!m_isInitialized)
-			std::cout << "Mesh not destroyed !" << std::endl;
+		VkVertexInputBindingDescription bindingDescription = {};
+		bindingDescription.binding = binding;
+		bindingDescription.stride = sizeof(Vertex2D);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		return bindingDescription;
 	}
 
-	void createTextureSampler(Vulkan* vk, VkSamplerAddressMode addressMode);
-	int createTexture(Vulkan* vk, uint32_t height, uint32_t width, int mipLevels, int nLayers);
-	void loadTextureFromFile(Vulkan* vk, std::vector<std::string> path);
-	void loadTextureFromImages(Vulkan* vk, std::vector<VkImage> images, uint32_t height, uint32_t width);
-	void loadCubemapFromFile(Vulkan* vk, std::vector < std::string > path);
-	void loadCubemapFromImages(Vulkan* vk, std::array<VkImage, 6> images, uint32_t height, uint32_t width);
-	void loadCubemapFromImages(Vulkan* vk, std::array<VkImage, 6> images, uint32_t height, uint32_t width, int imageID, int mipLevel);
-	void loadHDRTexture(Vulkan* vk, std::vector < std::string > path);
-
-	void addImageView(VkImageView imageView);
-	void clearImages(VkDevice device);
-
-	std::vector<VkImageView> getImageView()
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions(uint32_t binding)
 	{
-		std::vector<VkImageView> r;
-		for (int i(0); i < m_images.size(); ++i)
-			r.push_back(m_images[i].imageView);
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(1);
 
-		return r;
+		attributeDescriptions[0].binding = binding;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(Vertex2D, pos);
+
+		return attributeDescriptions;
 	}
-	VkImageView getImageView(int index) { return m_images[index].imageView; }
-	VkSampler getSampler() { return m_textureSampler; }
-	VkBuffer getIndexBuffer() { return m_indexBuffer; }
-	uint32_t getNumIndices() { return static_cast<uint32_t>(m_indices.size()); }
-	std::vector<uint32_t> getIndices() { return m_indices; }
-	VkBuffer getVertexBuffer() { return m_vertexBuffer; }
 
-	void setImageView(int index, VkImageView imageView) { m_images[index].imageView = imageView; }
-
-protected:
-	void createIndexBuffer(Vulkan* vk);
-
-	void createTextureImage(Vulkan* vk, std::string path);
-	void createTextureImageView(Vulkan* vk, VkFormat format);
-
-protected:
-	bool m_isInitialized = false;
-
-	std::vector<uint32_t> m_indices;
-	VkBuffer m_vertexBuffer;
-	VkDeviceMemory m_vertexBufferMemory;
-	VkBuffer m_indexBuffer;
-	VkDeviceMemory m_indexBufferMemory;
-
-	uint32_t m_mipLevels;
-	std::vector<ImageToRemove> m_images;
-	VkSampler m_textureSampler = NULL;
+	bool operator==(const Vertex2D& other) const
+	{
+		return pos == other.pos;
+	}
 };
 
-class MeshPBR : public MeshBase
+struct Vertex2DWithMaterial
 {
-public:
-	void loadObj(Vulkan * vk, std::string path, glm::vec3 forceNormal = glm::vec3(-1.0f));
-	void loadVertices(Vulkan* vk, std::vector< VertexPBR> vertices, std::vector<uint32_t> indices);
+	glm::vec2 pos;
+	glm::uvec3 IDs;
 
-	void restoreTransformations() { m_modelMatrix = glm::mat4(1.0); }
-	void rotate(float angle, glm::vec3 dir);
-	void scale(glm::vec3 scale);
-	void translate(glm::vec3 translation);
+	static VkVertexInputBindingDescription getBindingDescription(uint32_t binding)
+	{
+		VkVertexInputBindingDescription bindingDescription = {};
+		bindingDescription.binding = binding;
+		bindingDescription.stride = sizeof(Vertex2DWithMaterial);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-	void cleanup(VkDevice device);
+		return bindingDescription;
+	}
 
-	std::vector<VertexPBR> getVertices() { return m_vertices; }
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions(uint32_t binding)
+	{
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
 
-private:
-	void createVertexBuffer(Vulkan* vk);
+		attributeDescriptions[0].binding = binding;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(Vertex2DWithMaterial, pos);
 
-public:
-	glm::mat4x4 getModelMatrix() { return m_modelMatrix; }
+		attributeDescriptions[1].binding = binding;
+		attributeDescriptions[1].location = 0;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_UINT;
+		attributeDescriptions[1].offset = offsetof(Vertex2DWithMaterial, IDs);
 
-private:
-	std::vector<VertexPBR> m_vertices;
+		return attributeDescriptions;
+	}
 
-	glm::mat4x4 m_modelMatrix;
+	bool operator==(const Vertex2D& other) const
+	{
+		return pos == other.pos;
+	}
 };
 
-class Mesh2D : public MeshBase
+struct Vertex2DTextured
 {
-public:
-	void loadVertices(Vulkan* vk, std::vector<VertexQuad> vertices, std::vector<uint32_t> indices);
+	glm::vec2 pos;
+	glm::vec2 texCoord;
 
-	void cleanup(VkDevice device);
+	static VkVertexInputBindingDescription getBindingDescription(uint32_t binding)
+	{
+		VkVertexInputBindingDescription bindingDescription = {};
+		bindingDescription.binding = binding;
+		bindingDescription.stride = sizeof(Vertex2DTextured);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-private:
-	void createVertexBuffer(Vulkan* vk);
+		return bindingDescription;
+	}
 
-private:
-	std::vector<VertexQuad> m_vertices;
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions(uint32_t binding)
+	{
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
+
+		attributeDescriptions[0].binding = binding;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(Vertex2DTextured, pos);
+
+		attributeDescriptions[1].binding = binding;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(Vertex2DTextured, texCoord);
+
+		return attributeDescriptions;
+	}
+
+	bool operator==(const Vertex2DTextured& other) const
+	{
+		return pos == other.pos && texCoord == other.texCoord;
+	}
 };
 
-class Mesh2DTextured : public MeshBase
+struct Vertex2DTexturedWithMaterial
+{
+	glm::vec2 pos;
+	glm::vec2 texCoord;
+	glm::uvec3 IDs;
+
+	static VkVertexInputBindingDescription getBindingDescription(uint32_t binding)
+	{
+		VkVertexInputBindingDescription bindingDescription = {};
+		bindingDescription.binding = binding;
+		bindingDescription.stride = sizeof(Vertex2DTexturedWithMaterial);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		return bindingDescription;
+	}
+
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions(uint32_t binding)
+	{
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(3);
+
+		attributeDescriptions[0].binding = binding;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(Vertex2DTexturedWithMaterial, pos);
+
+		attributeDescriptions[1].binding = binding;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(Vertex2DTexturedWithMaterial, texCoord);
+
+		attributeDescriptions[2].binding = binding;
+		attributeDescriptions[2].location = 2;
+		attributeDescriptions[2].format = VK_FORMAT_R32G32B32_UINT;
+		attributeDescriptions[2].offset = offsetof(Vertex2DTexturedWithMaterial, IDs);
+
+		return attributeDescriptions;
+	}
+
+	bool operator==(const Vertex2DTexturedWithMaterial& other) const
+	{
+		return pos == other.pos && texCoord == other.texCoord && IDs == other.IDs;
+	}
+};
+
+struct VertexPBR
+{
+    glm::vec3 pos;
+    glm::vec3 normal;
+    glm::vec3 tangent;
+    glm::vec2 texCoord;
+	glm::uint materialID;
+
+    static VkVertexInputBindingDescription getBindingDescription(uint32_t binding)
+    {
+        VkVertexInputBindingDescription bindingDescription = {};
+        bindingDescription.binding = binding;
+        bindingDescription.stride = sizeof(VertexPBR);
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+        return bindingDescription;
+    }
+
+    static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions(uint32_t binding)
+    {
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions(5);
+
+        attributeDescriptions[0].binding = binding;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[0].offset = offsetof(VertexPBR, pos);
+
+        attributeDescriptions[1].binding = binding;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(VertexPBR, normal);
+
+        attributeDescriptions[2].binding = binding;
+        attributeDescriptions[2].location = 2;
+        attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[2].offset = offsetof(VertexPBR, tangent);
+
+        attributeDescriptions[3].binding = binding;
+        attributeDescriptions[3].location = 3;
+        attributeDescriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[3].offset = offsetof(VertexPBR, texCoord);
+
+		attributeDescriptions[4].binding = binding;
+		attributeDescriptions[4].location = 4;
+		attributeDescriptions[4].format = VK_FORMAT_R32_UINT;
+		attributeDescriptions[4].offset = offsetof(VertexPBR, materialID);
+
+        return attributeDescriptions;
+    }
+
+    bool operator==(const VertexPBR& other) const
+    {
+        return pos == other.pos && normal == other.normal && texCoord == other.texCoord && tangent == other.tangent;
+    }
+};
+
+struct Vertex3DTextured
+{
+	glm::vec3 pos;
+	glm::vec2 texCoord;
+
+	static VkVertexInputBindingDescription getBindingDescription(uint32_t binding)
+	{
+		VkVertexInputBindingDescription bindingDescription = {};
+		bindingDescription.binding = binding;
+		bindingDescription.stride = sizeof(Vertex3DTextured);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		return bindingDescription;
+	}
+
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions(uint32_t binding)
+	{
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
+
+		attributeDescriptions[0].binding = binding;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(Vertex3DTextured, pos);
+
+		attributeDescriptions[1].binding = binding;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(Vertex3DTextured, texCoord);
+
+		return attributeDescriptions;
+	}
+
+	bool operator==(const VertexPBR& other) const
+	{
+		return pos == other.pos && texCoord == other.texCoord;
+	}
+};
+
+
+namespace std
+{
+    template<> struct hash<VertexPBR>
+    {
+        size_t operator()(VertexPBR const& vertex) const
+        {
+            return ((hash<glm::vec3>()(vertex.pos) ^
+                     (hash<glm::vec3>()(vertex.normal) << 1)) >> 1) ^
+                   (hash<glm::vec2>()(vertex.texCoord) << 1);
+        }
+    };
+}
+
+struct VertexBuffer
+{
+	VkBuffer vertexBuffer;
+	unsigned int nbVertices;
+	VkBuffer indexBuffer;
+	unsigned int nbIndices;
+};
+
+template <typename T>
+class Mesh
 {
 public:
-	void loadVertices(Vulkan* vk, std::vector<VertexQuadTextured> vertices, std::vector<uint32_t> indices);
+	Mesh() = default;
+	~Mesh() {}
 
-	void cleanup(VkDevice device);
+	void loadFromVertices(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, std::vector<T> vertices, std::vector<uint32_t> indices)
+	{
+		m_vertices = vertices;
+		m_indices = indices;
+
+		createVertexBuffer(device, physicalDevice, commandPool, graphicsQueue, sizeof(m_vertices[0]) * m_vertices.size(), m_vertices.data());
+		createIndexBuffer(device, physicalDevice, commandPool, graphicsQueue);
+	}
+
+	void cleanup(VkDevice device)
+	{
+		m_vertices.clear();
+		m_indices.clear();
+
+		vkDestroyBuffer(device, m_vertexBuffer, nullptr);
+		vkFreeMemory(device, m_vertexBufferMemory, nullptr);
+
+		vkDestroyBuffer(device, m_indexBuffer, nullptr);
+		vkFreeMemory(device, m_indexBufferMemory, nullptr);
+	}
+
+	VertexBuffer getVertexBuffer() { return { m_vertexBuffer, static_cast<unsigned int>(m_vertices.size()), m_indexBuffer, static_cast<unsigned int>(m_indices.size()) }; }
 
 private:
-	void createVertexBuffer(Vulkan* vk);
+    // Vertex
+	std::vector<T> m_vertices = {};
+    VkBuffer m_vertexBuffer;
+    VkDeviceMemory m_vertexBufferMemory;
+
+    // Indices
+    std::vector<uint32_t> m_indices;
+    VkBuffer m_indexBuffer;
+    VkDeviceMemory m_indexBufferMemory;
 
 private:
-	std::vector<VertexQuadTextured> m_vertices;
+	void createVertexBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkDeviceSize size, void* data)
+	{
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+		createBuffer(device, physicalDevice, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+		void* tData;
+		vkMapMemory(device, stagingBufferMemory, 0, size, 0, &tData);
+		std::memcpy(tData, data, (size_t)size);
+		vkUnmapMemory(device, stagingBufferMemory);
+
+		createBuffer(device, physicalDevice, size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
+
+		copyBuffer(device, commandPool, graphicsQueue, stagingBuffer, m_vertexBuffer, size);
+
+		vkDestroyBuffer(device, stagingBuffer, nullptr);
+		vkFreeMemory(device, stagingBufferMemory, nullptr);
+	}
+
+	void createIndexBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue)
+	{
+		VkDeviceSize bufferSize = sizeof(m_indices[0]) * m_indices.size();
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+		createBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+		void* data;
+		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+		memcpy(data, m_indices.data(), (size_t)bufferSize);
+		vkUnmapMemory(device, stagingBufferMemory);
+
+		createBuffer(device, physicalDevice, bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
+
+		copyBuffer(device, commandPool, graphicsQueue, stagingBuffer, m_indexBuffer, bufferSize);
+
+		vkDestroyBuffer(device, stagingBuffer, nullptr);
+		vkFreeMemory(device, stagingBufferMemory, nullptr);
+	}
 };

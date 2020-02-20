@@ -240,7 +240,7 @@ void SceneManager::submit(VkDevice device, VkPhysicalDevice physicalDevice, GLFW
 		shadowsChanged = true;
 
 	if (m_reflections.setAlgorithm(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), computeQueue, m_toneMapping.getOutputTexture(),
-		&m_gbufferTextures[0], &m_gbufferTextures[2], m_camera.getProjection(), m_reflectionAlgorithm))
+		&m_gbufferTextures[0], &m_gbufferTextures[2], m_camera.getProjection(), static_cast<VkSampleCountFlagBits>(m_uboParamsData.sampleCount), m_reflectionAlgorithm))
 		reflectionChanged = true;
 
 	if (m_bloomChange)
@@ -291,7 +291,7 @@ void SceneManager::submit(VkDevice device, VkPhysicalDevice physicalDevice, GLFW
 	if(pbrChanged || bloomChanged) // tone mapping changed
 	{
 		m_reflections.recreate(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), computeQueue, m_toneMapping.getOutputTexture(),
-			&m_gbufferTextures[0], &m_gbufferTextures[2], m_camera.getProjection());
+			&m_gbufferTextures[0], &m_gbufferTextures[2], m_camera.getProjection(), static_cast<VkSampleCountFlagBits>(m_uboParamsData.sampleCount));
 	}
 
 	// Recreate post process AA
@@ -408,7 +408,7 @@ void SceneManager::resize(VkDevice device, VkPhysicalDevice physicalDevice, VkQu
 	/* -- Reflections -- */
 	if(m_useReflections)
 		m_reflections.recreate(device, physicalDevice, m_computeCommandPool.getCommandPool(), m_descriptorPool.getDescriptorPool(), computeQueue, m_toneMapping.getOutputTexture(),
-			&m_gbufferTextures[0], &m_gbufferTextures[2], m_camera.getProjection());
+			&m_gbufferTextures[0], &m_gbufferTextures[2], m_camera.getProjection(), static_cast<VkSampleCountFlagBits>(m_uboParamsData.sampleCount));
 
 	/* -- MSAA -- */
 	if (m_usePostProcessAA)

@@ -11,14 +11,14 @@ void Reflection::submit(VkDevice device, VkQueue computeQueue, std::vector<Semap
 
 bool Reflection::setAlgorithm(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
                               VkDescriptorPool descriptorPool, VkQueue computeQueue, Texture* inputShaded, Texture* inputViewPos,
-                              Texture* inputNormal, glm::mat4 projection, std::wstring algorithm)
+                              Texture* inputNormal, glm::mat4 projection, VkSampleCountFlagBits gBufferSampleCount, std::wstring algorithm)
 {
 	if (m_currentAlgorithm == algorithm)
 		return false;
 
 	if (algorithm == L"SSR")
 	{
-		m_ssr.initialize(device, physicalDevice, commandPool, descriptorPool, computeQueue, inputShaded, inputViewPos, inputNormal, projection);
+		m_ssr.initialize(device, physicalDevice, commandPool, descriptorPool, computeQueue, inputShaded, inputViewPos, inputNormal, projection, gBufferSampleCount);
 	}
 	else
 		m_ssr.cleanup(device, commandPool);
@@ -30,12 +30,12 @@ bool Reflection::setAlgorithm(VkDevice device, VkPhysicalDevice physicalDevice, 
 
 void Reflection::recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
 	VkDescriptorPool descriptorPool, VkQueue computeQueue, Texture* inputShaded, Texture* inputViewPos,
-	Texture* inputNormal, glm::mat4 projection)
+	Texture* inputNormal, glm::mat4 projection, VkSampleCountFlagBits gBufferSampleCount)
 {
 	if(m_currentAlgorithm == L"SSR")
 	{
 		m_ssr.cleanup(device, commandPool);
-		m_ssr.initialize(device, physicalDevice, commandPool, descriptorPool, computeQueue, inputShaded, inputViewPos, inputNormal, projection);
+		m_ssr.initialize(device, physicalDevice, commandPool, descriptorPool, computeQueue, inputShaded, inputViewPos, inputNormal, projection, gBufferSampleCount);
 	}
 }
 

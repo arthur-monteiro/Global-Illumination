@@ -9,7 +9,7 @@ public:
 	~SSR() = default;
 
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue computeQueue,
-		Texture* inputShaded, Texture* inputViewPos, Texture* inputNormal, glm::mat4 projection);
+		Texture* inputShaded, Texture* inputViewPos, Texture* inputNormal, glm::mat4 projection, VkSampleCountFlagBits gBufferSampleCount);
 	void submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> semaphoresToWait);
 	void cleanup(VkDevice device, VkCommandPool commandPool);
 

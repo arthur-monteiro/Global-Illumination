@@ -20,9 +20,9 @@ void main()
 	outAlbedo = texture(sampler2D(textures[inMaterialID * 5], textureSampler), inTexCoord);
 	vec3 normal = (texture(sampler2D(textures[inMaterialID * 5 + 1], textureSampler), inTexCoord).rgb * 2.0 - vec3(1.0)) * inTBN;
 	normal = normalize(normal);
-	outNormal = vec4(normal, 1.0);
+	outNormal = vec4(normal, outAlbedo.a);
 	outRoughnessMetalAO = vec4(texture(sampler2D(textures[inMaterialID * 5 + 2], textureSampler), inTexCoord).r, 
 		texture(sampler2D(textures[inMaterialID * 5 + 3], textureSampler), inTexCoord).r,
-		texture(sampler2D(textures[inMaterialID * 5 + 4], textureSampler), inTexCoord).r, 1.0);
-	outViewPos = vec4(inViewdPos, 1.0);
+		texture(sampler2D(textures[inMaterialID * 5 + 4], textureSampler), inTexCoord).r, outAlbedo.a);
+	outViewPos = vec4(inViewdPos, outAlbedo.a);
 }

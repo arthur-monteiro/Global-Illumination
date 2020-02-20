@@ -37,6 +37,8 @@ private:
 	Sampler m_sampler;
 	glm::mat4 m_transformationMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f));
 
+	std::vector<int> m_toBeLast = { 2, 19, 0 }; // flower contains alpha blending
+
 private:
     static std::string getTexName(std::string texName, std::string folder);
 };

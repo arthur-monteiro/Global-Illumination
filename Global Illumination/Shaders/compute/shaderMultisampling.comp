@@ -9,9 +9,10 @@ layout (binding = 2, rgba32f) uniform readonly image2DMS inNormal;
 layout (binding = 3, rgba32f) uniform readonly image2DMS inRoughnessMetalAO;
 layout (binding = 4, rgba8) uniform readonly image2D inShadowMask;
 layout (binding = 5, rgba8) uniform readonly image2D inAO;
-layout (binding = 6, rgba8) uniform image2D resultImage;
+layout (binding = 6, rgba32f) uniform readonly image2D inSkybox;
+layout (binding = 7, rgba8) uniform image2D resultImage;
 
-layout(binding = 7, std140) uniform readonly UniformBufferObjectLighting
+layout(binding = 8, std140) uniform readonly UniformBufferObjectLighting
 {
 	vec4 cameraPosition;
 
@@ -19,7 +20,7 @@ layout(binding = 7, std140) uniform readonly UniformBufferObjectLighting
 	vec4 colorDirectionalLight;
 } uboLighting;
 
-layout(binding = 8, std140) uniform readonly UniformBufferObjectParams
+layout(binding = 9, std140) uniform readonly UniformBufferObjectParams
 {
     uint drawShadows;
     uint sampleCount;
@@ -37,9 +38,17 @@ void main()
 {
     vec3 colors[8];
     vec3 colorSum = vec3(0.0);
+    float fRoughness = 0.0;
     for(int i = 0; i < uboParams.sampleCount; ++i)
     {
         vec3 albedo = imageLoad(inAlbedo, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), i).rgb;
+
+        if(albedo.x < 0.0)
+        {
+            colorSum += imageLoad(inSkybox, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
+            continue;
+        }
+
         vec3 normal = imageLoad(inNormal, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), i).rgb;
         vec3 worldPos = imageLoad(inWorldPos, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), i).rgb;
         float roughness = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y), i).r;
@@ -80,9 +89,9 @@ void main()
         vec3 ambient = vec3(0.0) * albedo;
 
         if(uboParams.useAO == 1)
-            ambient = aoCalculated * albedo * 0.15;
+            ambient = aoCalculated * albedo * 0.05;
         else
-            ambient = albedo * 0.15;
+            ambient = albedo * 0.05;
 
         if(uboParams.drawShadows == 1)
         {
@@ -93,11 +102,12 @@ void main()
         colors[i] = ambient + Lo;
 
         colorSum += colors[i];
+        fRoughness += roughness;
     }
 
     vec3 color = colorSum / uboParams.sampleCount;
 
-    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color, 1.0));
+    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color, fRoughness / uboParams.sampleCount));
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)

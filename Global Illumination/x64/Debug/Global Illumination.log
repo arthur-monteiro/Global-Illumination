@@ -1,8 +1,17 @@
-﻿  GameManager.cpp
-  HUD.cpp
-  main.cpp
+﻿  CascadedShadowMapping.cpp
+F:\Code\Global Illumination\Global Illumination\CascadedShadowMapping.cpp(118,37): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
+F:\Code\Global Illumination\Global Illumination\CascadedShadowMapping.cpp(118,27): warning C4244:  'initializing': conversion from 'double' to 'const float', possible loss of data
+  DepthPass.cpp
+  GBuffer.cpp
+  GameManager.cpp
+  ModelPBR.cpp
+  RayTracingShadows.cpp
+F:\Code\Global Illumination\Global Illumination\CascadedShadowMapping.cpp(120,21): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
   SceneManager.cpp
+  Shadows.cpp
   SystemManager.cpp
+  main.cpp
   Generating Code...
-F:\Code\Global Illumination\Global Illumination\HUD.cpp(232,22): warning C4244:  'return': conversion from '__int64' to 'int', possible loss of data
+F:\Code\Global Illumination\Global Illumination\RayTracingShadows.cpp(72,55): warning C4267:  '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+F:\Code\Global Illumination\Global Illumination\Shadows.cpp(117): warning C4715:  'Shadows::getRenderCompleteSemaphore': not all control paths return a value
   Global Illumination.vcxproj -> F:\Code\Global Illumination\x64\Debug\Global Illumination.exe

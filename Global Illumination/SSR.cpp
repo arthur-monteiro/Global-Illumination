@@ -2,7 +2,7 @@
 
 void SSR::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
 	VkDescriptorPool descriptorPool, VkQueue computeQueue, Texture* inputShaded, Texture* inputViewPos,
-	Texture* inputNormal, glm::mat4 projection)
+	Texture* inputNormal, glm::mat4 projection, VkSampleCountFlagBits gBufferSampleCount)
 {
 	m_outputTexture.create(device, physicalDevice, inputShaded->getImage()->getExtent(), VK_IMAGE_USAGE_STORAGE_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
 	m_outputTexture.setImageLayout(device, commandPool, computeQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
@@ -30,6 +30,8 @@ void SSR::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommand
 	uboLayout.binding = 4;
 
 	std::string shaderPath = "Shaders/reflections/ssr.spv";
+	if(gBufferSampleCount > VK_SAMPLE_COUNT_1_BIT)
+		shaderPath = "Shaders/reflections/ssrMS.spv";
 
 	m_pass.initialize(device, physicalDevice, commandPool, descriptorPool, inputShaded->getImage()->getExtent(),
 		{ 16, 16, 1 }, shaderPath, { { &m_ubo, uboLayout} },{

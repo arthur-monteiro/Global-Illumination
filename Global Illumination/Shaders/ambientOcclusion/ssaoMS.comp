@@ -11,11 +11,11 @@ layout(binding = 3, std140) uniform readonly UniformBufferObject
 {
     mat4 projection;
     vec4 power;
-	vec3 samples[32];
+	vec3 samples[16];
     vec3 noise[16];
 } ubo;
 
-int kernelSize = 32;
+int kernelSize = 16;
 float radius = 1.0;
 float bias = 0.025;
 

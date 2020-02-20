@@ -12,9 +12,9 @@ public:
 	void submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> semaphoresToWait);
 
 	bool setAlgorithm(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue computeQueue,
-		Texture* inputShaded, Texture* inputViewPos, Texture* inputNormal, glm::mat4 projection, std::wstring algorithm);
+		Texture* inputShaded, Texture* inputViewPos, Texture* inputNormal, glm::mat4 projection, VkSampleCountFlagBits gBufferSampleCount, std::wstring algorithm);
 	void recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue computeQueue,
-		Texture* inputShaded, Texture* inputViewPos, Texture* inputNormal, glm::mat4 projection);
+		Texture* inputShaded, Texture* inputViewPos, Texture* inputNormal, glm::mat4 projection, VkSampleCountFlagBits gBufferSampleCount);
 
 	Semaphore* getSemaphore();
 	Texture* getTextureOutput();

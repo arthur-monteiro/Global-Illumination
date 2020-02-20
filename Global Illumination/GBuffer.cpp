@@ -55,7 +55,7 @@ bool GBuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCom
 	samplerLayout.binding = 1;
 
 	m_renderer.initialize(device, "Shaders/gbuffer/vert.spv", "Shaders/gbuffer/frag.spv", { VertexPBR::getBindingDescription(0) }, VertexPBR::getAttributeDescriptions(0),
-		{ mvpLayout }, {}, imageLayouts, { samplerLayout }, { false, false, false, false });
+		{ mvpLayout }, {}, imageLayouts, { samplerLayout }, { true, true, true, true });
 
 	std::vector<VertexBuffer> vertexBuffers = model->getVertexBuffers();
 	for (int i(0); i < vertexBuffers.size(); ++i)

@@ -36,49 +36,59 @@ void ModelPBR::loadFromFile(VkDevice device, VkPhysicalDevice physicalDevice, Vk
     std::vector<uint32_t> indices;
     //indices.resize(materials.size());
 
-    for (const auto& shape : shapes)
-    {
-        int numVertex = 0;
-        for (const auto& index : shape.mesh.indices)
-        {
-            VertexPBR vertex = {};
+	std::vector<uint32_t> lastIndices;
 
-            if (shape.mesh.material_ids[numVertex / 3] < 0)
-                continue;
+	for (const auto& shape : shapes)
+	{
+		int numVertex = 0;
+		for (const auto& index : shape.mesh.indices)
+		{
+			VertexPBR vertex = {};
 
-            vertex.pos =
-                    {
-                            attrib.vertices[3 * index.vertex_index + 0],
-                            attrib.vertices[3 * index.vertex_index + 1],
-                            attrib.vertices[3 * index.vertex_index + 2]
-                    };
+			int materialID = shape.mesh.material_ids[numVertex / 3];
 
-            vertex.texCoord =
-                    {
-                            attrib.texcoords[2 * index.texcoord_index + 0],
-                            1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-                    };
+			if (materialID < 0)
+				continue;
 
-            vertex.normal =
-                    {
-                            attrib.normals[3 * index.normal_index + 0],
-                            attrib.normals[3 * index.normal_index + 1],
-                            attrib.normals[3 * index.normal_index + 2]
-                    };
+			vertex.pos =
+			{
+					attrib.vertices[3 * index.vertex_index + 0],
+					attrib.vertices[3 * index.vertex_index + 1],
+					attrib.vertices[3 * index.vertex_index + 2]
+			};
+
+			vertex.texCoord =
+			{
+					attrib.texcoords[2 * index.texcoord_index + 0],
+					1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+			};
+
+			vertex.normal =
+			{
+					attrib.normals[3 * index.normal_index + 0],
+					attrib.normals[3 * index.normal_index + 1],
+					attrib.normals[3 * index.normal_index + 2]
+			};
 
 			vertex.materialID = shape.mesh.material_ids[numVertex / 3];
 
-            if (uniqueVertices.count(vertex) == 0)
-            {
-                uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-                vertices.push_back(vertex);
-            }
+			if (uniqueVertices.count(vertex) == 0)
+			{
+				uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+				vertices.push_back(vertex);
+			}
 
-            indices.push_back(uniqueVertices[vertex]);
+			if (std::find(m_toBeLast.begin(), m_toBeLast.end(), materialID) == m_toBeLast.end())
+				indices.push_back(uniqueVertices[vertex]);
+			else
+				lastIndices.push_back(uniqueVertices[vertex]);
 
-            numVertex++;
-        }
-    }
+			numVertex++;
+		}
+	}
+
+	for (int i(0); i < lastIndices.size(); ++i)
+		indices.push_back(lastIndices[i]);
 
     std::array<VertexPBR, 3> tempTriangle{};
     for (int i(0); i <= indices.size(); ++i)

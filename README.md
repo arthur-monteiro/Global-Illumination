@@ -15,6 +15,7 @@ This demo integrates the following techniques:
 * Screen space reflections (SSR)
 * Screen space ambient occlusion (SSAO)
 * Text rendering
+* Depth of Field with Bokeh Effect
 
 ## Installation
 

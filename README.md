@@ -3,6 +3,7 @@
 This project is a global illumination technical demo using Vulkan
 
 ![Screenshot](https://github.com/arthur-monteiro/Global-Illumination/blob/master/Pictures%20description/Capture.PNG)
+![Screenshot](https://github.com/arthur-monteiro/Global-Illumination/blob/master/Pictures%20description/Capture_2.PNG)
 
 This demo integrates the following techniques:
 * Physically based rendering

@@ -4,7 +4,7 @@ Sampler::~Sampler()
 {
 }
 
-void Sampler::initialize(VkDevice device, VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter)
+void Sampler::initialize(VkDevice device, VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter, float maxAnisotropy)
 {
 	VkSamplerCreateInfo samplerInfo = {};
 	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -15,8 +15,8 @@ void Sampler::initialize(VkDevice device, VkSamplerAddressMode addressMode, floa
 	samplerInfo.addressModeV = addressMode;
 	samplerInfo.addressModeW = addressMode;
 
-	samplerInfo.anisotropyEnable = VK_TRUE;
-	samplerInfo.maxAnisotropy = 16;
+	samplerInfo.anisotropyEnable = maxAnisotropy > 0.0f;
+	samplerInfo.maxAnisotropy = maxAnisotropy;
 
 	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 	samplerInfo.unnormalizedCoordinates = VK_FALSE;

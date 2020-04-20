@@ -1,0 +1,36 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout (binding = 0, rgba32f) uniform readonly image2D inColorNoBlur;
+layout (binding = 1, rgba32f) uniform readonly image2D inColorBlur;
+layout (binding = 2, rgba16f) uniform readonly image2D inDepthAndBlur;
+layout (binding = 3, rgba32f) uniform readonly image2D inBokehPoints;
+layout (binding = 4, rgba32f) uniform image2D outColor;
+
+void main()
+{
+    float blurAmount = imageLoad(inDepthAndBlur, ivec2(gl_GlobalInvocationID.xy)).g;
+
+    ivec2 distanceFromCenter = ivec2(gl_GlobalInvocationID.xy) - imageSize(inColorNoBlur) / 2;
+    ivec2 chromaticAberrationOffsetR = ivec2(vec2(8.0, 0.0) * blurAmount / 2.0) * distanceFromCenter / 500;
+    ivec2 chromaticAberrationOffsetG = ivec2(vec2(0.0, 0.0) * blurAmount / 2.0) * distanceFromCenter / 500;
+    ivec2 chromaticAberrationOffsetB = ivec2(vec2(-8.0, 0.0) * blurAmount / 2.0) * distanceFromCenter / 500;
+
+    float colorBlurR = imageLoad(inColorBlur, ivec2(gl_GlobalInvocationID.xy) + chromaticAberrationOffsetR).r;
+    float colorBlurG = imageLoad(inColorBlur, ivec2(gl_GlobalInvocationID.xy) + chromaticAberrationOffsetG).g;
+    float colorBlurB = imageLoad(inColorBlur, ivec2(gl_GlobalInvocationID.xy) + chromaticAberrationOffsetB).b;
+
+    float colorNoBlurR = imageLoad(inColorNoBlur, ivec2(gl_GlobalInvocationID.xy) + chromaticAberrationOffsetR).r;
+    float colorNoBlurG = imageLoad(inColorNoBlur, ivec2(gl_GlobalInvocationID.xy) + chromaticAberrationOffsetG).g;
+    float colorNoBlurB = imageLoad(inColorNoBlur, ivec2(gl_GlobalInvocationID.xy) + chromaticAberrationOffsetB).b;
+
+    float resultR = mix(colorNoBlurR, colorBlurR, blurAmount);
+    float resultG = mix(colorNoBlurG, colorBlurG, blurAmount);
+    float resultB = mix(colorNoBlurB, colorBlurB, blurAmount);
+
+    vec3 result = vec3(resultR, resultG, resultB) + imageLoad(inBokehPoints, ivec2(gl_GlobalInvocationID.xy)).rgb;
+
+    imageStore(outColor, ivec2(gl_GlobalInvocationID.xy), vec4(result, 1.0));
+}

@@ -12,14 +12,14 @@ void Command::allocateCommandBuffers(VkDevice device, VkCommandPool commandPool,
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.commandPool = commandPool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandBufferCount = (uint32_t)m_commandBuffers.size();
+	allocInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
 
 	if (vkAllocateCommandBuffers(device, &allocInfo, m_commandBuffers.data()) != VK_SUCCESS)
 		throw std::runtime_error("Error : command buffer allocation");
 }
 
 void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, VkRenderPass renderPass, VkFramebuffer framebuffer, VkExtent2D extent, std::vector<VkClearValue> clearValues,
-	std::vector<Renderer*> renderers)
+	std::vector<Renderer*> renderers, bool endCommandBuffer)
 {
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -58,22 +58,29 @@ void Command::fillCommandBuffer(VkDevice device, size_t commandBufferID, VkRende
 		}
 
 		std::vector<std::tuple<VertexBuffer, InstanceBuffer, VkDescriptorSet>> meshesInstancied = renderers[i]->getMeshesInstancied();
-		for(int j(0); j < meshesInstancied.size(); ++j)
+		for (auto& meshInstancied : meshesInstancied)
 		{
-			vkCmdBindVertexBuffers(m_commandBuffers[commandBufferID], 0, 1, &std::get<0>(meshesInstancied[j]).vertexBuffer, offsets);
-			vkCmdBindIndexBuffer(m_commandBuffers[commandBufferID], std::get<0>(meshesInstancied[j]).indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindVertexBuffers(m_commandBuffers[commandBufferID], 0, 1, &std::get<0>(meshInstancied).vertexBuffer, offsets);
+			vkCmdBindIndexBuffer(m_commandBuffers[commandBufferID], std::get<0>(meshInstancied).indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdBindVertexBuffers(m_commandBuffers[commandBufferID], 1, 1, &std::get<1>(meshesInstancied[j]).instanceBuffer, offsets);
+			vkCmdBindVertexBuffers(m_commandBuffers[commandBufferID], 1, 1, &std::get<1>(meshInstancied).instanceBuffer, offsets);
 
 			vkCmdBindDescriptorSets(m_commandBuffers[commandBufferID], VK_PIPELINE_BIND_POINT_GRAPHICS,
-				renderers[i]->getPipelineLayout(), 0, 1, &std::get<2>(meshesInstancied[j]), 0, nullptr);
+				renderers[i]->getPipelineLayout(), 0, 1, &std::get<2>(meshInstancied), 0, nullptr);
 
-			vkCmdDrawIndexed(m_commandBuffers[commandBufferID], std::get<0>(meshesInstancied[j]).nbIndices, std::get<1>(meshesInstancied[j]).nInstances, 0, 0, 0);
+			vkCmdDrawIndexed(m_commandBuffers[commandBufferID], std::get<0>(meshInstancied).nbIndices, std::get<1>(meshInstancied).nInstances, 0, 0, 0);
 		}
 	}
 
 	vkCmdEndRenderPass(m_commandBuffers[commandBufferID]);
 
+	if(endCommandBuffer)
+		if (vkEndCommandBuffer(m_commandBuffers[commandBufferID]) != VK_SUCCESS)
+			throw std::runtime_error("Error : end command buffer");
+}
+
+void Command::endCommandBuffer(size_t commandBufferID)
+{
 	if (vkEndCommandBuffer(m_commandBuffers[commandBufferID]) != VK_SUCCESS)
 		throw std::runtime_error("Error : end command buffer");
 }

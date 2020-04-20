@@ -7,6 +7,13 @@
 #include "Texture.h"
 #include "Instance.h"
 
+struct BufferLayout
+{
+	VkShaderStageFlags accessibility;
+	uint32_t binding;
+	VkDeviceSize size;
+};
+
 class Renderer
 {
 public:
@@ -15,7 +22,12 @@ public:
 
 	void initialize(VkDevice device, std::string vertexShader, std::string fragmentShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription, 
 		std::vector<VkVertexInputAttributeDescription> attributeInputDescription, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, 
-		std::vector<TextureLayout> textureLayouts, std::vector<ImageLayout> imageLayouts, std::vector<SamplerLayout> samplerLayouts, std::vector<bool> alphaBlending);
+		std::vector<TextureLayout> textureLayouts, std::vector<ImageLayout> imageLayouts, std::vector<SamplerLayout> samplerLayouts, std::vector<BufferLayout> bufferLayouts,
+		std::vector<bool> alphaBlending);
+	void initialize(VkDevice device, std::string vertexShader, std::string geometryShader, std::string fragmentShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
+		std::vector<VkVertexInputAttributeDescription> attributeInputDescription, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts,
+		std::vector<TextureLayout> textureLayouts, std::vector<ImageLayout> imageLayouts, std::vector<SamplerLayout> samplerLayouts, std::vector<BufferLayout> bufferLayouts,
+		std::vector<bool> alphaBlending);
 	void initialize(VkDevice device, std::string vertexShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
 		std::vector<VkVertexInputAttributeDescription> attributeInputDescription, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts,
 		std::vector<TextureLayout> textureLayouts, std::vector<bool> alphaBlending);
@@ -24,7 +36,7 @@ public:
 
 	int addMesh(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer, 
 		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures,
-		std::vector<std::pair<Image*, ImageLayout>> images, std::vector<std::pair<Sampler*, SamplerLayout>> samplers);
+		std::vector<std::pair<Image*, ImageLayout>> images, std::vector<std::pair<Sampler*, SamplerLayout>> samplers, std::vector<std::pair<VkBuffer, BufferLayout>> buffers);
 	int addMeshInstancied(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer, InstanceBuffer instanceBuffer,
 		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures);
 	void reloadMeshVertexBuffer(VkDevice device, VertexBuffer vertexBuffer, int meshID);
@@ -41,6 +53,7 @@ public:
 private:
 	/* Information */
 	std::string m_vertexShader;
+	std::string m_geometryShader;
 	std::string m_fragmentShader;
 	std::vector<VkVertexInputBindingDescription> m_vertexInputDescription;
 	std::vector<VkVertexInputAttributeDescription> m_attributeInputDescription;
@@ -56,9 +69,9 @@ private:
 
 private:
 	void createDescriptorSetLayout(VkDevice device, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, std::vector<TextureLayout> textureLayouts,
-		std::vector<ImageLayout> imageLayouts, std::vector<SamplerLayout> samplerLayouts);
+		std::vector<ImageLayout> imageLayouts, std::vector<SamplerLayout> samplerLayouts, std::vector<BufferLayout> bufferLayouts);
 	VkDescriptorSet createDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool,
 		std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures,
-		std::vector<std::pair<Image*, ImageLayout>> images, std::vector<std::pair<Sampler*, SamplerLayout>> samplers);
+		std::vector<std::pair<Image*, ImageLayout>> images, std::vector<std::pair<Sampler*, SamplerLayout>> samplers, std::vector<std::pair<VkBuffer, BufferLayout>> buffers);
 };
 

@@ -12,7 +12,7 @@ void main()
 {	
     vec3 resultColor = imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb * weight[0];
     
-    for(int i = 0; i < 5; i++)
+    for(int i = 1; i < 5; i++)
     {
         resultColor += imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y + i)).rgb * weight[i];
         resultColor += imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y - i)).rgb * weight[i];

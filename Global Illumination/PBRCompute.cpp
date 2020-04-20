@@ -2,9 +2,9 @@
 
 //void PBRCompute::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
 //	Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
-//	std::vector<Operation> transitSwapChainToLayoutPresent, ParamsUBO params)
+//	std::vector<Operation> transitSwapChainToLayoutPresent, ParamsUBO m_bokehPointGenerationParams)
 //{
-//	createUBOs(device, physicalDevice, params);
+//	createUBOs(device, physicalDevice, m_bokehPointGenerationParams);
 //	
 //	createPasses(device, physicalDevice, commandPool, descriptorPool, std::move(gBufferTextures), shadowMask, hudTexture, aoTexture, std::move(swapChainTextures), std::move(transitSwapChainToLayoutGeneral),
 //		std::move(transitSwapChainToLayoutPresent));
@@ -55,7 +55,7 @@ void PBRCompute::updateParameters(VkDevice device, ParamsUBO parameters)
 void PBRCompute::createUBOs(VkDevice device, VkPhysicalDevice physicalDevice, ParamsUBO params)
 {
 	//m_uboLightingData.cameraPosition = glm::vec4(m_camera.getPosition(), 1.0f);
-	m_uboLightingData.colorDirectionalLight = glm::vec4(2.0f);
+	m_uboLightingData.colorDirectionalLight = glm::vec4(10.0f);
 	m_uboLightingData.directionDirectionalLight = glm::vec4(1.5f, -5.0f, -1.0f, 1.0f);
 	m_uboLighting.initialize(device, physicalDevice, &m_uboLightingData, sizeof(m_uboLightingData));
 
@@ -144,8 +144,9 @@ void PBRCompute::createPasses(VkDevice device, VkPhysicalDevice physicalDevice, 
 	VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures, Texture* shadowMask, Texture* aoTexture, Texture* skyboxTexture, VkQueue computeQueue,
 	VkExtent2D extentOutput)
 {
-	m_outputTexture.create(device, physicalDevice, extentOutput, VK_IMAGE_USAGE_STORAGE_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
+	m_outputTexture.create(device, physicalDevice, extentOutput, VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
 	m_outputTexture.setImageLayout(device, commandPool, computeQueue, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+	m_outputTexture.createSampler(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 1.0f, VK_FILTER_LINEAR);
 
 	// Setting textures for compute pass
 	std::vector<std::pair<Texture*, TextureLayout>> texturesForComputePass;

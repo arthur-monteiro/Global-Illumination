@@ -9,7 +9,7 @@ void Shadows::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCom
 	createDefaultTexture(device, physicalDevice, commandPool, computeQueue, extent);
 }
 
-bool Shadows::changeShadowType(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, 
+bool Shadows::changeShadowType(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool,
 	VkQueue graphicsQueue, ModelPBR* model, glm::mat4 mvp, glm::vec3 sunDir, float cameraNear, float cameraFar, VkExtent2D extentOutput,
 	const std::wstring& newType)
 {
@@ -31,7 +31,7 @@ bool Shadows::changeShadowType(VkDevice device, VkPhysicalDevice physicalDevice,
 		m_csm.cleanup(device, commandPool, descriptorPool);
 
 	// Create
-	if(newType == L"NVidia Ray Tracing")
+	if (newType == L"NVidia Ray Tracing")
 	{
 		m_shadowType = ShadowType::RTX;
 		m_renderFinishedSemaphore.setPipelineStage(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
@@ -51,25 +51,25 @@ bool Shadows::changeShadowType(VkDevice device, VkPhysicalDevice physicalDevice,
 	return true;
 }
 
-void Shadows::submit(VkDevice device, VkQueue graphicsQueue, std::vector<Semaphore*> waitSemaphores, glm::mat4 viewInverse, glm::mat4 projInverse, glm::mat4 view, glm::mat4 model, glm::mat4 projection,
+void Shadows::submit(VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkPhysicalDevice physicalDevice, VkDescriptorPool descriptorPool, std::vector<Semaphore*> waitSemaphores, glm::mat4 viewInverse, glm::mat4 projInverse, glm::mat4 view, glm::mat4 model, glm::mat4 projection,
 	float cameraNear, float cameraFOV, glm::vec3 lightDir, glm::vec3 cameraPosition, glm::vec3 cameraOrientation)
 {
-	if(m_shadowType == ShadowType::RTX)
+	if (m_shadowType == ShadowType::RTX)
 	{
 		m_rtShadows.submit(device, graphicsQueue, std::move(waitSemaphores), m_renderFinishedSemaphore.getSemaphore(), viewInverse, projInverse);
 	}
 	else if (m_shadowType == ShadowType::CSM)
 	{
-		m_csm.submit(device, graphicsQueue, view, model, projection, cameraNear, cameraFOV, lightDir, cameraPosition, cameraOrientation);
+		m_csm.submit(device, graphicsQueue, commandPool, physicalDevice, descriptorPool, view, model, projection, cameraNear, cameraFOV, lightDir, cameraPosition, cameraOrientation);
 	}
 }
 
 void Shadows::resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue,
 	ModelPBR* model, VkExtent2D extentOutput, glm::vec3 lightDir, float cameraNear, float cameraFar)
 {
-	if(m_shadowType == ShadowType::RTX)
+	if (m_shadowType == ShadowType::RTX)
 		m_rtShadows.resize(device, physicalDevice, commandPool, graphicsQueue, model, extentOutput);
-	else if(m_shadowType == ShadowType::CSM)
+	else if (m_shadowType == ShadowType::CSM)
 	{
 		m_csm.cleanup(device, commandPool, descriptorPool);
 		m_csm.initialize(device, physicalDevice, commandPool, descriptorPool, graphicsQueue, extentOutput, model, lightDir, cameraNear, cameraFar);
@@ -79,6 +79,30 @@ void Shadows::resize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommand
 void Shadows::changeRTSampleCount(VkDevice device, unsigned int sampleCount)
 {
 	m_rtShadows.changeSampleCount(device, sampleCount);
+}
+
+void Shadows::changeSoftShadowsOption(glm::uint softShadowOption)
+{
+	if (m_shadowType == ShadowType::CSM)
+		m_csm.setSoftShadowsOption(softShadowOption);
+}
+
+void Shadows::changeSoftShadowsIteration(glm::uint softShadowsIterations)
+{
+	if (m_shadowType == ShadowType::CSM)
+		m_csm.setSSIterations(softShadowsIterations);
+}
+
+void Shadows::changeSoftShadowsDivisor(float divisor)
+{
+	if (m_shadowType == ShadowType::CSM)
+		m_csm.setSamplingDivisor(divisor);
+}
+
+void Shadows::changeBlurAmount(int blurAmount)
+{
+	if (m_shadowType == ShadowType::CSM)
+		m_csm.setBlurAmount(blurAmount);
 }
 
 void Shadows::cleanup(VkDevice device, VkCommandPool commandPool)

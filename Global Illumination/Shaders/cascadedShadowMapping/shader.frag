@@ -10,11 +10,12 @@ layout (binding = 2) uniform texture2D[] shadowMaps;
 layout(location = 0) in vec3 viewPos;
 layout(location = 1) in vec4 cascadeSplits;
 layout(location = 2) in vec4 posLightSpace[4];
+layout(location = 6) in flat ivec4 softShadowOption;
 
 layout(location = 0) out vec4 outColor;
 
 const float PI = 3.14159265359;
-const float BIAS = 0.0005;
+const float BIAS = 0.0001;
 
 float textureProj(vec4 shadowCoord, uint cascadeIndex)
 {
@@ -99,6 +100,26 @@ float random(vec3 seed, int i){
 	return fract(sin(dot_product) * 43758.5453);
 }
 
+// https://www.gamedev.net/tutorials/programming/graphics/contact-hardening-soft-shadows-made-fast-r4906/
+vec2 vogelDiskSample(int sampleIndex, int samplesCount, float phi)
+{
+  float GoldenAngle = 2.4;
+
+  float r = sqrt(sampleIndex + 0.5) / sqrt(samplesCount);
+  float theta = sampleIndex * GoldenAngle + phi;
+
+  float sine = sin(theta);
+  float cosine = cos(theta);
+  
+  return vec2(r * cosine, r * sine);
+}
+
+float interleavedGradientNoise(vec2 position_screen)
+{
+  vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);
+  return fract(magic.z * fract(dot(position_screen, magic.xy)));
+}
+
 void main() 
 {
 	uint cascadeIndex = 0;
@@ -113,9 +134,9 @@ void main()
 
 	float texelSizeX = 1.0 / 2048.0;
 	if(cascadeIndex > 0)
-		texelSizeX = 1.0 / 1024.0;
+		texelSizeX = 1.0 / 2048.0;
 	if(cascadeIndex > 2)
-		texelSizeX = 1.0 / 512.0;
+		texelSizeX = 1.0 / 1024.0;
 
 	vec4 projCoords = posLightSpace[cascadeIndex] / posLightSpace[cascadeIndex].w; 
 	float shadow = 0.0;
@@ -127,21 +148,108 @@ void main()
 	}
 	else 
 	{
-		float divisor = 700.0;
-		int nIteration = 16;
-
-		vec2 randomValue = vec2(random(viewPos.xyz, 0), random(viewPos.xyz, 1));
-		randomValue *= 2.0;
-		randomValue -= vec2(1.0);
-
-		for(int i = 0; i < nIteration; i++)
+		if(softShadowOption.x == 0.0)
+			shadow += 1.0 - textureProj(projCoords, cascadeIndex);
+		else if(softShadowOption.x > 0.5 && softShadowOption.x < 1.5) // Poisson
 		{
-			vec2 offset = vec2(randomValue.x * poissonDisk[16 +i].x - randomValue.y * poissonDisk[16 + i].y,
-				randomValue.y * poissonDisk[16 + i].x + randomValue.x * poissonDisk[16 + i].y);
-			shadow += 1.0 - textureProj(projCoords + vec4(offset / divisor, 0.0, 0.0), cascadeIndex);
+			float divisor = softShadowOption.z;
+			float nIteration = softShadowOption.y;
+
+			float step = 64.0 / nIteration; 
+
+			for(int i = 0; i < int(nIteration); i++)
+			{
+				vec2 offset = poissonDisk[int(i * step)].xy;
+				shadow += 1.0 - textureProj(projCoords + vec4(offset / divisor, 0.0, 0.0), cascadeIndex);
+			}
+			shadow /= nIteration;
 		}
-		shadow /= float(nIteration);
+		else if(softShadowOption.x > 1.5 && softShadowOption.x < 2.5) // Poisson stratified
+		{
+			float divisor = softShadowOption.z;
+			float nIteration = softShadowOption.y;
+
+			float step = 64.0 / nIteration; 
+
+			vec2 randomValue = vec2(random(gl_FragCoord.xyz, 0), random(gl_FragCoord.xyz, 1));
+			randomValue *= 2.0;
+			randomValue -= vec2(1.0);
+
+			for(int i = 0; i < int(nIteration); i++)
+			{
+				vec2 offset = vec2(randomValue.x * poissonDisk[int(i * step)].x - randomValue.y * poissonDisk[int(i * step)].y,
+					randomValue.y * poissonDisk[int(i * step)].x + randomValue.x * poissonDisk[int(i * step)].y);
+				shadow += 1.0 - textureProj(projCoords + vec4(offset / divisor, 0.0, 0.0), cascadeIndex);
+			}
+			shadow /= nIteration;
+		}		
+		else if(softShadowOption.x > 2.5 && softShadowOption.x < 3.5) // PCF
+		{
+			int nIteration = int(softShadowOption.y);
+
+			for(int i = -nIteration / 2; i < nIteration / 2; i++)
+			{
+				for(int j = -nIteration / 2; j < nIteration / 2; ++j)
+					shadow += 1.0 - textureProj(projCoords + vec4(texelSizeX * float(i), texelSizeX * float(j), 0.0, 0.0), cascadeIndex);
+			}
+			shadow /= nIteration * nIteration;
+		}
+		else if(softShadowOption.x > 3.5 && softShadowOption.x < 4.5) // Vogel
+		{
+			int nIteration = int(softShadowOption.y);
+			float divisor = softShadowOption.z;
+
+			for(int i = 0; i < nIteration; ++i)
+				shadow += 1.0 - textureProj(projCoords + vec4(vogelDiskSample(i, nIteration, 0.0) / divisor, 0.0, 0.0), cascadeIndex);
+
+			shadow /= nIteration;
+		}
+		else if(softShadowOption.x > 4.5 && softShadowOption.x < 5.5) // Vogel Noise
+		{
+			int nIteration = int(softShadowOption.y);
+			float divisor = softShadowOption.z;
+
+			for(int i = 0; i < nIteration; ++i)
+				shadow += 1.0 - textureProj(projCoords + vec4(vogelDiskSample(i, nIteration, interleavedGradientNoise(gl_FragCoord.xy)) / divisor, 0.0, 0.0), cascadeIndex);
+
+			shadow /= nIteration;
+		}
+		else if(softShadowOption.x > 5.5 && softShadowOption.x < 6.5)
+		{
+			int nIteration = int(softShadowOption.y);
+			float divisor = softShadowOption.z;
+
+			float avgBlockersDepth = 0.0f;
+			float blockerCount = 0.0f;
+			for(int i = 0; i < nIteration; ++i)
+			{
+				vec4 samplingCoords = projCoords + vec4(vogelDiskSample(i, nIteration, interleavedGradientNoise(gl_FragCoord.xy)) / divisor, 0.0, 0.0);
+				if(textureProj(samplingCoords, cascadeIndex) == 1.0)
+				{
+					blockerCount += 1.0f;
+					avgBlockersDepth += texture(sampler2D(shadowMaps[cascadeIndex], shadowMapSampler), samplingCoords.st).r;
+				}
+			}
+
+			float fPenumbra = 0.0;
+			if(blockerCount > 0.0)
+			{
+				avgBlockersDepth /= blockerCount;
+
+				float tPenumbra = (projCoords.z - avgBlockersDepth);
+				fPenumbra = clamp(tPenumbra * 100.0, 0.4, 1.0);
+				fPenumbra *= fPenumbra;
+			}
+			else
+				fPenumbra = 0.0;
+
+			for(int i = 0; i < nIteration; ++i)
+				shadow += 1.0 - textureProj(projCoords + 
+					vec4((vogelDiskSample(i, nIteration, interleavedGradientNoise(gl_FragCoord.xy)) / divisor) * fPenumbra, 0.0, 0.0), cascadeIndex);
+
+			shadow /= nIteration;
+		}
 	}	
 
-    outColor = vec4(shadow, penombra, 0.0, 1.0);
+    outColor = vec4(shadow, viewPos.z / 100.0, 0.0, 1.0);
 }

@@ -116,6 +116,8 @@ void Camera::setTarget(glm::vec3 target)
 
 void Camera::updateOrientation(int xOffset, int yOffset)
 {
+	//std::cout << "xOffset : " << xOffset << std::endl;
+	
 	m_phi -= yOffset * m_sensibility;
 	m_theta -= xOffset * m_sensibility;
 

@@ -1,0 +1,37 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout (binding = 0, rgba32f) uniform readonly image2D inViewPos;
+layout (binding = 1, rgba16f) uniform image2D resultImage;
+
+layout(binding = 2) uniform UniformBufferObject
+{
+	vec4 focusPoint;
+} ubo;
+
+float BlurFactor(float depth, vec4 DOFDepths) 
+{
+    float f0 = 1.0 - clamp((depth - DOFDepths.x) / max(DOFDepths.y - DOFDepths.x, 0.01), 0.0, 1.0);
+    float f1 = clamp((depth - DOFDepths.z) / max(DOFDepths.w - DOFDepths.z, 0.01f), 0.0, 1.0);
+    float blur = clamp(f0 + f1, 0.0, 1.0);
+
+    return blur;
+}
+
+void main()
+{    
+    float depth = -imageLoad(inViewPos, ivec2(gl_GlobalInvocationID.xy)).b;
+
+    float focalPoint = -imageLoad(inViewPos, imageSize(inViewPos) / 2).z;
+    vec4 DOFDepths;
+    if(ubo.focusPoint.x < 0.0)
+        DOFDepths = vec4(0.0, focalPoint / 8.0, 4.0 * focalPoint, 8.0 * focalPoint);
+    else 
+        DOFDepths = ubo.focusPoint;
+
+    float blur = BlurFactor(depth, DOFDepths);
+
+    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(depth, blur, 0.0, 1.0));
+}

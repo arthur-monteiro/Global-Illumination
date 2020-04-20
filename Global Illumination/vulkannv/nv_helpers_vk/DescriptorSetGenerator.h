@@ -97,7 +97,7 @@ public:
               const std::vector<T>& info  /// Descriptor infos to bind
     )
     {
-      // Initialize the descriptor write, keeping all the resource pointers to NULL since they will
+      // initialize the descriptor write, keeping all the resource pointers to NULL since they will
       // be set by SetPointers once all resources have been bound
       VkWriteDescriptorSet descriptorWrite = {};
       descriptorWrite.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

@@ -16,15 +16,26 @@ void ToneMapping::initialize(VkDevice device, VkPhysicalDevice physicalDevice, V
 	textureOutputLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
 	textureOutputLayout.binding = 1;
 
+	UniformBufferObjectLayout uboLayout;
+	uboLayout.accessibility = VK_SHADER_STAGE_COMPUTE_BIT;
+	uboLayout.binding = 2;
+
+	m_ubo.initialize(device, physicalDevice, &m_params, sizeof(Params));
+
 	std::string shaderPath = "Shaders/postProcess/toneMapping.spv";
 
 	m_pass.initialize(device, physicalDevice, commandPool, descriptorPool, inputTexture->getImage()->getExtent(),
-		{ 16, 16, 1 }, shaderPath, { },
+		{ 16, 16, 1 }, shaderPath, { { &m_ubo, uboLayout } },
 		{ { inputTexture, textureInputLayout}, { &m_outputTexture, textureOutputLayout} }, {}, {});
 }
 
 void ToneMapping::submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> semaphoresToWait)
 {
+	if (m_needUpdateUBO)
+	{
+		m_ubo.updateData(device, &m_params);
+		m_needUpdateUBO = false;
+	}
 	m_pass.submit(device, computeQueue, std::move(semaphoresToWait), m_semaphore.getSemaphore());
 }
 
@@ -39,4 +50,16 @@ void ToneMapping::recreate(VkDevice device, VkPhysicalDevice physicalDevice, VkC
 {
 	cleanup(device, commandPool);
 	initialize(device, physicalDevice, commandPool, descriptorPool, computeQueue, inputTexture);
+}
+
+void ToneMapping::setExposure(float exposure)
+{
+	m_params.params.x = exposure;
+	m_needUpdateUBO = true;
+}
+
+void ToneMapping::setGamma(float gamma)
+{
+	m_params.params.y = gamma;
+	m_needUpdateUBO = true;
 }

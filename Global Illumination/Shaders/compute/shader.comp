@@ -4,9 +4,9 @@
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 layout (binding = 0, rgba32f) uniform readonly image2D inWorldPos;
-layout (binding = 1, rgba32f) uniform readonly image2D inAlbedo;
+layout (binding = 1, rgba8) uniform readonly image2D inAlbedo;
 layout (binding = 2, rgba32f) uniform readonly image2D inNormal;
-layout (binding = 3, rgba32f) uniform readonly image2D inRoughnessMetalAO;
+layout (binding = 3, rgba8) uniform readonly image2D inRoughnessMetalAO;
 layout (binding = 4, rgba8) uniform readonly image2D inShadowMask;
 layout (binding = 5, rgba8) uniform readonly image2D inAO;
 layout (binding = 6, rgba32f) uniform readonly image2D inSkybox;
@@ -37,14 +37,14 @@ const float PI = 3.14159265359;
 void main()
 {
     vec3 albedo = imageLoad(inAlbedo, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
+    vec3 normal = imageLoad(inNormal, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
 
-    if(albedo.x < 0.0)
+    if(normal.x < -1.0)
     {
         imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(imageLoad(inSkybox, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb, 1.0));
         return;
     }
 
-    vec3 normal = imageLoad(inNormal, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
     vec3 worldPos = imageLoad(inWorldPos, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
     float roughness = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).r;
     float metallic = imageLoad(inRoughnessMetalAO, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).g;
@@ -81,12 +81,12 @@ void main()
     float NdotL = max(dot(normal, L), 0.0);
     Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 
-    vec3 ambient = vec3(0.0) * albedo;
+    vec3 ambient = vec3(0.0);
 
     if(uboParams.useAO == 1)
-        ambient = aoCalculated * albedo * 0.05;
+        ambient = aoCalculated * albedo * 0.03;
     else
-        ambient = albedo * 0.05;
+        ambient = albedo * 0.03;
 
     if(uboParams.drawShadows == 1)
     {

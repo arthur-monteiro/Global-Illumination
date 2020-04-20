@@ -1,6 +1,7 @@
 #include "Blur.h"
 
-void Blur::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue computeQueue, Texture* inputTexture, int blurAmount)
+void Blur::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue computeQueue, Texture* inputTexture, int blurAmount,
+	std::string verticalShaderPath , std::string horizontalShaderPath, Texture* resultTexture)
 {
 	m_texture.create(device, physicalDevice, inputTexture->getImage()->getExtent(), VK_IMAGE_USAGE_STORAGE_BIT, inputTexture->getImage()->getFormat(), VK_SAMPLE_COUNT_1_BIT,
 		VK_IMAGE_ASPECT_COLOR_BIT);
@@ -20,18 +21,26 @@ void Blur::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkComman
 	{
 		std::string shaderPath;
 		if (i % 2 == 0)
-			shaderPath = "Shaders/blur/vertical.spv";
+			shaderPath = verticalShaderPath;
 		else
-			shaderPath = "Shaders/blur/horizontal.spv";
+			shaderPath = horizontalShaderPath;
 
 		std::vector<std::pair<Texture*, TextureLayout>> textures;
 		if (i % 2 == 0)
-			textures = { { inputTexture, inputLayout}, { &m_texture, resultLayout} };
+			textures = { { resultTexture ? resultTexture : inputTexture, inputLayout}, { &m_texture, resultLayout} };
 		else
-			textures = { { &m_texture, inputLayout}, { inputTexture, resultLayout} };
+			textures = { { &m_texture, inputLayout}, { resultTexture ? resultTexture : inputTexture, resultLayout} };
 
+		std::vector<Operation> operationBefore(0);
+		if(i == 0 && resultTexture)
+		{
+			Operation copyTexture;
+			copyTexture.copyImage(inputTexture->getImage(), inputTexture->getImage()->getImageLayout(), resultTexture->getImage(), resultTexture->getImage()->getImageLayout());
+			operationBefore.push_back(copyTexture);
+		}
+		
 		m_computePasses[i].first.initialize(device, physicalDevice, commandPool, descriptorPool, inputTexture->getImage()->getExtent(), { 16, 16, 1 }, shaderPath, {},
-			textures, {}, {});
+			textures, operationBefore, {});
 		m_computePasses[i].second.initialize(device);
 		m_computePasses[i].second.setPipelineStage(VK_SHADER_STAGE_COMPUTE_BIT);
 	}

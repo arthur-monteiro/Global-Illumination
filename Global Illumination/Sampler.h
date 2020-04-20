@@ -14,7 +14,7 @@ public:
 	Sampler() = default;
 	~Sampler();
 
-	void initialize(VkDevice device, VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter);
+	void initialize(VkDevice device, VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter, float maxAnisotropy = 16.0f);
 	void cleanup(VkDevice device);
 
 	VkSampler getSampler() { return m_textureSampler; }

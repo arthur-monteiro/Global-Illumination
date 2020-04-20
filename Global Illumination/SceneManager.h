@@ -20,6 +20,8 @@
 #include "Skybox.h"
 #include "Bloom.h"
 #include "Reflection.h"
+#include "MotionBlur.h"
+#include "DepthOfField.h"
 
 class SceneManager
 {
@@ -31,6 +33,7 @@ public:
               std::vector<Image*> swapChainImages, HardwareCapabilities hardwareCapabilities);
 
 	void changeOption(std::string parameter, std::wstring value);
+	void changeFloatOption(std::string parameter, std::vector<float> values);
 
 	void submit(VkDevice device, VkPhysicalDevice physicalDevice, GLFWwindow* window, VkQueue graphicsQueue, VkQueue computeQueue, uint32_t swapChainImageIndex, Semaphore* imageAvailableSemaphore);
 	void resize(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue graphicsQueue, VkQueue computeQueue, std::vector<Image*> swapChainImages);
@@ -41,6 +44,7 @@ public:
     VkSemaphore getLastRenderFinishedSemaphore();
 
 	static void changeOptionCallback(void* instance, std::string parameter, std::wstring value) { reinterpret_cast<SceneManager*>(instance)->changeOption(parameter, value); }
+	static void changeFloatOptionCallback(void* instance, std::string parameter, std::vector<float> values) { reinterpret_cast<SceneManager*>(instance)->changeFloatOption(parameter, std::move(values)); }
 
 private:
 	void createResources(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue graphicsQueue, std::mutex* graphicsQueueMutex);
@@ -59,6 +63,8 @@ private:
 	std::vector<Texture*> getSwapChainTextures();
 
 private:
+	glm::vec3 m_lightDir = glm::vec3(1.5f, -5.0f, -1.0f);
+	
     float m_loadingState = 0.0f;
 	std::vector<Image*> m_swapChainImages;
 
@@ -71,6 +77,7 @@ private:
 	HardwareCapabilities m_hardwareCapabilities;
 
 	Camera m_camera;
+	glm::mat4 m_previousViewMatrix;
 
     ModelPBR m_model;
 
@@ -110,6 +117,14 @@ private:
 	bool m_bloomChange = false;
 
 	ToneMapping m_toneMapping;
+
+	MotionBlur m_motionBlur;
+	bool m_useMotionBlur = false;
+
+	DepthOfField m_depthOfField;
+	bool m_useDepthOfField = false;
+	bool m_needChangeDepthOfField = false;
+	bool m_depthOfFieldChanged = false;
 
 	Reflection m_reflections;
 	std::wstring m_reflectionAlgorithm = L"";

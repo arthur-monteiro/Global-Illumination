@@ -46,13 +46,18 @@ bool RenderPass::initialize(VkDevice device, VkPhysicalDevice physicalDevice, Vk
 	return true;
 }
 
-void RenderPass::fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues, std::vector<Renderer*> renderers, VkSampleCountFlagBits sampleCount)
+void RenderPass::fillCommandBuffer(VkDevice device, size_t framebufferID, std::vector<VkClearValue> clearValues, std::vector<Renderer*> renderers, VkSampleCountFlagBits sampleCount, bool endCommandBuffer)
 {
 	for (int i(0); i < renderers.size(); ++i)
 		renderers[i]->createPipeline(device, m_renderPass, m_framebuffers[framebufferID].getExtent(), sampleCount);
 
     m_command.fillCommandBuffer(device, framebufferID, m_renderPass, m_framebuffers[framebufferID].getFramebuffer(), m_framebuffers[framebufferID].getExtent(),
-            std::move(clearValues), renderers);
+            std::move(clearValues), renderers, endCommandBuffer);
+}
+
+void RenderPass::endCommandBuffer(size_t framebufferID)
+{
+	m_command.endCommandBuffer(framebufferID);
 }
 
 void RenderPass::submit(VkDevice device, VkQueue graphicsQueue, size_t framebufferID, std::vector<Semaphore*> waitSemaphores)

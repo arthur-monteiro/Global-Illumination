@@ -6,6 +6,7 @@ layout(binding = 0) uniform UniformBufferObject
     mat4 mvp;
     mat4 lightSpaceMatrices[4];
     vec4 cascadeSplits;
+    ivec4 softShadowsOption;
 } ubo;
 
 layout(location = 0) in vec3 inPosition;
@@ -17,6 +18,7 @@ layout(location = 4) in uint inMaterialID;
 layout(location = 0) out vec3 viewPos;
 layout(location = 1) out vec4 cascadeSplits;
 layout(location = 2) out vec4 posLightSpace[4];
+layout(location = 6) out ivec4 softShadowsOption;
 
 out gl_PerVertex
 {
@@ -34,6 +36,7 @@ void main()
     gl_Position = ubo.mvp * vec4(inPosition, 1.0);
     viewPos = gl_Position.xyz;
     cascadeSplits = ubo.cascadeSplits;
+    softShadowsOption = ubo.softShadowsOption;
 
     for(int i = 0; i < 4; i++)
         posLightSpace[i] = biasMat * ubo.lightSpaceMatrices[i] * vec4(inPosition, 1.0);

@@ -1,0 +1,84 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout (binding = 0, rgba32f) uniform readonly image2D inViewPos;
+layout (binding = 1, rgba8) uniform readonly image2D inColor;
+layout (binding = 2, rg32f) uniform image2D inVelocity;
+layout (binding = 3, rgba8) uniform image2D resultImage;
+
+layout(binding = 4, std140) uniform readonly UniformBufferObject
+{
+	mat4 invView;
+    mat4 previousView;
+    mat4 projection;
+    float timeBetweenFrames;
+} ubo;
+
+ivec2 clampTexCoord(ivec2 vec, ivec2 maxSize)
+{
+    vec.x = clamp(vec.x, 0, maxSize.x - 1);
+    vec.y = clamp(vec.y, 0, maxSize.y - 1);
+
+    return vec;
+}
+
+void main()
+{
+    vec4 currentViewPos = imageLoad(inViewPos, ivec2(gl_GlobalInvocationID.xy)).rgba;
+    if(currentViewPos.z > 100.0)
+    {
+        imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), imageLoad(inColor, ivec2(gl_GlobalInvocationID.xy)).rgba);
+        return;
+    }
+
+    vec4 worldPos = ubo.invView * vec4(currentViewPos.rgb, 1.0);
+    vec4 previousViewPos =  ubo.previousView * worldPos;
+
+    vec4 projectedCurrentPos = ubo.projection * currentViewPos;
+    projectedCurrentPos /= projectedCurrentPos.w;
+    vec4 projectedPreviousPos = ubo.projection * previousViewPos;
+    projectedPreviousPos /= projectedPreviousPos.w;
+
+    vec2 velocity = (projectedCurrentPos.xy - projectedPreviousPos.xy) / (4.0 * ubo.timeBetweenFrames);
+    velocity.y -= velocity.y;
+
+   /* vec2 acceleration = (((currentViewPos.xy / 2.0) + vec2(0.5)) - ((previousViewPos.xy / 2.0) + vec2(0.5))) / 16.0;
+    vec2 velocity = imageLoad(inVelocity, ivec2(gl_GlobalInvocationID.xy)).rg;
+    velocity = (velocity + acceleration) / 2.0;
+    velocity *= velocity;
+    velocity.x = clamp(velocity.x, -0.003, 0.003);
+    velocity.y = clamp(velocity.y, -0.003, 0.003);
+    imageStore(inVelocity, ivec2(gl_GlobalInvocationID.xy), vec4(velocity, 0.0, 0.0));*/
+
+    ivec2 textureSize = imageSize(inColor);
+    velocity *= vec2(textureSize);
+
+    vec4 fColor = imageLoad(inColor, ivec2(gl_GlobalInvocationID.xy)).rgba;
+    float chromaticAberrationFactor = 2.0;
+    ivec2 chromaticAberrationOffsetR = ivec2(vec2(2.0, 1.0) * velocity * chromaticAberrationFactor);
+    ivec2 chromaticAberrationOffsetG = ivec2(vec2(0.0, -4.0) * velocity * chromaticAberrationFactor);
+    ivec2 chromaticAberrationOffsetB = ivec2(vec2(-2.0, -1.0) * velocity * chromaticAberrationFactor);
+
+    vec2 texCoord = vec2(gl_GlobalInvocationID.xy) + velocity;
+    for(int i = 1; i < 32; ++i, texCoord += velocity) 
+    {   
+        if(texCoord.x < 0)
+            texCoord.x = 0;
+        if(texCoord.x >= imageSize(inColor).x)
+            texCoord.x = imageSize(inColor).x - 1;
+
+        if(texCoord.y < 0)
+            texCoord.y = 0;
+        if(texCoord.y >= imageSize(inColor).y)
+            texCoord.y = imageSize(inColor).y - 1;
+
+        float currentColorR = imageLoad(inColor, clampTexCoord(ivec2(texCoord) + chromaticAberrationOffsetR, textureSize)).r;   
+        float currentColorG = imageLoad(inColor, clampTexCoord(ivec2(texCoord) + chromaticAberrationOffsetG, textureSize)).g;   
+        float currentColorB = imageLoad(inColor, clampTexCoord(ivec2(texCoord) + chromaticAberrationOffsetB, textureSize)).b;   
+
+        fColor += vec4(currentColorR, currentColorG, currentColorB, 1.0); 
+    }
+    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(fColor.rgba / 32.0));
+}

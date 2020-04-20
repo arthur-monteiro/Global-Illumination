@@ -11,8 +11,8 @@ layout(location = 2) out uvec3 outIDs;
 
 layout(binding = 0) uniform UniformBufferObject
 {
-	vec3 color[64];
-    vec3 posOffset[64];
+	vec3 color[128];
+    vec3 posOffset[128];
 } ubo;
 
 out gl_PerVertex

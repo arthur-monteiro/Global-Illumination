@@ -3,8 +3,8 @@
 void CascadedShadowMapping::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue graphicsQueue, VkExtent2D extent, ModelPBR* model, glm::vec3 sunDir,
 	float cameraNear, float cameraFar)
 {
-	std::vector<VkExtent2D> shadowMapExtents = { { 2048, 2048 }, { 1024, 1024 }, { 1024, 1024 }, { 1024, 1024 } };
-	
+	std::vector<VkExtent2D> shadowMapExtents = { { 2048, 2048 }, { 2048, 2048 }, { 1024, 1024 }, { 1024, 1024 } };
+
 	// Depth passes
 	for (int i(0); i < m_depthPasses.size(); ++i) // for each cascade
 	{
@@ -35,11 +35,11 @@ void CascadedShadowMapping::initialize(VkDevice device, VkPhysicalDevice physica
 	}
 
 	m_renderer.initialize(device, "Shaders/cascadedShadowMapping/vert.spv", "Shaders/cascadedShadowMapping/frag.spv", { VertexPBR::getBindingDescription(0) }, VertexPBR::getAttributeDescriptions(0),
-		{ uboLayout }, {}, imageLayouts, { samplerLayout }, { false });
+		{ uboLayout }, {}, imageLayouts, { samplerLayout }, {},  { false });
 
 	m_ubo.initialize(device, physicalDevice, &m_uboData, sizeof(m_uboData));
 
-	m_sampler.initialize(device, VK_SAMPLER_ADDRESS_MODE_REPEAT, 1.0f, VK_FILTER_NEAREST);
+	m_sampler.initialize(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 1.0f, VK_FILTER_NEAREST, 0.0f);
 
 	std::vector<std::pair<Image*, ImageLayout>> images(CASCADE_COUNT);
 	for (int i(0); i < CASCADE_COUNT; ++i)
@@ -48,7 +48,7 @@ void CascadedShadowMapping::initialize(VkDevice device, VkPhysicalDevice physica
 		images[i].first->setImageLayoutWithoutOperation(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL);
 	}
 
-	m_renderer.addMesh(device, descriptorPool, model->getVertexBuffers()[0], { { &m_ubo, uboLayout} }, {}, images, { { &m_sampler, samplerLayout } });
+	m_renderer.addMesh(device, descriptorPool, model->getVertexBuffers()[0], { { &m_ubo, uboLayout} }, {}, images, { { &m_sampler, samplerLayout } }, {});
 
 	m_clearValues.resize(2);
 	m_clearValues[0] = { 1.0f };
@@ -71,14 +71,27 @@ void CascadedShadowMapping::initialize(VkDevice device, VkPhysicalDevice physica
 	for (int i(0); i < CASCADE_COUNT; ++i)
 		m_uboData.cascadeSplits[i] = m_cascadeSplits[i];
 
-	//m_blur.initialize(device, physicalDevice, commandPool, descriptorPool, graphicsQueue, &m_outputTexture, 1);
+	if(m_blurAmount > 0)
+		m_blur.initialize(device, physicalDevice, commandPool, descriptorPool, graphicsQueue, &m_outputTexture, m_blurAmount, "Shaders/blur/verticalShadowMask.spv", "Shaders/blur/horizontalShadowMask.spv");
 }
 
-void CascadedShadowMapping::submit(VkDevice device, VkQueue graphicsQueue, glm::mat4 view, glm::mat4 model, glm::mat4 projection, float cameraNear, float cameraFOV, glm::vec3 lightDir,
+void CascadedShadowMapping::submit(VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkPhysicalDevice physicalDevice, VkDescriptorPool descriptorPool, glm::mat4 view, glm::mat4 model, glm::mat4 projection, float cameraNear, float cameraFOV, glm::vec3 lightDir,
 	glm::vec3 cameraPosition, glm::vec3 cameraOrientation)
 {
-	updateMatrices(cameraNear, cameraFOV, lightDir, cameraPosition, cameraOrientation, model);
+	if(m_updateBlurAmount >= 0)
+	{
+		if (m_blurAmount != 0)
+			m_blur.cleanup(device, commandPool);
+
+		m_blurAmount = m_updateBlurAmount;
+		m_updateBlurAmount = -1;
+
+		if(m_blurAmount > 0)
+			m_blur.initialize(device, physicalDevice, commandPool, descriptorPool, graphicsQueue, &m_outputTexture, m_blurAmount, "Shaders/blur/verticalShadowMask.spv", "Shaders/blur/horizontalShadowMask.spv");
+	}
 	
+	updateMatrices(cameraNear, cameraFOV, lightDir, cameraPosition, cameraOrientation, model);
+
 	for (int i(0); i < CASCADE_COUNT; ++i)
 		m_depthPasses[i].submit(device, graphicsQueue, m_uboData.lightSpaceMatrices[i]);
 
@@ -90,7 +103,8 @@ void CascadedShadowMapping::submit(VkDevice device, VkQueue graphicsQueue, glm::
 	m_ubo.updateData(device, &m_uboData);
 
 	m_renderPass.submit(device, graphicsQueue, 0, semaphoresToWait);
-	//m_blur.submit(device, graphicsQueue, { m_renderPass.getRenderCompleteSemaphore() });
+	if(m_blurAmount > 0)
+		m_blur.submit(device, graphicsQueue, { m_renderPass.getRenderCompleteSemaphore() });
 }
 
 void CascadedShadowMapping::cleanup(VkDevice device, VkCommandPool commandPool, VkDescriptorPool descriptorPool)
@@ -102,6 +116,26 @@ void CascadedShadowMapping::cleanup(VkDevice device, VkCommandPool commandPool, 
 	m_renderer.cleanup(device, descriptorPool);
 	m_outputTexture.cleanup(device);
 	m_sampler.cleanup(device);
+}
+
+void CascadedShadowMapping::setSoftShadowsOption(glm::uint softShadowsOption)
+{
+	m_uboData.softShadowsOption.x = softShadowsOption;
+}
+
+void CascadedShadowMapping::setSSIterations(glm::uint nIterations)
+{
+	m_uboData.softShadowsOption.y = nIterations;
+}
+
+void CascadedShadowMapping::setSamplingDivisor(float divisor)
+{
+	m_uboData.softShadowsOption.z = static_cast<glm::uint>(divisor);
+}
+
+void CascadedShadowMapping::setBlurAmount(int blurAmount)
+{
+	m_updateBlurAmount = blurAmount;
 }
 
 void CascadedShadowMapping::updateMatrices(float cameraNear, float cameraFOV, glm::vec3 lightDir, glm::vec3 cameraPosition, glm::vec3 cameraOrientation, glm::mat4 model)

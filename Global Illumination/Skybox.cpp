@@ -93,14 +93,14 @@ void Skybox::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkComm
 	cubemapLayout.binding = 2;
 
 	m_renderer.initialize(device, "Shaders/skybox/vert.spv", "Shaders/skybox/frag.spv", { Vertex3DTextured::getBindingDescription(0) }, Vertex3DTextured::getAttributeDescriptions(0),
-		{ vpLayout }, {}, { cubemapLayout }, { samplerLayout }, { false });
+		{ vpLayout }, {}, { cubemapLayout }, { samplerLayout }, {},  { false });
 
 	glm::mat4 mat(1.0f);
 	m_ubo.initialize(device, physicalDevice, &mat, sizeof(glm::mat4));
 
 	m_sampler.initialize(device, VK_SAMPLER_ADDRESS_MODE_REPEAT, static_cast<float>(m_cubemap.getMipLevels()), VK_FILTER_LINEAR);
 
-	m_renderer.addMesh(device, descriptorPool, m_mesh.getVertexBuffer(), { { &m_ubo, vpLayout} }, {}, { { &m_cubemap, cubemapLayout } }, { { &m_sampler, samplerLayout } });
+	m_renderer.addMesh(device, descriptorPool, m_mesh.getVertexBuffer(), { { &m_ubo, vpLayout} }, {}, { { &m_cubemap, cubemapLayout } }, { { &m_sampler, samplerLayout } }, {});
 
 	m_clearValues.resize(2);
 	m_clearValues[0] = { 1.0f };

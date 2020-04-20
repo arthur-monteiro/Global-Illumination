@@ -4,9 +4,9 @@ Pipeline::~Pipeline()
 {
 }
 
-void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
+void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string vertexShader, std::string geometryShader, std::string fragmentShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
 	std::vector<VkVertexInputAttributeDescription> attributeInputDescription, VkExtent2D extent, VkSampleCountFlagBits msaaSamples, std::vector<bool> alphaBlending, 
-	VkDescriptorSetLayout* descriptorSetLayout)
+	VkDescriptorSetLayout* descriptorSetLayout, VkPrimitiveTopology topology, VkBool32 enableDepthTesting, bool addColors)
 {
 	/* Pipeline layout */
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
@@ -21,8 +21,9 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 	/* Shaders */
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
-	VkShaderModule vertShaderModule = VK_NULL_HANDLE;
-	VkShaderModule fragShaderModule = VK_NULL_HANDLE;
+	VkShaderModule vertShaderModule = nullptr;
+	VkShaderModule fragShaderModule = nullptr;
+	VkShaderModule geomShaderModule = nullptr;
 
 	std::vector<char> vertShaderCode = readFile(vertexShader);
 	vertShaderModule = createShaderModule(vertShaderCode, device);
@@ -34,6 +35,20 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 	vertShaderStageInfo.pName = "main";
 
 	shaderStages.push_back(vertShaderStageInfo);
+
+	if(!geometryShader.empty())
+	{
+		std::vector<char> geomShaderCode = readFile(geometryShader);
+		geomShaderModule = createShaderModule(geomShaderCode, device);
+
+		VkPipelineShaderStageCreateInfo geomShaderStageInfo = {};
+		geomShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		geomShaderStageInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
+		geomShaderStageInfo.module = geomShaderModule;
+		geomShaderStageInfo.pName = "main";
+
+		shaderStages.push_back(geomShaderStageInfo);
+	}
 
 	if(!fragmentShader.empty())
 	{
@@ -60,7 +75,7 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	inputAssembly.topology = topology;
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 	/* Viewport */
@@ -90,7 +105,7 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 	rasterizer.rasterizerDiscardEnable = VK_FALSE;
 	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizer.lineWidth = 1.0f;
-	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+	rasterizer.cullMode = VK_CULL_MODE_NONE;
 	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
 
@@ -106,14 +121,28 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 	{
 		if (alphaBlending[i])
 		{
-			colorBlendAttachments[i].colorWriteMask = 0xf;
-			colorBlendAttachments[i].blendEnable = VK_TRUE;
-			colorBlendAttachments[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-			colorBlendAttachments[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-			colorBlendAttachments[i].colorBlendOp = VK_BLEND_OP_ADD;
-			colorBlendAttachments[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-			colorBlendAttachments[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_DST_ALPHA;
-			colorBlendAttachments[i].alphaBlendOp = VK_BLEND_OP_ADD;
+			if (addColors)
+			{
+				colorBlendAttachments[i].colorWriteMask = 0xf;
+				colorBlendAttachments[i].blendEnable = VK_TRUE;
+				colorBlendAttachments[i].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+				colorBlendAttachments[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+				colorBlendAttachments[i].colorBlendOp = VK_BLEND_OP_ADD;
+				colorBlendAttachments[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+				colorBlendAttachments[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+				colorBlendAttachments[i].alphaBlendOp = VK_BLEND_OP_MAX;
+			}
+			else
+			{
+				colorBlendAttachments[i].colorWriteMask = 0xf;
+				colorBlendAttachments[i].blendEnable = VK_TRUE;
+				colorBlendAttachments[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+				colorBlendAttachments[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+				colorBlendAttachments[i].colorBlendOp = VK_BLEND_OP_ADD;
+				colorBlendAttachments[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+				colorBlendAttachments[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_DST_ALPHA;
+				colorBlendAttachments[i].alphaBlendOp = VK_BLEND_OP_ADD;
+			}
 		}
 		else
 		{
@@ -151,7 +180,7 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 
 	VkPipelineDepthStencilStateCreateInfo depthStencil = {};
 	depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencil.depthTestEnable = VK_TRUE;
+	depthStencil.depthTestEnable = enableDepthTesting;
 	depthStencil.depthWriteEnable = VK_TRUE;
 	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 	depthStencil.depthBoundsTestEnable = VK_FALSE;
@@ -163,6 +192,8 @@ void Pipeline::initialize(VkDevice device, VkRenderPass renderPass, std::string 
 		throw std::runtime_error("Error : graphic pipeline creation");
 
 	vkDestroyShaderModule(device, vertShaderModule, nullptr);
+	if(!geometryShader.empty())
+		vkDestroyShaderModule(device, geomShaderModule, nullptr);
 	if(!fragmentShader.empty())
 		vkDestroyShaderModule(device, fragShaderModule, nullptr);
 }

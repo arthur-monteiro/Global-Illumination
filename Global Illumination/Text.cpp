@@ -11,7 +11,7 @@ void Text::build(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool
 {
 	std::vector<Vertex2DTexturedWithMaterial> vertices;
 	int maxSizeY = font->getMaxSizeY();
-	float scale = (outputExtent.height / static_cast<float>(maxSizeY)) * size * 2.0f;
+	float scale = (outputExtent.height / static_cast<float>(maxSizeY))* size * 2.0f;
 
 	int textID = 0;
 	for (const TextStructure& text : m_texts)
@@ -87,7 +87,7 @@ float Text::simulateSizeX(std::wstring text, VkExtent2D outputExtent, Font* font
 {
 	float offsetX = 0.0f;
 	int maxSizeY = font->getMaxSizeY();
-	float scale = (outputExtent.height / static_cast<float>(maxSizeY)) * size * 2.0f;
+	float scale = (outputExtent.height / static_cast<float>(maxSizeY))* size * 2.0f;
 
 	for (const wchar_t& character : text)
 	{
@@ -112,6 +112,12 @@ void Text::setColor(VkDevice device, unsigned ID, glm::vec3 color)
 void Text::translate(VkDevice device, unsigned ID, glm::vec2 offset)
 {
 	m_texts[ID].posOffset += offset;
+	updateUBO(device);
+}
+
+void Text::setPosOffset(VkDevice device, unsigned int ID, glm::vec2 offset)
+{
+	m_texts[ID].posOffset = offset;
 	updateUBO(device);
 }
 

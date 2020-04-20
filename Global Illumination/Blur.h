@@ -8,7 +8,8 @@ public:
 	Blur() = default;
 	~Blur() = default;
 
-	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue computeQueue, Texture* inputTexture, int blurAmount);
+	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, VkQueue computeQueue, Texture* inputTexture, int blurAmount,
+		std::string verticalShaderPath = "Shaders/blur/vertical.spv", std::string horizontalShaderPat = "Shaders/blur/horizontal.spv", Texture* resultTexture = nullptr);
 	void submit(VkDevice device, VkQueue computeQueue, std::vector<Semaphore*> semaphoresToWait);
 	void cleanup(VkDevice device, VkCommandPool commandPool);
 

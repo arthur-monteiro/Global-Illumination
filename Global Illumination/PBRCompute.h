@@ -18,7 +18,7 @@ public:
 
 	/*void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
 		Texture* shadowMask, Texture* hudTexture, Texture* aoTexture, std::vector<Texture*> swapChainTextures, std::vector<Operation> transitSwapChainToLayoutGeneral,
-		std::vector<Operation> transitSwapChainToLayoutPresent, ParamsUBO params);*/
+		std::vector<Operation> transitSwapChainToLayoutPresent, ParamsUBO m_bokehPointGenerationParams);*/
 	void initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkDescriptorPool descriptorPool, std::vector<Texture*> gBufferTextures,
 		Texture* shadowMask, Texture* aoTexture, Texture* skyboxTexture, VkExtent2D extentOutput, ParamsUBO params, VkQueue computeQueue);
 	

@@ -66,6 +66,10 @@
     <ClCompile Include="Bloom.cpp" />
     <ClCompile Include="Reflection.cpp" />
     <ClCompile Include="SSR.cpp" />
+    <ClCompile Include="GlobalIllumination.cpp" />
+    <ClCompile Include="IrradianceProbes.cpp" />
+    <ClCompile Include="MotionBlur.cpp" />
+    <ClCompile Include="DepthOfField.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vulkan.h">
@@ -129,6 +133,10 @@
     <ClInclude Include="Bloom.h" />
     <ClInclude Include="Reflection.h" />
     <ClInclude Include="SSR.h" />
+    <ClInclude Include="GlobalIllumination.h" />
+    <ClInclude Include="IrradianceProbes.h" />
+    <ClInclude Include="MotionBlur.h" />
+    <ClInclude Include="DepthOfField.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

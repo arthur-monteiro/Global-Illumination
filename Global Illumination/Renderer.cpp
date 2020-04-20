@@ -3,35 +3,56 @@
 #include <utility>
 
 Renderer::~Renderer()
-{
-}
+= default;
 
 void Renderer::initialize(VkDevice device, std::string vertexShader, std::string fragmentShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
-	std::vector<VkVertexInputAttributeDescription> attributeInputDescription, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts,
-	std::vector<TextureLayout> textureLayouts, std::vector<ImageLayout> imageLayouts, std::vector<SamplerLayout> samplerLayouts, std::vector<bool> alphaBlending)
+                          std::vector<VkVertexInputAttributeDescription> attributeInputDescription, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts,
+                          std::vector<TextureLayout> textureLayouts, std::vector<ImageLayout> imageLayouts, std::vector<SamplerLayout> samplerLayouts, std::vector<BufferLayout> bufferLayouts, 
+                          std::vector<bool> alphaBlending)
 {
 	m_vertexShader = std::move(vertexShader);
+	m_geometryShader = "";
 	m_fragmentShader = std::move(fragmentShader);
 	m_vertexInputDescription = std::move(vertexInputDescription);
 	m_attributeInputDescription = std::move(attributeInputDescription);
 	m_alphaBlending = std::move(alphaBlending);
 
-	createDescriptorSetLayout(device, std::move(uniformBufferObjectLayouts), std::move(textureLayouts), std::move(imageLayouts), std::move(samplerLayouts));
+	createDescriptorSetLayout(device, std::move(uniformBufferObjectLayouts), std::move(textureLayouts), std::move(imageLayouts), std::move(samplerLayouts),
+		std::move(bufferLayouts));
+}
+
+void Renderer::initialize(VkDevice device, std::string vertexShader, std::string geometryShader,
+	std::string fragmentShader, std::vector<VkVertexInputBindingDescription> vertexInputDescription,
+	std::vector<VkVertexInputAttributeDescription> attributeInputDescription,
+	std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, std::vector<TextureLayout> textureLayouts,
+	std::vector<ImageLayout> imageLayouts, std::vector<SamplerLayout> samplerLayouts,
+	std::vector<BufferLayout> bufferLayouts, std::vector<bool> alphaBlending)
+{
+	m_vertexShader = std::move(vertexShader);
+	m_geometryShader = std::move(geometryShader);
+	m_fragmentShader = std::move(fragmentShader);
+	m_vertexInputDescription = std::move(vertexInputDescription);
+	m_attributeInputDescription = std::move(attributeInputDescription);
+	m_alphaBlending = std::move(alphaBlending);
+
+	createDescriptorSetLayout(device, std::move(uniformBufferObjectLayouts), std::move(textureLayouts), std::move(imageLayouts), std::move(samplerLayouts),
+		std::move(bufferLayouts));
 }
 
 void Renderer::initialize(VkDevice device, std::string vertexShader,
-	std::vector<VkVertexInputBindingDescription> vertexInputDescription,
-	std::vector<VkVertexInputAttributeDescription> attributeInputDescription,
-	std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, std::vector<TextureLayout> textureLayouts,
-	std::vector<bool> alphaBlending)
+                          std::vector<VkVertexInputBindingDescription> vertexInputDescription,
+                          std::vector<VkVertexInputAttributeDescription> attributeInputDescription,
+                          std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, std::vector<TextureLayout> textureLayouts,
+                          std::vector<bool> alphaBlending)
 {
 	m_vertexShader = std::move(vertexShader);
+	m_geometryShader = "";
 	m_fragmentShader = "";
 	m_vertexInputDescription = std::move(vertexInputDescription);
 	m_attributeInputDescription = std::move(attributeInputDescription);
 	m_alphaBlending = std::move(alphaBlending);
 
-	createDescriptorSetLayout(device, std::move(uniformBufferObjectLayouts), std::move(textureLayouts), {}, {}); // !! change definition to allow image and sampler separated
+	createDescriptorSetLayout(device, std::move(uniformBufferObjectLayouts), std::move(textureLayouts), {}, {}, {}); // !! change definition to allow image and sampler separated
 }
 
 void Renderer::createPipeline(VkDevice device, VkRenderPass renderPass, VkExtent2D extent, VkSampleCountFlagBits msaa)
@@ -39,7 +60,7 @@ void Renderer::createPipeline(VkDevice device, VkRenderPass renderPass, VkExtent
 	if (m_pipelineCreated)
 		return;
 
-	m_pipeline.initialize(device, renderPass, m_vertexShader, m_fragmentShader, m_vertexInputDescription, m_attributeInputDescription, extent, msaa, m_alphaBlending, &m_descriptorSetLayout);
+	m_pipeline.initialize(device, renderPass, m_vertexShader, m_geometryShader, m_fragmentShader, m_vertexInputDescription, m_attributeInputDescription, extent, msaa, m_alphaBlending, &m_descriptorSetLayout);
 	m_pipelineCreated = true;
 }
 
@@ -54,9 +75,9 @@ void Renderer::destroyPipeline(VkDevice device)
 
 int Renderer::addMesh(VkDevice device, VkDescriptorPool descriptorPool, VertexBuffer vertexBuffer,
 	std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures,
-	std::vector<std::pair<Image*, ImageLayout>> images, std::vector<std::pair<Sampler*, SamplerLayout>> samplers)
+	std::vector<std::pair<Image*, ImageLayout>> images, std::vector<std::pair<Sampler*, SamplerLayout>> samplers, std::vector<std::pair<VkBuffer, BufferLayout>> buffers)
 {
-	m_meshes.push_back({ vertexBuffer, createDescriptorSet(device, descriptorPool, ubos, textures, images, samplers) });
+	m_meshes.push_back({ vertexBuffer, createDescriptorSet(device, descriptorPool, ubos, textures, images, samplers, buffers) });
 	
 	return m_meshes.size() - 1;
 }
@@ -65,7 +86,7 @@ int Renderer::addMeshInstancied(VkDevice device, VkDescriptorPool descriptorPool
 	InstanceBuffer instanceBuffer, std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos,
 	std::vector<std::pair<Texture*, TextureLayout>> textures)
 {
-	m_meshesInstancied.push_back({ vertexBuffer, instanceBuffer, createDescriptorSet(device, descriptorPool, ubos, textures, {}, {}) }); // !!
+	m_meshesInstancied.push_back({ vertexBuffer, instanceBuffer, createDescriptorSet(device, descriptorPool, ubos, textures, {}, {}, {}) }); // !!
 
 	return m_meshesInstancied.size() - 1;
 }
@@ -97,34 +118,34 @@ std::vector<std::tuple<VertexBuffer, InstanceBuffer, VkDescriptorSet>> Renderer:
 }
 
 void Renderer::createDescriptorSetLayout(VkDevice device, std::vector<UniformBufferObjectLayout> uniformBufferObjectLayouts, std::vector<TextureLayout> textureLayouts,
-	std::vector<ImageLayout> imageLayouts, std::vector<SamplerLayout> samplerLayouts)
+	std::vector<ImageLayout> imageLayouts, std::vector<SamplerLayout> samplerLayouts, std::vector<BufferLayout> bufferLayouts)
 {
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
-	for (int i(0); i < uniformBufferObjectLayouts.size(); ++i)
+	for (auto& uniformBufferObjectLayout : uniformBufferObjectLayouts)
 	{
 		VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-		uboLayoutBinding.binding = uniformBufferObjectLayouts[i].binding;
+		uboLayoutBinding.binding = uniformBufferObjectLayout.binding;
 		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		uboLayoutBinding.descriptorCount = 1;
-		uboLayoutBinding.stageFlags = uniformBufferObjectLayouts[i].accessibility;
+		uboLayoutBinding.stageFlags = uniformBufferObjectLayout.accessibility;
 		uboLayoutBinding.pImmutableSamplers = nullptr;
 
 		bindings.push_back(uboLayoutBinding);
 	}
 
-	if(textureLayouts.size() > 0)
+	for (auto& textureLayout : textureLayouts)
 	{
 		VkDescriptorSetLayoutBinding imageSamplerLayoutBinding = {};
-		imageSamplerLayoutBinding.binding = textureLayouts[0].binding;
-		imageSamplerLayoutBinding.descriptorCount = static_cast<uint32_t>(textureLayouts.size());
+		imageSamplerLayoutBinding.binding = textureLayout.binding;
+		imageSamplerLayoutBinding.descriptorCount = static_cast<uint32_t>(1);
 		imageSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		imageSamplerLayoutBinding.stageFlags = textureLayouts[0].accessibility;
+		imageSamplerLayoutBinding.stageFlags = textureLayout.accessibility;
 		imageSamplerLayoutBinding.pImmutableSamplers = nullptr;
 
 		bindings.push_back(imageSamplerLayoutBinding);
 	}
 
-	if (imageLayouts.size() > 0)
+	if (!imageLayouts.empty())
 	{
 		VkDescriptorSetLayoutBinding imageLayoutBinding = {};
 		imageLayoutBinding.binding = imageLayouts[0].binding;
@@ -136,7 +157,7 @@ void Renderer::createDescriptorSetLayout(VkDevice device, std::vector<UniformBuf
 		bindings.push_back(imageLayoutBinding);
 	}
 
-	if (samplerLayouts.size() > 0)
+	if (!samplerLayouts.empty())
 	{
 		VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
 		samplerLayoutBinding.binding = samplerLayouts[0].binding;
@@ -146,6 +167,18 @@ void Renderer::createDescriptorSetLayout(VkDevice device, std::vector<UniformBuf
 		samplerLayoutBinding.pImmutableSamplers = nullptr;
 
 		bindings.push_back(samplerLayoutBinding);
+	}
+
+	for (auto& bufferLayout : bufferLayouts)
+	{
+		VkDescriptorSetLayoutBinding bufferLayoutBinding = {};
+		bufferLayoutBinding.binding = bufferLayout.binding;
+		bufferLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		bufferLayoutBinding.descriptorCount = 1;
+		bufferLayoutBinding.stageFlags = bufferLayout.accessibility;
+		bufferLayoutBinding.pImmutableSamplers = nullptr;
+
+		bindings.push_back(bufferLayoutBinding);
 	}
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
@@ -159,7 +192,7 @@ void Renderer::createDescriptorSetLayout(VkDevice device, std::vector<UniformBuf
 
 VkDescriptorSet Renderer::createDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool,
 	std::vector<std::pair<UniformBufferObject*, UniformBufferObjectLayout>> ubos, std::vector<std::pair<Texture*, TextureLayout>> textures,
-	std::vector<std::pair<Image*, ImageLayout>> images, std::vector<std::pair<Sampler*, SamplerLayout>> samplers)
+	std::vector<std::pair<Image*, ImageLayout>> images, std::vector<std::pair<Sampler*, SamplerLayout>> samplers, std::vector<std::pair<VkBuffer, BufferLayout>> buffers)
 {
 	VkDescriptorSetLayout layouts[] = { m_descriptorSetLayout };
 	VkDescriptorSetAllocateInfo allocInfo = {};
@@ -175,12 +208,12 @@ VkDescriptorSet Renderer::createDescriptorSet(VkDevice device, VkDescriptorPool 
 
 	std::vector<VkWriteDescriptorSet> descriptorWrites;
 
-	std::vector<VkDescriptorBufferInfo> bufferInfo(ubos.size());
+	std::vector<VkDescriptorBufferInfo> uniformBufferInfo(ubos.size());
 	for (int i(0); i < ubos.size(); ++i)
 	{
-		bufferInfo[i].buffer = ubos[i].first->getUniformBuffer();
-		bufferInfo[i].offset = 0;
-		bufferInfo[i].range = ubos[i].first->getSize();
+		uniformBufferInfo[i].buffer = ubos[i].first->getUniformBuffer();
+		uniformBufferInfo[i].offset = 0;
+		uniformBufferInfo[i].range = ubos[i].first->getSize();
 
 		VkWriteDescriptorSet descriptorWrite;
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -189,7 +222,7 @@ VkDescriptorSet Renderer::createDescriptorSet(VkDevice device, VkDescriptorPool 
 		descriptorWrite.dstArrayElement = 0;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pBufferInfo = &bufferInfo[i];
+		descriptorWrite.pBufferInfo = &uniformBufferInfo[i];
 		descriptorWrite.pNext = NULL;
 
 		descriptorWrites.push_back(descriptorWrite);
@@ -203,7 +236,7 @@ VkDescriptorSet Renderer::createDescriptorSet(VkDevice device, VkDescriptorPool 
 		imageSamplerInfo[i].sampler = textures[i].first->getSampler();
 	}
 
-	if (textures.size() > 0)
+	if (!textures.empty())
 	{
 		VkWriteDescriptorSet descriptorWrite;
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -225,7 +258,7 @@ VkDescriptorSet Renderer::createDescriptorSet(VkDevice device, VkDescriptorPool 
 		imageInfo[i].imageView = images[i].first->getImageView();
 	}
 
-	if (images.size() > 0)
+	if (!images.empty())
 	{
 		VkWriteDescriptorSet descriptorWrite;
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -246,7 +279,7 @@ VkDescriptorSet Renderer::createDescriptorSet(VkDevice device, VkDescriptorPool 
 		samplerInfo[i].sampler = samplers[i].first->getSampler();
 	}
 
-	if (samplers.size() > 0)
+	if (!samplers.empty())
 	{
 		VkWriteDescriptorSet descriptorWrite;
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -256,6 +289,26 @@ VkDescriptorSet Renderer::createDescriptorSet(VkDevice device, VkDescriptorPool 
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
 		descriptorWrite.descriptorCount = static_cast<uint32_t>(samplerInfo.size());
 		descriptorWrite.pImageInfo = samplerInfo.data();
+		descriptorWrite.pNext = NULL;
+
+		descriptorWrites.push_back(descriptorWrite);
+	}
+
+	std::vector<VkDescriptorBufferInfo> bufferInfo(buffers.size());
+	for (int i(0); i < buffers.size(); ++i)
+	{
+		bufferInfo[i].buffer = buffers[i].first;
+		bufferInfo[i].offset = 0;
+		bufferInfo[i].range = buffers[i].second.size;
+
+		VkWriteDescriptorSet descriptorWrite;
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.dstSet = descriptorSet;
+		descriptorWrite.dstBinding = buffers[i].second.binding;
+		descriptorWrite.dstArrayElement = 0;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.pBufferInfo = &bufferInfo[i];
 		descriptorWrite.pNext = NULL;
 
 		descriptorWrites.push_back(descriptorWrite);

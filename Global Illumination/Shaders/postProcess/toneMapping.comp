@@ -6,19 +6,42 @@ layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 layout (binding = 0, rgba32f) uniform readonly image2D inImage;
 layout (binding = 1, rgba8) uniform image2D resultImage;
 
+layout(binding = 2, std140) uniform readonly UniformBufferObjectParams
+{
+    float exposure;
+    float gamma;
+} uboParams;
+
 //http://filmicworlds.com/blog/filmic-tonemapping-operators/
+
+float A = 0.15;
+float B = 0.50;
+float C = 0.10;
+float D = 0.20;
+float E = 0.02;
+float F = 0.30;
+float W = 11.2;
+
+vec3 Uncharted2Tonemap(vec3 x)
+{
+   return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+}
+
 void main()
 {
-    vec4 colorInput = imageLoad(inImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgba;
+    vec4 colorInput = imageLoad(inImage, ivec2(gl_GlobalInvocationID.xy)).rgba;
     vec3 color = colorInput.rgb;
 
-    float exposure = 1.0;
-    float gamma = 2.2;
+    vec3 curr = Uncharted2Tonemap(uboParams.exposure * color);
+    vec3 whiteScale = vec3(1.0) / Uncharted2Tonemap(vec3(W));
+    color = curr*whiteScale;
 
-    color *= exposure;
-    vec3 x = max(vec3(0.0), color - vec3(0.004));
+    //color *= exposure;
+    //vec3 x = max(vec3(0.0), color - vec3(0.004));
 
-    color = (x*(6.2*x+.5))/(x*(6.2*x+1.7)+0.06);
+    //color = (x*(6.2*x+.5))/(x*(6.2*x+1.7)+0.06);
+
+    color = pow(color, vec3(1.0 / uboParams.gamma));
 
     imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(color.rgb, colorInput.a));
 }

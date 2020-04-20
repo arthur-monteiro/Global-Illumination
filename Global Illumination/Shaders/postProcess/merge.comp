@@ -9,7 +9,7 @@ layout (binding = 2, rgba8) uniform image2D resultImage;
 
 void main()
 {
-    vec3 color = imageLoad(inImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
+    vec3 color = imageLoad(inImage, ivec2(gl_GlobalInvocationID.xy)).rgb;
     vec4 hud = imageLoad(inHUD, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgba;
     color = color * (1.0 - hud.a) + hud.rgb * hud.a; 
 

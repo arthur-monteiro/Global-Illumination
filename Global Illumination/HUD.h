@@ -92,7 +92,7 @@ private:
 	float m_bokehThresholdBlurState = 0.5f;
 	bool m_focusPointCenteredState = true;
 	std::vector<float> m_blurFocusState = { 0.0f, 4.0f, 10.0f, 16.0f };
-	float m_exposureState = 0.5f;
+	float m_exposureState = 1.0f;
 	float m_gammaState = 2.2f;
 
 	Renderer m_renderer;

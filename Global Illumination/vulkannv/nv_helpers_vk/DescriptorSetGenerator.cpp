@@ -31,6 +31,8 @@ Contacts for feedback:
 
 #include "DescriptorSetGenerator.h"
 
+#include <stdexcept>
+
 namespace nv_helpers_vk {
 //--------------------------------------------------------------------------------------------------
 // Add a binding to the descriptor set

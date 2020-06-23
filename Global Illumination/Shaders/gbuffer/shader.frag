@@ -15,9 +15,17 @@ layout(location = 1) out vec4 outAlbedo;
 layout(location = 2) out vec4 outNormal;
 layout(location = 3) out vec4 outRoughnessMetalAO;
 
+vec3 sRGBToLinear(vec3 color)
+{
+	if (length(color) <= 0.04045)
+    	return color / 12.92;
+	else
+		return pow((color + vec3(0.055)) / 1.055, vec3(2.4));
+}
+
 void main() 
 {
-	outAlbedo = texture(sampler2D(textures[inMaterialID * 5], textureSampler), inTexCoord);
+	outAlbedo = vec4(sRGBToLinear(texture(sampler2D(textures[inMaterialID * 5], textureSampler), inTexCoord).rgb), 1.0);
 	vec3 normal = (texture(sampler2D(textures[inMaterialID * 5 + 1], textureSampler), inTexCoord).rgb * 2.0 - vec3(1.0)) * inTBN;
 	normal = normalize(normal);
 	outNormal = vec4(normal, outAlbedo.a);

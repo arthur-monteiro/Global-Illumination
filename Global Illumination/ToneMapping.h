@@ -31,7 +31,7 @@ private:
 
 	struct Params
 	{
-		glm::vec4 params = glm::vec4(0.5f, 2.2f, 0.0, 0.0);
+		glm::vec4 params = glm::vec4(1.0f, 2.2f, 0.0, 0.0);
 	};
 	Params m_params;
 	UniformBufferObject m_ubo;

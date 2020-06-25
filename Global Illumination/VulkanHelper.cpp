@@ -47,7 +47,7 @@ bool isDeviceSuitable(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, std
 			if (memoryProperties.memoryHeaps[i].size < 1073741824)
 			{
 				std::cout << "Not enough memory : " << memoryProperties.memoryHeaps[i].size << std::endl;
-				return false;
+				//return false;
 			}
 		}
 	}

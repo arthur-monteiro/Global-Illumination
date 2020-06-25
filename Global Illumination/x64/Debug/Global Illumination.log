@@ -1,9 +1,3 @@
-﻿  GameManager.cpp
-  HUD.cpp
-F:\Code\Global-Illumination\Global Illumination\HUD.cpp(296,22): warning C4244: 'return': conversion from '__int64' to 'int', possible loss of data
-  SceneManager.cpp
-  SystemManager.cpp
-  ToneMapping.cpp
-  main.cpp
-  Generating Code...
+﻿  VulkanHelper.cpp
+F:\Code\Global-Illumination\Global Illumination\VulkanHelper.cpp(42,19): warning C4018: '<': signed/unsigned mismatch
   Global Illumination.vcxproj -> F:\Code\Global-Illumination\x64\Debug\Global Illumination.exe
